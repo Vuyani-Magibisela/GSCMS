@@ -1,0 +1,238 @@
+SciBOTICS Competition Management System
+# .gitignore template
+
+# ==============================================
+# PHP & Composer Dependencies
+# ==============================================
+/vendor/
+composer.phar
+composer.lock
+
+# ==============================================
+# Configuration Files (contains sensitive data)
+# ==============================================
+.env
+.env.local
+.env.*.local
+config/database.php
+config/app.php
+config/mail.php
+config/services.php
+
+# ==============================================
+# Logs & Cache
+# ==============================================
+/logs/
+/storage/logs/
+/storage/cache/
+/storage/framework/cache/
+/storage/framework/sessions/
+*.log
+error_log
+access.log
+
+# ==============================================
+# Uploaded Files & User Content
+# ==============================================
+/public/uploads/
+/public/uploads/consent_forms/
+/public/uploads/team_submissions/
+/storage/uploads/
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+
+# Exclude sensitive uploaded documents but keep directory structure
+!public/uploads/.gitkeep
+!public/uploads/consent_forms/.gitkeep
+!public/uploads/team_submissions/.gitkeep
+
+# ==============================================
+# Temporary Files
+# ==============================================
+/tmp/
+/temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# ==============================================
+# IDE & Editor Files
+# ==============================================
+# PhpStorm
+.idea/
+*.iml
+*.iws
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ==============================================
+# Operating System Files
+# ==============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ==============================================
+# Development & Testing
+# ==============================================
+# PHPUnit
+.phpunit.result.cache
+/phpunit.xml
+/coverage/
+/build/
+
+# Node.js (if using for frontend build tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ==============================================
+# Backup Files
+# ==============================================
+*.backup
+*.bak
+*.old
+*.orig
+backup/
+backups/
+
+# ==============================================
+# Database Files
+# ==============================================
+*.sqlite
+*.sqlite3
+*.db
+database/*.sqlite
+database/database.sqlite
+
+# SQL dumps (but allow schema files)
+*.sql
+!database/migrations/*.sql
+!database/seeds/*.sql
+!database/GSCMS_DB_Schema.sql
+
+# ==============================================
+# Security & Keys
+# ==============================================
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.csr
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+*.pub
+
+# ==============================================
+# Application Specific
+# ==============================================
+# Competition specific temporary files
+/storage/competition_data/
+/storage/exports/
+/public/competition_photos/
+!public/competition_photos/.gitkeep
+
+# Generated documentation
+/docs/generated/
+/api-docs/
+
+# Compiled assets (if using build tools)
+/public/css/compiled/
+/public/js/compiled/
+/public/mix-manifest.json
+
+# ==============================================
+# Archives & Compressed Files
+# ==============================================
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# ==============================================
+# Version Control
+# ==============================================
+.git/
+.gitattributes
+
+# ==============================================
+# Deployment Files
+# ==============================================
+.htaccess.local
+.htaccess.staging
+.htaccess.production
+deploy.php
+deployment/
+.deploy/
+
+# ==============================================
+# Package Managers
+# ==============================================
+# Composer
+composer.lock
+
+# NPM/Yarn (if using)
+package-lock.json
+yarn.lock
+
+# ==============================================
+# Custom Project Specific
+# ==============================================
+# Add any specific files for your project here
+# For example:
+# /custom_config/
+# /special_uploads/
+# *.custom_extension
