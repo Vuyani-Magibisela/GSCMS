@@ -3,10 +3,12 @@
     "description": "GDE SciBOTICS Competition Management System",
     "type": "project",
     "autoload": {
-
         "psr-4": {
-            "Gde\\SciboticsCms\\": "src/"
-        }
+            "App\\": "app/"
+        },
+        "files": [
+            "app/Core/helpers.php"
+        ]
     },
     "authors": [
         {
