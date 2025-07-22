@@ -1,5 +1,5 @@
 <?php
-// database/migrations/007_create_teams_table.php
+// database/migrations/007_create_teams_table.php - UPDATED
 
 require_once __DIR__ . '/../../app/Core/Migration.php';
 
@@ -35,14 +35,7 @@ class CreateTeamsTable extends Migration
         $this->execute("ALTER TABLE teams ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
         $this->execute("ALTER TABLE teams ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP");
         
-        // Add foreign keys
-        $this->addForeignKey('teams', 'school_id', 'schools', 'id', 'CASCADE');
-        $this->addForeignKey('teams', 'category_id', 'categories', 'id', 'RESTRICT');
-        $this->addForeignKey('teams', 'competition_id', 'competitions', 'id', 'SET NULL');
-        $this->addForeignKey('teams', 'coach1_id', 'users', 'id', 'SET NULL');
-        $this->addForeignKey('teams', 'coach2_id', 'users', 'id', 'SET NULL');
-        
-        // Add indexes
+        // Add indexes only (foreign keys added later)
         $this->addIndex('teams', 'idx_school_category', ['school_id', 'category_id']);
         $this->addIndex('teams', 'idx_team_code', 'team_code');
         $this->addIndex('teams', 'idx_status', 'status');

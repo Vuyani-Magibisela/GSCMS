@@ -1,5 +1,5 @@
 <?php
-// database/migrations/002_create_users_table.php
+// database/migrations/002_create_users_table.php - FIXED VERSION
 
 require_once __DIR__ . '/../../app/Core/Migration.php';
 
@@ -32,7 +32,7 @@ class CreateUsersTable extends Migration
             'collate' => 'utf8mb4_unicode_ci'
         ]);
         
-        // Add indexes
+        // Add indexes - but NOT foreign keys yet (they'll be added later)
         $this->addIndex('users', 'idx_email', 'email');
         $this->addIndex('users', 'idx_username', 'username');
         $this->addIndex('users', 'idx_role', 'role');

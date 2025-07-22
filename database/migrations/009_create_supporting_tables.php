@@ -1,5 +1,5 @@
 <?php
-// database/migrations/009_create_supporting_tables.php
+// database/migrations/009_create_supporting_tables.php - UPDATED
 
 require_once __DIR__ . '/../../app/Core/Migration.php';
 
@@ -17,7 +17,6 @@ class CreateSupportingTables extends Migration
         ];
         
         $this->createTable('user_sessions', $sessionColumns);
-        $this->addForeignKey('user_sessions', 'user_id', 'users', 'id', 'CASCADE');
         $this->addIndex('user_sessions', 'idx_user_id', 'user_id');
         $this->addIndex('user_sessions', 'idx_expires_at', 'expires_at');
         
@@ -36,7 +35,6 @@ class CreateSupportingTables extends Migration
         $this->createTable('user_activity_log', $activityColumns, ['no_timestamps' => true]);
         $this->execute("ALTER TABLE user_activity_log ADD COLUMN created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP");
         
-        $this->addForeignKey('user_activity_log', 'user_id', 'users', 'id', 'SET NULL');
         $this->addIndex('user_activity_log', 'idx_user_id', 'user_id');
         $this->addIndex('user_activity_log', 'idx_action', 'action');
         $this->addIndex('user_activity_log', 'idx_created_at', 'created_at');

@@ -1,5 +1,5 @@
 <?php
-// app/Core/Migration.php
+// app/Core/Migration.php - COMPLETELY FIXED VERSION
 
 class Migration
 {
@@ -29,7 +29,7 @@ class Migration
     }
     
     /**
-     * Execute SQL with error handling and logging
+     * Execute SQL with error handling and logging - NO TRANSACTIONS
      */
     protected function execute($sql, $description = null)
     {
@@ -53,24 +53,33 @@ class Migration
     }
     
     /**
-     * Execute multiple SQL statements in a transaction
+     * Execute multiple SQL statements - FIXED TRANSACTION HANDLING
      */
     protected function executeInTransaction(array $statements, $description = null)
     {
+        $wasInTransaction = $this->db->inTransaction();
+        
         try {
-            $this->db->beginTransaction();
+            if (!$wasInTransaction) {
+                $this->db->beginTransaction();
+            }
+            
             $this->logger->info("Starting transaction: " . ($description ?: "Multiple statements"));
             
             foreach ($statements as $sql) {
                 $this->execute($sql);
             }
             
-            $this->db->commit();
-            $this->logger->info("Transaction committed successfully");
+            if (!$wasInTransaction) {
+                $this->db->commit();
+                $this->logger->info("Transaction committed successfully");
+            }
             
         } catch (Exception $e) {
-            $this->db->rollback();
-            $this->logger->error("Transaction rolled back: " . $e->getMessage());
+            if (!$wasInTransaction && $this->db->inTransaction()) {
+                $this->db->rollback();
+                $this->logger->error("Transaction rolled back: " . $e->getMessage());
+            }
             throw $e;
         }
     }
@@ -106,12 +115,20 @@ class Migration
         // Add table options
         if (isset($options['engine'])) {
             $sql .= " ENGINE=" . $options['engine'];
+        } else {
+            $sql .= " ENGINE=InnoDB";
         }
+        
         if (isset($options['charset'])) {
             $sql .= " CHARACTER SET " . $options['charset'];
+        } else {
+            $sql .= " CHARACTER SET utf8mb4";
         }
+        
         if (isset($options['collate'])) {
             $sql .= " COLLATE " . $options['collate'];
+        } else {
+            $sql .= " COLLATE utf8mb4_unicode_ci";
         }
         
         $sql .= ";";
@@ -133,7 +150,7 @@ class Migration
      */
     protected function addIndex($tableName, $indexName, $columns, $type = 'INDEX')
     {
-        $columnList = is_array($columns) ? implode(',', $columns) : $columns;
+        $columnList = is_array($columns) ? '`' . implode('`,`', $columns) . '`' : "`{$columns}`";
         $sql = "CREATE {$type} `{$indexName}` ON `{$tableName}` ({$columnList});";
         $this->execute($sql, "Adding {$type}: {$indexName} on {$tableName}");
     }
@@ -218,7 +235,7 @@ class MigrationLogger
 }
 
 /**
- * Migration Manager Class
+ * Migration Manager Class - COMPLETELY FIXED
  */
 class MigrationManager
 {
@@ -236,19 +253,28 @@ class MigrationManager
     }
     
     /**
-     * Create migrations tracking table
+     * Create migrations tracking table - only if it doesn't exist
      */
     private function ensureMigrationsTable()
     {
-        $sql = "CREATE TABLE IF NOT EXISTS `migrations` (
-            `id` INT AUTO_INCREMENT PRIMARY KEY,
-            `migration` VARCHAR(255) NOT NULL UNIQUE,
-            `executed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            INDEX `idx_migration` (`migration`)
-        ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
-        
         try {
+            // Check if migrations table exists
+            $stmt = $this->db->query("SHOW TABLES LIKE 'migrations'");
+            if ($stmt && $stmt->rowCount() > 0) {
+                return; // Table already exists
+            }
+            
+            // Table doesn't exist, create it
+            $sql = "CREATE TABLE `migrations` (
+                `id` INT AUTO_INCREMENT PRIMARY KEY,
+                `migration` VARCHAR(255) NOT NULL UNIQUE,
+                `executed_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                INDEX `idx_migration` (`migration`)
+            ) ENGINE=InnoDB CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;";
+            
             $this->db->exec($sql);
+            $this->logger->info("Created migrations tracking table");
+            
         } catch (Exception $e) {
             $this->logger->error("Failed to create migrations table: " . $e->getMessage());
             throw $e;
@@ -256,7 +282,7 @@ class MigrationManager
     }
     
     /**
-     * Run pending migrations
+     * Run pending migrations - NO NESTED TRANSACTIONS
      */
     public function migrate()
     {
@@ -364,8 +390,12 @@ class MigrationManager
      */
     private function getExecutedMigrationNames()
     {
-        $stmt = $this->db->query("SELECT migration FROM migrations ORDER BY migration");
-        return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+        try {
+            $stmt = $this->db->query("SELECT migration FROM migrations ORDER BY migration");
+            return $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+        } catch (Exception $e) {
+            return [];
+        }
     }
     
     /**
@@ -379,7 +409,7 @@ class MigrationManager
     }
     
     /**
-     * Run a single migration
+     * Run a single migration - FIXED TRANSACTION HANDLING
      */
     private function runMigration($migrationName)
     {
@@ -401,29 +431,25 @@ class MigrationManager
             throw new Exception("Migration class not found: {$className}");
         }
         
-        // Run migration in transaction
-        $this->db->beginTransaction();
-        
         try {
+            // Create migration instance and run it (no transaction here)
             $migration = new $className($this->db);
             $migration->up();
             
-            // Record migration as executed
+            // Record migration as executed (separate from migration execution)
             $stmt = $this->db->prepare("INSERT INTO migrations (migration) VALUES (?)");
             $stmt->execute([$migrationName]);
             
-            $this->db->commit();
             $this->logger->info("Migration completed: {$migrationName}");
             
         } catch (Exception $e) {
-            $this->db->rollback();
             $this->logger->error("Migration failed: {$migrationName} - " . $e->getMessage());
             throw $e;
         }
     }
     
     /**
-     * Rollback a single migration
+     * Rollback a single migration - FIXED
      */
     private function rollbackMigration($migrationName)
     {
@@ -456,7 +482,9 @@ class MigrationManager
             $this->logger->info("Migration rolled back: {$migrationName}");
             
         } catch (Exception $e) {
-            $this->db->rollback();
+            if ($this->db->inTransaction()) {
+                $this->db->rollback();
+            }
             $this->logger->error("Rollback failed: {$migrationName} - " . $e->getMessage());
             throw $e;
         }

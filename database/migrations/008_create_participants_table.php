@@ -1,5 +1,5 @@
 <?php
-// database/migrations/008_create_participants_table.php
+// database/migrations/008_create_participants_table.php - UPDATED
 
 require_once __DIR__ . '/../../app/Core/Migration.php';
 
@@ -38,11 +38,7 @@ class CreateParticipantsTable extends Migration
         
         $this->createTable('participants', $columns);
         
-        // Add foreign keys
-        $this->addForeignKey('participants', 'team_id', 'teams', 'id', 'CASCADE');
-        $this->addForeignKey('participants', 'user_id', 'users', 'id', 'SET NULL');
-        
-        // Add indexes
+        // Add indexes only (foreign keys added later)
         $this->addIndex('participants', 'idx_team', 'team_id');
         $this->addIndex('participants', 'idx_grade', 'grade');
         $this->addIndex('participants', 'idx_gender', 'gender');

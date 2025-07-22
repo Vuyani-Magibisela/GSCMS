@@ -1,5 +1,5 @@
 <?php
-// database/migrations/003_create_schools_table.php
+// database/migrations/003_create_schools_table.php - FIXED VERSION
 
 require_once __DIR__ . '/../../app/Core/Migration.php';
 
@@ -37,13 +37,11 @@ class CreateSchoolsTable extends Migration
             'collate' => 'utf8mb4_unicode_ci'
         ]);
         
-        // Add foreign key
-        $this->addForeignKey('schools', 'coordinator_id', 'users', 'id', 'SET NULL');
-        
-        // Add indexes
+        // Add indexes only (foreign keys will be added in a later migration)
         $this->addIndex('schools', 'idx_district', 'district');
         $this->addIndex('schools', 'idx_status', 'status');
         $this->addIndex('schools', 'idx_emis', 'emis_number');
+        $this->addIndex('schools', 'idx_coordinator', 'coordinator_id');
     }
     
     public function down()

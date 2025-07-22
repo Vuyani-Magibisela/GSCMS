@@ -141,10 +141,6 @@ abstract class Seeder
         
         $factory = new $factoryClass();
         
-        if ($count === 1) {
-            return $factory->make($attributes);
-        }
-        
         $data = [];
         for ($i = 0; $i < $count; $i++) {
             $data[] = $factory->make($attributes);

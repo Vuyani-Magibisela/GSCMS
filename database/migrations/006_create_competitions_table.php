@@ -1,5 +1,5 @@
 <?php
-// database/migrations/006_create_competitions_table.php
+// database/migrations/006_create_competitions_table.php - UPDATED
 
 require_once __DIR__ . '/../../app/Core/Migration.php';
 
@@ -32,11 +32,7 @@ class CreateCompetitionsTable extends Migration
         
         $this->createTable('competitions', $columns);
         
-        // Add foreign keys
-        $this->addForeignKey('competitions', 'phase_id', 'phases', 'id', 'CASCADE');
-        $this->addForeignKey('competitions', 'category_id', 'categories', 'id', 'CASCADE');
-        
-        // Add indexes
+        // Add indexes only (foreign keys added later)
         $this->addIndex('competitions', 'idx_year', 'year');
         $this->addIndex('competitions', 'idx_date', 'date');
         $this->addIndex('competitions', 'idx_status', 'status');
