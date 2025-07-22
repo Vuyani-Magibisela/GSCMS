@@ -26,7 +26,7 @@ if (session_status() === PHP_SESSION_NONE) {
 define('APP_ROOT', dirname(__DIR__));
 define('APP_PATH', __DIR__);
 define('CONFIG_PATH', APP_ROOT . '/config');
-define('VIEW_PATH', APP_ROOT . '/resources/views');
+define('VIEW_PATH', APP_ROOT . '/app/Views');
 define('STORAGE_PATH', APP_ROOT . '/storage');
 define('LOG_PATH', STORAGE_PATH . '/logs');
 

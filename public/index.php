@@ -17,6 +17,18 @@ try {
     
     // Get current request
     $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+    
+    // Strip the subfolder prefix if present (e.g., /GSCMS/public/)
+    $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+    if ($scriptPath !== '/' && strpos($uri, $scriptPath) === 0) {
+        $uri = substr($uri, strlen($scriptPath));
+    }
+    
+    // Ensure URI starts with /
+    if (empty($uri) || $uri[0] !== '/') {
+        $uri = '/' . $uri;
+    }
+    
     $method = $_SERVER['REQUEST_METHOD'];
     
     // Dispatch route

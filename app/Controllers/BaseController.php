@@ -231,4 +231,37 @@ abstract class BaseController
         http_response_code(500);
         return $this->view('errors.500', ['message' => $message]);
     }
+    
+    /**
+     * Get base URL for the application
+     */
+    protected function baseUrl($path = '')
+    {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'];
+        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+        $scriptPath = $scriptPath === '/' ? '' : $scriptPath;
+        
+        $baseUrl = $protocol . $host . $scriptPath;
+        
+        return $path ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $baseUrl;
+    }
+    
+    /**
+     * Function to check if current page matches the given path
+     */
+    protected function isActivePage($pageName)
+    {
+        $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+        
+        if ($scriptPath !== '/' && strpos($uri, $scriptPath) === 0) {
+            $uri = substr($uri, strlen($scriptPath));
+        }
+        
+        $uri = trim($uri, '/');
+        $currentPage = explode('/', $uri)[0] ?: 'home';
+        
+        return $currentPage === $pageName;
+    }
 }

@@ -13,10 +13,10 @@ class HomeController extends BaseController
         $data = [
             'title' => 'GDE SciBOTICS Competition Management System',
             'message' => 'Welcome to the SciBOTICS CMS',
-            'framework' => 'Custom MVC Framework',
-            'status' => 'Active'
+            'baseUrl' => $this->baseUrl(),
+            'isActivePage' => function($pageName) { return $this->isActivePage($pageName); }
         ];
         
-        return $this->json($data);
+        return $this->view('public/home', $data);
     }
 }

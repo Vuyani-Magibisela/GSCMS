@@ -368,7 +368,7 @@ class Router
     private function prepareAction($action)
     {
         if (is_string($action) && strpos($action, '@') !== false) {
-            $namespace = $this->getGroupAttribute('namespace', 'App\\Http\\Controllers');
+            $namespace = $this->getGroupAttribute('namespace', 'App\\Controllers');
             [$controller, $method] = explode('@', $action);
             
             if (strpos($controller, '\\') === false) {
