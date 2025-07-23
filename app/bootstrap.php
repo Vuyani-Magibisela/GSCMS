@@ -17,8 +17,20 @@ error_reporting(E_ALL);
 // Set timezone
 date_default_timezone_set($_ENV['APP_TIMEZONE'] ?? 'Africa/Johannesburg');
 
-// Start session if not already started
+// Configure session settings before starting
 if (session_status() === PHP_SESSION_NONE) {
+    // Configure session settings
+    ini_set('session.name', 'GSCMS_SESSION');
+    ini_set('session.cookie_lifetime', 7200); // 2 hours
+    ini_set('session.cookie_path', '/');
+    ini_set('session.cookie_domain', '');
+    ini_set('session.cookie_secure', isset($_SERVER['HTTPS']));
+    ini_set('session.cookie_httponly', true);
+    ini_set('session.cookie_samesite', 'Strict');
+    ini_set('session.use_strict_mode', 1);
+    ini_set('session.use_only_cookies', 1);
+    
+    // Start session
     session_start();
 }
 

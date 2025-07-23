@@ -14,9 +14,28 @@ class HomeController extends BaseController
             'title' => 'GDE SciBOTICS Competition Management System',
             'message' => 'Welcome to the SciBOTICS CMS',
             'baseUrl' => $this->baseUrl(),
+            'loginUrl' => $this->url('auth/login'),
+            'registerUrl' => $this->url('auth/register'),
             'isActivePage' => function($pageName) { return $this->isActivePage($pageName); }
         ];
         
         return $this->view('public/home', $data);
+    }
+    
+    public function dashboard(Request $request, Response $response)
+    {
+        // Require authentication
+        $this->requireAuth();
+        
+        $user = $this->user();
+        
+        $data = [
+            'title' => 'Dashboard - GDE SciBOTICS',
+            'user' => $user,
+            'welcome_message' => 'Welcome back, ' . $user->getDisplayName() . '!',
+            'baseUrl' => $this->baseUrl()
+        ];
+        
+        return $this->view('dashboard/index', $data);
     }
 }

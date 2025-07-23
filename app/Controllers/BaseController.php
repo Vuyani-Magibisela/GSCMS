@@ -6,6 +6,10 @@ namespace App\Controllers;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Database;
+use App\Core\Auth;
+use App\Core\Session;
+use App\Core\CSRF;
+use App\Core\RateLimit;
 use Exception;
 
 abstract class BaseController
@@ -13,11 +17,28 @@ abstract class BaseController
     protected $request;
     protected $response;
     protected $db;
+    protected $auth;
+    protected $session;
+    protected $csrf;
+    protected $rateLimit;
     protected $data = [];
     
     public function __construct()
     {
         $this->db = Database::getInstance();
+        $this->auth = Auth::getInstance();
+        $this->session = Session::getInstance();
+        // $this->csrf = CSRF::getInstance();
+        // $this->rateLimit = RateLimit::getInstance();
+        
+        // Attempt remember me login if not already authenticated
+        if (!$this->auth->check()) {
+            $this->auth->attemptRememberLogin();
+        }
+        
+        // Make CSRF token available to all views
+        $this->data['csrf_token'] = '';
+        $this->data['csrf_field'] = '';
     }
     
     /**
@@ -129,7 +150,7 @@ abstract class BaseController
      */
     protected function flash($key, $message)
     {
-        $_SESSION['flash'][$key] = $message;
+        $this->session->flash($key, $message);
     }
     
     /**
@@ -137,9 +158,7 @@ abstract class BaseController
      */
     protected function getFlash($key)
     {
-        $message = $_SESSION['flash'][$key] ?? null;
-        unset($_SESSION['flash'][$key]);
-        return $message;
+        return $this->session->flash($key);
     }
     
     /**
@@ -157,23 +176,34 @@ abstract class BaseController
     }
     
     /**
-     * Check if user is authenticated
+     * Require authentication
      */
     protected function requireAuth()
     {
-        if (!$this->isAuthenticated()) {
-            $this->redirect('/auth/login');
+        try {
+            $this->auth->requireAuth();
+        } catch (Exception $e) {
+            if ($e->getCode() === 401) {
+                $this->redirect($this->baseUrl('auth/login'));
+            }
+            throw $e;
         }
     }
     
     /**
-     * Check if user has role
+     * Require specific role
      */
     protected function requireRole($role)
     {
-        if (!$this->hasRole($role)) {
-            throw new Exception("Access denied. Required role: {$role}", 403);
-        }
+        $this->auth->requireRole($role);
+    }
+    
+    /**
+     * Require any of the given roles
+     */
+    protected function requireAnyRole($roles)
+    {
+        $this->auth->requireAnyRole($roles);
     }
     
     /**
@@ -181,7 +211,7 @@ abstract class BaseController
      */
     protected function isAuthenticated()
     {
-        return isset($_SESSION['user_id']);
+        return $this->auth->check();
     }
     
     /**
@@ -189,8 +219,23 @@ abstract class BaseController
      */
     protected function hasRole($role)
     {
-        $userRole = $_SESSION['user_role'] ?? null;
-        return $userRole === $role || $userRole === 'super_admin';
+        return $this->auth->hasRole($role);
+    }
+    
+    /**
+     * Check if user has any of the given roles
+     */
+    protected function hasAnyRole($roles)
+    {
+        return $this->auth->hasAnyRole($roles);
+    }
+    
+    /**
+     * Check if user is admin
+     */
+    protected function isAdmin()
+    {
+        return $this->auth->isAdmin();
     }
     
     /**
@@ -198,11 +243,59 @@ abstract class BaseController
      */
     protected function user()
     {
-        if (!$this->isAuthenticated()) {
-            return null;
+        return $this->auth->user();
+    }
+    
+    /**
+     * Verify CSRF token
+     */
+    protected function verifyCsrf()
+    {
+        try {
+            $this->csrf->verifyRequest();
+        } catch (Exception $e) {
+            if ($e->getCode() === 419) {
+                $this->flash('error', 'Security token mismatch. Please try again.');
+                return $this->back();
+            }
+            throw $e;
         }
         
-        return $this->db->table('users')->find($_SESSION['user_id']);
+        return true;
+    }
+    
+    /**
+     * Enforce rate limit
+     */
+    protected function enforceRateLimit($action, $maxAttempts, $windowMinutes = 60, $identifier = null)
+    {
+        try {
+            $this->rateLimit->enforce($action, $maxAttempts, $windowMinutes, $identifier);
+        } catch (Exception $e) {
+            if ($e->getCode() === 429) {
+                $this->flash('error', $e->getMessage());
+                return $this->back();
+            }
+            throw $e;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Get rate limit info
+     */
+    protected function getRateLimitInfo($action, $maxAttempts, $windowMinutes = 60, $identifier = null)
+    {
+        return $this->rateLimit->getInfo($action, $maxAttempts, $windowMinutes, $identifier);
+    }
+    
+    /**
+     * Record rate limit attempt
+     */
+    protected function recordRateLimitAttempt($action, $windowMinutes = 60, $identifier = null)
+    {
+        return $this->rateLimit->recordAttempt($action, $windowMinutes, $identifier);
     }
     
     /**
@@ -245,6 +338,14 @@ abstract class BaseController
         $baseUrl = $protocol . $host . $scriptPath;
         
         return $path ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $baseUrl;
+    }
+    
+    /**
+     * Generate URL for a given path
+     */
+    protected function url($path = '')
+    {
+        return $this->baseUrl($path);
     }
     
     /**
