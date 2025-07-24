@@ -263,7 +263,35 @@ class Mail
         
         ob_end_clean();
         
-        return $content;
+        // Wrap content in email layout
+        return $this->wrapInLayout($content);
+    }
+    
+    /**
+     * Wrap content in email layout
+     */
+    private function wrapInLayout($content)
+    {
+        $layoutFile = VIEW_PATH . '/emails/layout.php';
+        
+        if (!file_exists($layoutFile)) {
+            return $content; // Return content without layout if layout doesn't exist
+        }
+        
+        // Start output buffering for layout
+        ob_start();
+        
+        try {
+            include $layoutFile;
+            $wrappedContent = ob_get_contents();
+        } catch (Exception $e) {
+            ob_end_clean();
+            throw $e;
+        }
+        
+        ob_end_clean();
+        
+        return $wrappedContent;
     }
     
     /**

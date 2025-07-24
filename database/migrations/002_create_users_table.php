@@ -15,7 +15,7 @@ class CreateUsersTable extends Migration
             'last_name' => 'VARCHAR(50) NOT NULL',
             'phone' => 'VARCHAR(20)',
             'role' => "ENUM('super_admin', 'competition_admin', 'school_coordinator', 'team_coach', 'judge', 'public_viewer', 'participant') NOT NULL",
-            'status' => "ENUM('active', 'inactive', 'suspended') DEFAULT 'active'",
+            'status' => "ENUM('active', 'inactive', 'suspended', 'pending') DEFAULT 'active'",
             'email_verified' => 'BOOLEAN DEFAULT FALSE',
             'email_verification_token' => 'VARCHAR(255)',
             'password_reset_token' => 'VARCHAR(255)',

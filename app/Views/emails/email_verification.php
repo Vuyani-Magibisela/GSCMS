@@ -1,8 +1,3 @@
-<?php
-$content = ob_get_clean();
-ob_start();
-?>
-
 <h2>Verify Your Email Address</h2>
 
 <p>Hello <?= htmlspecialchars($user->getDisplayName()) ?>,</p>
@@ -36,8 +31,3 @@ ob_start();
 
 <p>Best regards,<br>
 The GDE SciBOTICS Team</p>
-
-<?php
-$content = ob_get_clean();
-include VIEW_PATH . '/emails/layout.php';
-?>

@@ -28,8 +28,8 @@ abstract class BaseController
         $this->db = Database::getInstance();
         $this->auth = Auth::getInstance();
         $this->session = Session::getInstance();
-        // $this->csrf = CSRF::getInstance();
-        // $this->rateLimit = RateLimit::getInstance();
+        $this->csrf = CSRF::getInstance();
+        $this->rateLimit = RateLimit::getInstance();
         
         // Attempt remember me login if not already authenticated
         if (!$this->auth->check()) {
@@ -37,8 +37,8 @@ abstract class BaseController
         }
         
         // Make CSRF token available to all views
-        $this->data['csrf_token'] = '';
-        $this->data['csrf_field'] = '';
+        $this->data['csrf_token'] = $this->csrf->getToken();
+        $this->data['csrf_field'] = '<input type="hidden" name="_csrf_token" value="' . htmlspecialchars($this->csrf->getToken()) . '">';
     }
     
     /**
