@@ -1,12 +1,11 @@
-SciBOTICS Competition Management System
-# .gitignore template
+# GSCMS (GDE SciBOTICS Competition Management System)
+# .gitignore
 
 # ==============================================
 # PHP & Composer Dependencies
 # ==============================================
 /vendor/
 composer.phar
-composer.lock
 
 # ==============================================
 # Configuration Files (contains sensitive data)
@@ -23,7 +22,7 @@ config/services.php
 # Logs & Cache
 # ==============================================
 /logs/
-/storage/logs/
+/storage/logs/*.log
 /storage/cache/
 /storage/framework/cache/
 /storage/framework/sessions/
@@ -34,20 +33,18 @@ access.log
 # ==============================================
 # Uploaded Files & User Content
 # ==============================================
-/public/uploads/
-/public/uploads/consent_forms/
-/public/uploads/team_submissions/
+/public/uploads/*
+!/public/uploads/.gitkeep
+/public/uploads/consent_forms/*
+!/public/uploads/consent_forms/.gitkeep
+/public/uploads/team_submissions/*
+!/public/uploads/team_submissions/.gitkeep
 /storage/uploads/
 *.pdf
 *.doc
 *.docx
 *.xls
 *.xlsx
-
-# Exclude sensitive uploaded documents but keep directory structure
-!public/uploads/.gitkeep
-!public/uploads/consent_forms/.gitkeep
-!public/uploads/team_submissions/.gitkeep
 
 # ==============================================
 # Temporary Files
@@ -76,17 +73,6 @@ access.log
 *.sublime-project
 *.sublime-workspace
 
-# Vim
-*.swp
-*.swo
-
-# Emacs
-*~
-\#*\#
-/.emacs.desktop
-/.emacs.desktop.lock
-*.elc
-
 # ==============================================
 # Operating System Files
 # ==============================================
@@ -101,14 +87,10 @@ Icon?
 
 # Windows
 Thumbs.db
-Thumbs.db:encryptable
-ehthumbs.db
-ehthumbs_vista.db
 Desktop.ini
 $RECYCLE.BIN/
 
 # Linux
-*~
 .fuse_hidden*
 .directory
 .Trash-*
@@ -147,14 +129,11 @@ backups/
 *.sqlite
 *.sqlite3
 *.db
-database/*.sqlite
-database/database.sqlite
 
-# SQL dumps (but allow schema files)
+# SQL dumps (but allow schema and migration files)
 *.sql
 !database/migrations/*.sql
-!database/seeds/*.sql
-!database/GSCMS_DB_Schema.sql
+!database/seeds/**/*.sql
 
 # ==============================================
 # Security & Keys
@@ -168,27 +147,7 @@ database/database.sqlite
 *.csr
 id_rsa
 id_dsa
-id_ecdsa
-id_ed25519
 *.pub
-
-# ==============================================
-# Application Specific
-# ==============================================
-# Competition specific temporary files
-/storage/competition_data/
-/storage/exports/
-/public/competition_photos/
-!public/competition_photos/.gitkeep
-
-# Generated documentation
-/docs/generated/
-/api-docs/
-
-# Compiled assets (if using build tools)
-/public/css/compiled/
-/public/js/compiled/
-/public/mix-manifest.json
 
 # ==============================================
 # Archives & Compressed Files
@@ -203,14 +162,13 @@ id_ed25519
 *.zip
 
 # ==============================================
-# Version Control
+# Deployment Files (Critical - Keep Out of Git)
 # ==============================================
-.git/
-.gitattributes
+# Local deployment preparation directory
+# Contains production configs and sensitive data
+local_deployment_prep/
 
-# ==============================================
-# Deployment Files
-# ==============================================
+# Hosting-specific files
 .htaccess.local
 .htaccess.staging
 .htaccess.production
@@ -219,20 +177,19 @@ deployment/
 .deploy/
 
 # ==============================================
-# Package Managers
+# Application Specific
 # ==============================================
-# Composer
-composer.lock
+# Competition specific temporary files
+/storage/competition_data/
+/storage/exports/
+/public/competition_photos/*
+!/public/competition_photos/.gitkeep
 
-# NPM/Yarn (if using)
-package-lock.json
-yarn.lock
+# Generated documentation
+/docs/generated/
+/api-docs/
 
-# ==============================================
-# Custom Project Specific
-# ==============================================
-# Add any specific files for your project here
-# For example:
-# /custom_config/
-# /special_uploads/
-# *.custom_extension
+# Compiled assets (if using build tools)
+/public/css/compiled/
+/public/js/compiled/
+/public/mix-manifest.json
