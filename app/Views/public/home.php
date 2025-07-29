@@ -1,25 +1,14 @@
 <?php
 $title = 'GDE SciBOTICS Competition 2025 | Future Innovators';
+$description = 'Join the GDE SciBOTICS Competition 2025 - Empowering Future Innovators Through Robotics Excellence. Register your school team today!';
 $pageClass = 'home-page';
-?>
+$pageCSS = ['/css/home_style.css'];
+$pageJS = ['/js/home_script.js'];
+$layout = 'public';
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($title) ?></title>
-    
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="<?= $baseUrl ?? '' ?>/css/home_style.css">
-</head>
-<body class="<?= $pageClass ?? '' ?>">
-    
-    <?php include VIEW_PATH . '/_header.php'; ?>
+ob_start();
+include VIEW_PATH . '/_header.php';
+?>
 
     <!-- Hero Section -->
     <section id="home" class="hero">
@@ -249,10 +238,7 @@ $pageClass = 'home-page';
 
     <?php include VIEW_PATH . '/_footer.php'; ?>
 
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Custom JS -->
-    <script src="<?= $baseUrl ?? '' ?>/js/home_script.js"></script>
-</body>
-</html>
+<?php
+$content = ob_get_clean();
+include VIEW_PATH . '/layouts/' . $layout . '.php';
+?>

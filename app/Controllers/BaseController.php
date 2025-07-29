@@ -46,6 +46,9 @@ abstract class BaseController
     {
         $data = array_merge($this->data, $data);
         
+        // Make baseUrl function available to views
+        $data['baseUrl'] = $this->baseUrl();
+        
         $viewFile = VIEW_PATH . '/' . str_replace('.', '/', $template) . '.php';
         
         if (!file_exists($viewFile)) {
