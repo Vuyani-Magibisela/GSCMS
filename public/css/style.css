@@ -30,10 +30,10 @@
   --black: #000000;
   
   /* Text Colors */
-  --text-primary: #ffffff;
-  --text-secondary: #b9b9b9ff;
-  --text-muted: #666666;
-  --text-inverse: #333333;
+  --text-primary: #2d3748;
+  --text-secondary: #4a5568;
+  --text-muted: #718096;
+  --text-light: #ffffff;
   
   /* Background Colors */
   --bg-primary: #ffffff;
@@ -281,7 +281,7 @@ a:hover {
 }
 
 .btn-primary {
-  color: var(--white);
+  color: var(--text-light);
   background: var(--gradient-primary);
   border-color: transparent;
 }
@@ -299,7 +299,7 @@ a:hover {
 }
 
 .btn-secondary:hover:not(:disabled) {
-  color: var(--white);
+  color: var(--text-light);
   background: var(--primary-color);
   transform: translateY(-2px);
 }
@@ -311,7 +311,7 @@ a:hover {
 }
 
 .btn-outline:hover:not(:disabled) {
-  color: var(--white);
+  color: var(--text-light);
   background: var(--text-primary);
   border-color: var(--text-primary);
 }
@@ -449,17 +449,17 @@ a:hover {
 }
 
 .badge-primary {
-  color: var(--white);
+  color: var(--text-light);
   background-color: var(--primary-color);
 }
 
 .badge-secondary {
-  color: var(--white);
+  color: var(--text-light);
   background-color: var(--gray-600);
 }
 
 .badge-success {
-  color: var(--white);
+  color: var(--text-light);
   background-color: var(--success-color);
 }
 
@@ -469,7 +469,7 @@ a:hover {
 }
 
 .badge-error {
-  color: var(--white);
+  color: var(--text-light);
   background-color: var(--error-color);
 }
 
@@ -503,7 +503,7 @@ a:hover {
 .text-primary { color: var(--primary-color); }
 .text-secondary { color: var(--text-secondary); }
 .text-muted { color: var(--text-muted); }
-.text-white { color: var(--white); }
+.text-white { color: var(--text-light); }
 .text-sm { font-size: var(--font-size-sm); }
 .text-lg { font-size: var(--font-size-lg); }
 .text-xl { font-size: var(--font-size-xl); }

@@ -10,6 +10,11 @@ class HomeController extends BaseController
 {
     public function index(Request $request, Response $response)
     {
+        // If user is authenticated, redirect to dashboard
+        if ($this->isAuthenticated()) {
+            return $response->redirect('/dashboard');
+        }
+        
         $data = [
             'title' => 'GDE SciBOTICS Competition Management System',
             'message' => 'Welcome to the SciBOTICS CMS',

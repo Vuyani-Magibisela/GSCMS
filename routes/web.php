@@ -14,7 +14,12 @@ $router->get('/', 'HomeController@index', 'home');
 $router->get('/competitions/public', 'CompetitionController@publicIndex', 'competitions.public');
 
 // About and other public pages
-$router->get('/about', 'PageController@about', 'about');
+$router->get('/about', 'PublicController@about', 'about');
+$router->get('/categories', 'PublicController@categories', 'categories');
+$router->get('/schedule', 'PublicController@schedule', 'schedule');
+$router->get('/leaderboard', 'PublicController@leaderboard', 'leaderboard');
+$router->get('/announcements', 'PublicController@announcements', 'announcements');
+$router->get('/resources', 'PublicController@resources', 'resources');
 
 // Test routes for framework verification
 $router->get('/test', function($request, $response) {
@@ -71,6 +76,7 @@ $router->group(['prefix' => '/auth'], function($router) {
     $router->get('/login', 'AuthController@showLogin', 'auth.login');
     $router->post('/login', 'AuthController@login', 'auth.login.post');
     $router->post('/logout', 'AuthController@logout', 'auth.logout');
+    $router->get('/logout', 'AuthController@logout', 'auth.logout.get');
     
     // Registration routes
     $router->get('/register', 'AuthController@showRegister', 'auth.register');
@@ -100,6 +106,7 @@ $router->group(['middleware' => 'auth'], function($router) {
     $router->get('/dashboard', 'HomeController@dashboard', 'dashboard');
     $router->get('/profile', 'ProfileController@show', 'profile.show');
     $router->put('/profile', 'ProfileController@update', 'profile.update');
+    $router->get('/settings', 'SettingsController@index', 'settings.index');
     
     // Password change routes (for authenticated users)
     $router->get('/auth/change-password', 'AuthController@showChangePassword', 'auth.change-password');

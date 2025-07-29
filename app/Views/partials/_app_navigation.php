@@ -1,11 +1,22 @@
 <?php
-// Get current user role for navigation permissions
-$userRole = $_SESSION['user']['role'] ?? 'guest';
+use App\Core\Auth;
+use App\Models\User;
+
+// Get authentication instance and current user info
+$auth = Auth::getInstance();
+$isAuthenticated = $auth->check();
+$currentUser = $auth->user();
+$userRole = $currentUser ? $currentUser->role : 'guest';
 $currentPath = $_SERVER['REQUEST_URI'] ?? '';
 
 // Helper function to check if current page matches navigation item
 function isActiveNav($path, $currentPath) {
     return strpos($currentPath, $path) === 0 ? 'active' : '';
+}
+
+// Only show navigation if user is authenticated
+if (!$isAuthenticated) {
+    return;
 }
 ?>
 
@@ -19,7 +30,7 @@ function isActiveNav($path, $currentPath) {
     </li>
     
     <!-- My Teams (for School Coordinators and Team Coaches) -->
-    <?php if (in_array($userRole, ['school_coordinator', 'team_coach'])): ?>
+    <?php if (in_array($userRole, [User::SCHOOL_COORDINATOR, User::TEAM_COACH])): ?>
         <li class="nav-item">
             <a href="/teams" class="nav-link <?= isActiveNav('/teams', $currentPath) ?>">
                 <i class="nav-icon fas fa-users"></i>
@@ -29,7 +40,7 @@ function isActiveNav($path, $currentPath) {
     <?php endif; ?>
     
     <!-- Team Management (for Team Coaches) -->
-    <?php if ($userRole === 'team_coach'): ?>
+    <?php if ($userRole === User::TEAM_COACH): ?>
         <li class="nav-item">
             <a href="/team-management" class="nav-link <?= isActiveNav('/team-management', $currentPath) ?>">
                 <i class="nav-icon fas fa-user-friends"></i>
@@ -39,7 +50,7 @@ function isActiveNav($path, $currentPath) {
     <?php endif; ?>
     
     <!-- School Management (for School Coordinators) -->
-    <?php if ($userRole === 'school_coordinator'): ?>
+    <?php if ($userRole === User::SCHOOL_COORDINATOR): ?>
         <li class="nav-item">
             <a href="/school-management" class="nav-link <?= isActiveNav('/school-management', $currentPath) ?>">
                 <i class="nav-icon fas fa-school"></i>
@@ -49,7 +60,7 @@ function isActiveNav($path, $currentPath) {
     <?php endif; ?>
     
     <!-- Judging (for Judges) -->
-    <?php if ($userRole === 'judge'): ?>
+    <?php if ($userRole === User::JUDGE): ?>
         <li class="nav-item">
             <a href="/judging" class="nav-link <?= isActiveNav('/judging', $currentPath) ?>">
                 <i class="nav-icon fas fa-gavel"></i>
@@ -130,7 +141,7 @@ function isActiveNav($path, $currentPath) {
     </li>
     
     <!-- Admin Panel (for Admins) -->
-    <?php if ($userRole === 'admin'): ?>
+    <?php if (in_array($userRole, [User::SUPER_ADMIN, User::COMPETITION_ADMIN])): ?>
         <li class="nav-section-title">
             <span>Administration</span>
         </li>

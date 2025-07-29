@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeCountdown();
     initializeAnimations();
     initializeMobileMenu();
+    initializeUserDropdown();
     
     console.log('🤖 GDE SciBOTICS 2025 - Landing Page Loaded Successfully!');
     console.log('🚀 Ready for the future of robotics education!');
@@ -79,6 +80,59 @@ function initializeMobileMenu() {
                 mobileMenuToggle.classList.remove('active');
                 document.body.style.overflow = '';
             }
+        });
+    }
+}
+
+// User dropdown functionality
+function initializeUserDropdown() {
+    const userDropdownToggle = document.getElementById('userDropdownToggle');
+    const userDropdownMenu = document.getElementById('userDropdownMenu');
+    
+    if (userDropdownToggle && userDropdownMenu) {
+        userDropdownToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Toggle the dropdown
+            userDropdownMenu.classList.toggle('active');
+            
+            // Update aria-expanded
+            const isExpanded = userDropdownMenu.classList.contains('active');
+            userDropdownToggle.setAttribute('aria-expanded', isExpanded);
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userDropdownToggle.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                userDropdownMenu.classList.remove('active');
+                userDropdownToggle.setAttribute('aria-expanded', 'false');
+            }
+        });
+
+        // Close dropdown on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && userDropdownMenu.classList.contains('active')) {
+                userDropdownMenu.classList.remove('active');
+                userDropdownToggle.setAttribute('aria-expanded', 'false');
+                userDropdownToggle.focus();
+            }
+        });
+
+        // Handle keyboard navigation in dropdown
+        const dropdownItems = userDropdownMenu.querySelectorAll('.dropdown-item');
+        dropdownItems.forEach((item, index) => {
+            item.addEventListener('keydown', function(e) {
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const nextIndex = (index + 1) % dropdownItems.length;
+                    dropdownItems[nextIndex].focus();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prevIndex = (index - 1 + dropdownItems.length) % dropdownItems.length;
+                    dropdownItems[prevIndex].focus();
+                }
+            });
         });
     }
 }
@@ -499,6 +553,7 @@ window.SciBOTICS = {
     initializeCountdown,
     initializeAnimations,
     initializeMobileMenu,
+    initializeUserDropdown,
     debounce,
     throttle
 };

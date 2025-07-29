@@ -1,9 +1,20 @@
 <?php
-// Get current user information
-$currentUser = $_SESSION['user'] ?? null;
-$userRole = $currentUser['role'] ?? 'guest';
-$userName = $currentUser['name'] ?? 'User';
-$userEmail = $currentUser['email'] ?? '';
+use App\Core\Auth;
+use App\Models\User;
+
+// Get authentication instance and current user info
+$auth = Auth::getInstance();
+$isAuthenticated = $auth->check();
+$currentUser = $auth->user();
+
+// Only show user menu if authenticated
+if (!$isAuthenticated || !$currentUser) {
+    return;
+}
+
+$userRole = $currentUser->role ?? 'guest';
+$userName = $currentUser->name ?? 'User';
+$userEmail = $currentUser->email ?? '';
 ?>
 
 <div class="user-menu-dropdown">
@@ -47,7 +58,7 @@ $userEmail = $currentUser['email'] ?? '';
                 <span>Settings</span>
             </a>
             
-            <?php if ($userRole === 'admin'): ?>
+            <?php if (in_array($userRole, [User::SUPER_ADMIN, User::COMPETITION_ADMIN])): ?>
                 <div class="user-menu-divider"></div>
                 <a href="/admin/dashboard" class="user-menu-item">
                     <i class="fas fa-shield-alt"></i>

@@ -30,12 +30,19 @@
         <style><?= $customStyles ?></style>
     <?php endif; ?>
 </head>
-<body class="app-layout <?= htmlspecialchars($pageClass ?? '') ?>">
+<?php 
+use App\Core\Auth;
+$auth = Auth::getInstance();
+$isAuthenticated = $auth->check();
+$layoutClass = $isAuthenticated ? 'app-layout' : 'app-layout public-layout';
+?>
+<body class="<?= $layoutClass ?> <?= htmlspecialchars($pageClass ?? '') ?>">
     
     <!-- Skip to main content for accessibility -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
     <!-- App Header -->
+    <?php if ($auth->check()): ?>
     <header class="app-header">
         <div class="app-header-content">
             <!-- Mobile Menu Toggle -->
@@ -58,8 +65,13 @@
             </div>
         </div>
     </header>
+    <?php else: ?>
+    <!-- Public Navigation for unauthenticated users -->
+    <?php include VIEW_PATH . '/partials/_public_navigation.php'; ?>
+    <?php endif; ?>
     
-    <!-- App Sidebar -->
+    <!-- App Sidebar (only for authenticated users) -->
+    <?php if ($auth->check()): ?>
     <aside class="app-sidebar" id="appSidebar">
         <div class="sidebar-content">
             <!-- Navigation Menu -->
@@ -71,6 +83,7 @@
     
     <!-- Sidebar Overlay for Mobile -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <?php endif; ?>
     
     <!-- Main Content Area -->
     <main class="app-main" id="main-content">

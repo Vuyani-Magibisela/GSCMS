@@ -39,6 +39,9 @@
     <!-- Skip to main content for accessibility -->
     <a href="#main-content" class="skip-link">Skip to main content</a>
     
+    <!-- Public Navigation -->
+    <?php include VIEW_PATH . '/partials/_public_navigation.php'; ?>
+    
     <!-- Flash Messages -->
     <?php if (isset($_SESSION['flash_messages'])): ?>
         <div class="flash-messages">
