@@ -18,6 +18,9 @@
     <!-- App-specific CSS -->
     <link rel="stylesheet" href="<?= $baseUrl ?>/css/app.css?v=<?= file_exists(APP_ROOT . '/public/css/app.css') ? filemtime(APP_ROOT . '/public/css/app.css') : time() ?>">
     
+    <!-- Enhanced Forms CSS -->
+    <link rel="stylesheet" href="<?= $baseUrl ?>/css/enhanced-forms.css?v=<?= file_exists(APP_ROOT . '/public/css/enhanced-forms.css') ? filemtime(APP_ROOT . '/public/css/enhanced-forms.css') : time() ?>">
+    
     <!-- Page-specific CSS -->
     <?php if (isset($pageCSS)): ?>
         <?php foreach ($pageCSS as $css): ?>

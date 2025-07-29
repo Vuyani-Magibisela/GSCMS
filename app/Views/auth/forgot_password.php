@@ -35,15 +35,12 @@ ob_start();
             </p>
         </div>
         
-        <form method="POST" action="<?= htmlspecialchars($forgotPasswordAction ?? '/auth/forgot-password') ?>">
+        <form method="POST" action="<?= htmlspecialchars($forgotPasswordAction ?? '/auth/forgot-password') ?>" class="form-container">
             <?= $csrf_field ?? '' ?>
             
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="email" class="form-label">Email Address</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-envelope"></i>
-                    </span>
+                <div class="input-icon-container">
                     <input 
                         type="email" 
                         class="form-control" 
@@ -54,12 +51,13 @@ ob_start();
                         required
                         autofocus
                     >
+                    <i class="fas fa-envelope input-icon"></i>
                 </div>
             </div>
             
-            <div class="d-grid gap-2 mb-3">
+            <div class="d-grid">
                 <button type="submit" class="btn btn-auth btn-primary">
-                    <i class="fas fa-paper-plane me-2"></i>
+                    <i class="fas fa-paper-plane"></i>
                     Send Reset Instructions
                 </button>
             </div>

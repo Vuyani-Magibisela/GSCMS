@@ -353,21 +353,53 @@ class ViewHelpers
     }
     
     /**
-     * Check if current page matches path
+     * Get CSS class for active navigation item
+     */
+    public static function activeClass($path, $activeClass = 'active', $inactiveClass = '')
+    {
+        return self::isActivePage($path) ? $activeClass : $inactiveClass;
+    }
+    
+    /**
+     * Generate URL with proper base path for both standalone and subfolder setups
+     */
+    public static function url($path = '/')
+    {
+        // Ensure path starts with /
+        if (empty($path) || $path[0] !== '/') {
+            $path = '/' . $path;
+        }
+        
+        // Get the script directory path
+        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+        
+        // If we're in a subfolder (not at root), prepend the subfolder path
+        if ($scriptPath !== '/' && $scriptPath !== '') {
+            return $scriptPath . $path;
+        }
+        
+        return $path;
+    }
+    
+    /**
+     * Check if current page matches path (updated to handle subfolder setups)
      */
     public static function isActivePage($path)
     {
         $currentPath = $_SERVER['REQUEST_URI'] ?? '/';
         $currentPath = parse_url($currentPath, PHP_URL_PATH);
         
+        // Strip the subfolder prefix if present for comparison
+        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+        if ($scriptPath !== '/' && strpos($currentPath, $scriptPath) === 0) {
+            $currentPath = substr($currentPath, strlen($scriptPath));
+        }
+        
+        // Ensure currentPath starts with /
+        if (empty($currentPath) || $currentPath[0] !== '/') {
+            $currentPath = '/' . $currentPath;
+        }
+        
         return $currentPath === $path || strpos($currentPath, $path . '/') === 0;
-    }
-    
-    /**
-     * Get CSS class for active navigation item
-     */
-    public static function activeClass($path, $activeClass = 'active', $inactiveClass = '')
-    {
-        return self::isActivePage($path) ? $activeClass : $inactiveClass;
     }
 }

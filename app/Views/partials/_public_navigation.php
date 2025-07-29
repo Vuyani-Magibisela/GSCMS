@@ -4,18 +4,17 @@ use App\Core\Auth;
 // Get authentication instance
 $auth = Auth::getInstance();
 $isAuthenticated = $auth->check();
-$currentPath = $_SERVER['REQUEST_URI'] ?? '';
 
 // Helper function to check if current page matches navigation item
-function isActivePublicNav($path, $currentPath) {
-    return strpos($currentPath, $path) === 0 ? 'active' : '';
+function isActivePublicNav($path) {
+    return isActivePage($path) ? 'active' : '';
 }
 ?>
 
 <nav class="public-nav">
     <div class="container">
         <div class="nav-brand">
-            <a href="/" class="brand-link">
+            <a href="<?= url('/') ?>" class="brand-link">
                 <i class="fas fa-robot brand-icon"></i>
                 <span class="brand-text">GSCMS</span>
             </a>
@@ -23,19 +22,19 @@ function isActivePublicNav($path, $currentPath) {
         
         <ul class="nav-menu">
             <li class="nav-item">
-                <a href="/" class="nav-link <?= isActivePublicNav('/', $currentPath) ?>">
+                <a href="<?= url('/') ?>" class="nav-link <?= isActivePublicNav('/') ?>">
                     <span class="nav-text">Home</span>
                 </a>
             </li>
             
             <li class="nav-item">
-                <a href="/competitions/public" class="nav-link <?= isActivePublicNav('/competitions/public', $currentPath) ?>">
+                <a href="<?= url('/competitions/public') ?>" class="nav-link <?= isActivePublicNav('/competitions/public') ?>">
                     <span class="nav-text">Competitions</span>
                 </a>
             </li>
             
             <li class="nav-item">
-                <a href="/about" class="nav-link <?= isActivePublicNav('/about', $currentPath) ?>">
+                <a href="<?= url('/about') ?>" class="nav-link <?= isActivePublicNav('/about') ?>">
                     <span class="nav-text">About</span>
                 </a>
             </li>
@@ -43,10 +42,10 @@ function isActivePublicNav($path, $currentPath) {
         
         <div class="nav-actions">
             <?php if (!$isAuthenticated): ?>
-                <a href="/auth/login" class="btn btn-outline">Login</a>
-                <a href="/auth/register" class="btn btn-primary">Register</a>
+                <a href="<?= url('/auth/login') ?>" class="btn btn-outline">Login</a>
+                <a href="<?= url('/auth/register') ?>" class="btn btn-primary">Register</a>
             <?php else: ?>
-                <a href="/dashboard" class="btn btn-primary">Dashboard</a>
+                <a href="<?= url('/dashboard') ?>" class="btn btn-primary">Dashboard</a>
             <?php endif; ?>
         </div>
     </div>

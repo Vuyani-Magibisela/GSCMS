@@ -43,24 +43,24 @@ $userEmail = $currentUser->email ?? '';
         <div class="user-menu-divider"></div>
         
         <nav class="user-menu-nav">
-            <a href="/dashboard" class="user-menu-item">
+            <a href="<?= url('/dashboard') ?>" class="user-menu-item">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </a>
             
-            <a href="/profile" class="user-menu-item">
+            <a href="<?= url('/profile') ?>" class="user-menu-item">
                 <i class="fas fa-user-edit"></i>
                 <span>Edit Profile</span>
             </a>
             
-            <a href="/settings" class="user-menu-item">
+            <a href="<?= url('/settings') ?>" class="user-menu-item">
                 <i class="fas fa-cog"></i>
                 <span>Settings</span>
             </a>
             
             <?php if (in_array($userRole, [User::SUPER_ADMIN, User::COMPETITION_ADMIN])): ?>
                 <div class="user-menu-divider"></div>
-                <a href="/admin/dashboard" class="user-menu-item">
+                <a href="<?= url('/admin/dashboard') ?>" class="user-menu-item">
                     <i class="fas fa-shield-alt"></i>
                     <span>Admin Panel</span>
                 </a>
@@ -68,7 +68,7 @@ $userEmail = $currentUser->email ?? '';
             
             <div class="user-menu-divider"></div>
             
-            <a href="/auth/logout" class="user-menu-item logout-item">
+            <a href="<?= url('/auth/logout') ?>" class="user-menu-item logout-item">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>

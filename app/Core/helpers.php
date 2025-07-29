@@ -10,7 +10,7 @@ if (!function_exists('config')) {
             $config = [];
             
             // Load all config files
-            $configFiles = glob(ROOT_PATH . '/config/*.php');
+            $configFiles = glob(APP_ROOT . '/config/*.php');
             foreach ($configFiles as $file) {
                 $name = basename($file, '.php');
                 $config[$name] = require $file;
@@ -170,5 +170,12 @@ if (!function_exists('activeClass')) {
     function activeClass($path, $activeClass = 'active', $inactiveClass = '')
     {
         return \App\Core\ViewHelpers::activeClass($path, $activeClass, $inactiveClass);
+    }
+}
+
+if (!function_exists('url')) {
+    function url($path = '/')
+    {
+        return \App\Core\ViewHelpers::url($path);
     }
 }

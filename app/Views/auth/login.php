@@ -29,15 +29,12 @@ ob_start();
             </div>
         <?php endif; ?>
         
-        <form method="POST" action="<?= htmlspecialchars($loginAction ?? '/auth/login') ?>">
+        <form method="POST" action="<?= htmlspecialchars($loginAction ?? '/auth/login') ?>" class="form-container">
             <?= $csrf_field ?? '' ?>
             
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="login" class="form-label">Email or Username</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-user"></i>
-                    </span>
+                <div class="input-icon-container">
                     <input 
                         type="text" 
                         class="form-control" 
@@ -48,15 +45,13 @@ ob_start();
                         required
                         autofocus
                     >
+                    <i class="fas fa-user input-icon"></i>
                 </div>
             </div>
             
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="password" class="form-label">Password</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-lock"></i>
-                    </span>
+                <div class="input-icon-container">
                     <input 
                         type="password" 
                         class="form-control" 
@@ -64,28 +59,31 @@ ob_start();
                         name="password" 
                         placeholder="Enter your password" 
                         required
+                        style="padding-right: 3.5rem;"
                     >
+                    <i class="fas fa-lock input-icon"></i>
                     <button 
-                        class="btn btn-outline-secondary" 
+                        class="password-toggle" 
                         type="button" 
                         onclick="togglePassword()"
                         id="togglePasswordBtn"
+                        aria-label="Toggle password visibility"
                     >
                         <i class="fas fa-eye" id="togglePasswordIcon"></i>
                     </button>
                 </div>
             </div>
             
-            <div class="mb-3 form-check">
+            <div class="form-check">
                 <input type="checkbox" class="form-check-input" id="remember" name="remember" value="1">
                 <label class="form-check-label" for="remember">
                     Remember me for 30 days
                 </label>
             </div>
             
-            <div class="d-grid gap-2 mb-3">
+            <div class="d-grid">
                 <button type="submit" class="btn btn-auth btn-primary">
-                    <i class="fas fa-sign-in-alt me-2"></i>
+                    <i class="fas fa-sign-in-alt"></i>
                     Sign In
                 </button>
             </div>

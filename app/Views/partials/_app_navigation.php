@@ -7,11 +7,10 @@ $auth = Auth::getInstance();
 $isAuthenticated = $auth->check();
 $currentUser = $auth->user();
 $userRole = $currentUser ? $currentUser->role : 'guest';
-$currentPath = $_SERVER['REQUEST_URI'] ?? '';
 
 // Helper function to check if current page matches navigation item
-function isActiveNav($path, $currentPath) {
-    return strpos($currentPath, $path) === 0 ? 'active' : '';
+function isActiveNav($path) {
+    return isActivePage($path) ? 'active' : '';
 }
 
 // Only show navigation if user is authenticated
@@ -23,7 +22,7 @@ if (!$isAuthenticated) {
 <ul class="nav-menu">
     <!-- Dashboard -->
     <li class="nav-item">
-        <a href="/dashboard" class="nav-link <?= isActiveNav('/dashboard', $currentPath) ?>">
+        <a href="<?= url('/dashboard') ?>" class="nav-link <?= isActiveNav('/dashboard') ?>">
             <i class="nav-icon fas fa-tachometer-alt"></i>
             <span class="nav-text">Dashboard</span>
         </a>
@@ -32,7 +31,7 @@ if (!$isAuthenticated) {
     <!-- My Teams (for School Coordinators and Team Coaches) -->
     <?php if (in_array($userRole, [User::SCHOOL_COORDINATOR, User::TEAM_COACH])): ?>
         <li class="nav-item">
-            <a href="/teams" class="nav-link <?= isActiveNav('/teams', $currentPath) ?>">
+            <a href="<?= url('/teams') ?>" class="nav-link <?= isActiveNav('/teams') ?>">
                 <i class="nav-icon fas fa-users"></i>
                 <span class="nav-text">My Teams</span>
             </a>
@@ -42,7 +41,7 @@ if (!$isAuthenticated) {
     <!-- Team Management (for Team Coaches) -->
     <?php if ($userRole === User::TEAM_COACH): ?>
         <li class="nav-item">
-            <a href="/team-management" class="nav-link <?= isActiveNav('/team-management', $currentPath) ?>">
+            <a href="<?= url('/team-management') ?>" class="nav-link <?= isActiveNav('/team-management') ?>">
                 <i class="nav-icon fas fa-user-friends"></i>
                 <span class="nav-text">Team Management</span>
             </a>
@@ -52,7 +51,7 @@ if (!$isAuthenticated) {
     <!-- School Management (for School Coordinators) -->
     <?php if ($userRole === User::SCHOOL_COORDINATOR): ?>
         <li class="nav-item">
-            <a href="/school-management" class="nav-link <?= isActiveNav('/school-management', $currentPath) ?>">
+            <a href="<?= url('/school-management') ?>" class="nav-link <?= isActiveNav('/school-management') ?>">
                 <i class="nav-icon fas fa-school"></i>
                 <span class="nav-text">School Management</span>
             </a>
@@ -62,14 +61,14 @@ if (!$isAuthenticated) {
     <!-- Judging (for Judges) -->
     <?php if ($userRole === User::JUDGE): ?>
         <li class="nav-item">
-            <a href="/judging" class="nav-link <?= isActiveNav('/judging', $currentPath) ?>">
+            <a href="<?= url('/judging') ?>" class="nav-link <?= isActiveNav('/judging') ?>">
                 <i class="nav-icon fas fa-gavel"></i>
                 <span class="nav-text">Judging</span>
             </a>
         </li>
         
         <li class="nav-item">
-            <a href="/scorecards" class="nav-link <?= isActiveNav('/scorecards', $currentPath) ?>">
+            <a href="<?= url('/scorecards') ?>" class="nav-link <?= isActiveNav('/scorecards') ?>">
                 <i class="nav-icon fas fa-clipboard-list"></i>
                 <span class="nav-text">Scorecards</span>
             </a>
@@ -82,28 +81,28 @@ if (!$isAuthenticated) {
     </li>
     
     <li class="nav-item">
-        <a href="/categories" class="nav-link <?= isActiveNav('/categories', $currentPath) ?>">
+        <a href="<?= url('/categories') ?>" class="nav-link <?= isActiveNav('/categories') ?>">
             <i class="nav-icon fas fa-list"></i>
             <span class="nav-text">Categories</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/schedule" class="nav-link <?= isActiveNav('/schedule', $currentPath) ?>">
+        <a href="<?= url('/schedule') ?>" class="nav-link <?= isActiveNav('/schedule') ?>">
             <i class="nav-icon fas fa-calendar-alt"></i>
             <span class="nav-text">Schedule</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/resources" class="nav-link <?= isActiveNav('/resources', $currentPath) ?>">
+        <a href="<?= url('/resources') ?>" class="nav-link <?= isActiveNav('/resources') ?>">
             <i class="nav-icon fas fa-download"></i>
             <span class="nav-text">Resources</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/announcements" class="nav-link <?= isActiveNav('/announcements', $currentPath) ?>">
+        <a href="<?= url('/announcements') ?>" class="nav-link <?= isActiveNav('/announcements') ?>">
             <i class="nav-icon fas fa-bullhorn"></i>
             <span class="nav-text">Announcements</span>
         </a>
@@ -115,7 +114,7 @@ if (!$isAuthenticated) {
     </li>
     
     <li class="nav-item">
-        <a href="/leaderboard" class="nav-link <?= isActiveNav('/leaderboard', $currentPath) ?>">
+        <a href="<?= url('/leaderboard') ?>" class="nav-link <?= isActiveNav('/leaderboard') ?>">
             <i class="nav-icon fas fa-trophy"></i>
             <span class="nav-text">Leaderboard</span>
         </a>
@@ -127,14 +126,14 @@ if (!$isAuthenticated) {
     </li>
     
     <li class="nav-item">
-        <a href="/profile" class="nav-link <?= isActiveNav('/profile', $currentPath) ?>">
+        <a href="<?= url('/profile') ?>" class="nav-link <?= isActiveNav('/profile') ?>">
             <i class="nav-icon fas fa-user-edit"></i>
             <span class="nav-text">Profile</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/settings" class="nav-link <?= isActiveNav('/settings', $currentPath) ?>">
+        <a href="<?= url('/settings') ?>" class="nav-link <?= isActiveNav('/settings') ?>">
             <i class="nav-icon fas fa-cog"></i>
             <span class="nav-text">Settings</span>
         </a>
@@ -147,7 +146,7 @@ if (!$isAuthenticated) {
         </li>
         
         <li class="nav-item">
-            <a href="/admin/dashboard" class="nav-link">
+            <a href="<?= url('/admin/dashboard') ?>" class="nav-link <?= isActiveNav('/admin/dashboard') ?>">
                 <i class="nav-icon fas fa-shield-alt"></i>
                 <span class="nav-text">Admin Panel</span>
             </a>

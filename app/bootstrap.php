@@ -61,3 +61,6 @@ $errorHandler = new ErrorHandler($logger);
 set_error_handler([$errorHandler, 'handleError']);
 set_exception_handler([$errorHandler, 'handleException']);
 register_shutdown_function([$errorHandler, 'handleShutdown']);
+
+// Load helper functions
+require_once APP_PATH . '/Core/helpers.php';

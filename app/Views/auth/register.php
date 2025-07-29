@@ -29,175 +29,183 @@ ob_start();
             </div>
         <?php endif; ?>
         
-        <form method="POST" action="<?= htmlspecialchars($registerAction ?? '/auth/register') ?>" id="registerForm">
+        <form method="POST" action="<?= htmlspecialchars($registerAction ?? '/auth/register') ?>" id="registerForm" class="form-container">
             <?= $csrf_field ?? '' ?>
             
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="first_name" class="form-label">First Name *</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="first_name" 
-                        name="first_name" 
-                        value="<?= htmlspecialchars($old_input['first_name'] ?? '') ?>"
-                        placeholder="Enter first name" 
-                        required
-                    >
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="last_name" class="form-label">Last Name *</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="last_name" 
-                        name="last_name" 
-                        value="<?= htmlspecialchars($old_input['last_name'] ?? '') ?>"
-                        placeholder="Enter last name" 
-                        required
-                    >
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label for="username" class="form-label">Username *</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="username" 
-                        name="username" 
-                        value="<?= htmlspecialchars($old_input['username'] ?? '') ?>"
-                        placeholder="Choose a username" 
-                        required
-                        pattern="[a-zA-Z0-9_]+"
-                        title="Username can only contain letters, numbers, and underscores"
-                    >
-                </div>
-                <div class="form-text">Only letters, numbers, and underscores allowed</div>
-            </div>
-            
-            <div class="mb-3">
-                <label for="email" class="form-label">Email Address *</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-envelope"></i>
-                    </span>
-                    <input 
-                        type="email" 
-                        class="form-control" 
-                        id="email" 
-                        name="email" 
-                        value="<?= htmlspecialchars($old_input['email'] ?? '') ?>"
-                        placeholder="Enter your email address" 
-                        required
-                    >
+            <div class="form-section">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="first_name" class="form-label required">First Name</label>
+                            <div class="input-icon-container">
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="first_name" 
+                                    name="first_name" 
+                                    value="<?= htmlspecialchars($old_input['first_name'] ?? '') ?>"
+                                    placeholder="Enter first name" 
+                                    required
+                                >
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="last_name" class="form-label required">Last Name</label>
+                            <div class="input-icon-container">
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    id="last_name" 
+                                    name="last_name" 
+                                    value="<?= htmlspecialchars($old_input['last_name'] ?? '') ?>"
+                                    placeholder="Enter last name" 
+                                    required
+                                >
+                                <i class="fas fa-user input-icon"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label for="phone" class="form-label">Phone Number</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-phone"></i>
-                    </span>
-                    <input 
-                        type="tel" 
-                        class="form-control" 
-                        id="phone" 
-                        name="phone" 
-                        value="<?= htmlspecialchars($old_input['phone'] ?? '') ?>"
-                        placeholder="Enter phone number (optional)" 
-                    >
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="username" class="form-label required">Username</label>
+                    <div class="input-icon-container">
+                        <input 
+                            type="text" 
+                            class="form-control" 
+                            id="username" 
+                            name="username" 
+                            value="<?= htmlspecialchars($old_input['username'] ?? '') ?>"
+                            placeholder="Choose a username" 
+                            required
+                            pattern="[a-zA-Z0-9_]+"
+                            title="Username can only contain letters, numbers, and underscores"
+                        >
+                        <i class="fas fa-at input-icon"></i>
+                    </div>
+                    <div class="form-text">Only letters, numbers, and underscores allowed</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label required">Email Address</label>
+                    <div class="input-icon-container">
+                        <input 
+                            type="email" 
+                            class="form-control" 
+                            id="email" 
+                            name="email" 
+                            value="<?= htmlspecialchars($old_input['email'] ?? '') ?>"
+                            placeholder="Enter your email address" 
+                            required
+                        >
+                        <i class="fas fa-envelope input-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <div class="input-icon-container">
+                        <input 
+                            type="tel" 
+                            class="form-control" 
+                            id="phone" 
+                            name="phone" 
+                            value="<?= htmlspecialchars($old_input['phone'] ?? '') ?>"
+                            placeholder="Enter phone number (optional)" 
+                        >
+                        <i class="fas fa-phone input-icon"></i>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="role" class="form-label required">Role</label>
+                    <div class="input-icon-container">
+                        <select class="form-control form-select" id="role" name="role" required>
+                            <option value="">Select your role</option>
+                            <option value="school_coordinator" <?= ($old_input['role'] ?? '') === 'school_coordinator' ? 'selected' : '' ?>>
+                                School Coordinator
+                            </option>
+                            <option value="team_coach" <?= ($old_input['role'] ?? '') === 'team_coach' ? 'selected' : '' ?>>
+                                Team Coach
+                            </option>
+                        </select>
+                        <i class="fas fa-user-tag input-icon"></i>
+                    </div>
+                    <div class="form-text">Choose the role that best describes your participation</div>
                 </div>
             </div>
             
-            <div class="mb-3">
-                <label for="role" class="form-label">Role *</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-user-tag"></i>
-                    </span>
-                    <select class="form-control" id="role" name="role" required>
-                        <option value="">Select your role</option>
-                        <option value="school_coordinator" <?= ($old_input['role'] ?? '') === 'school_coordinator' ? 'selected' : '' ?>>
-                            School Coordinator
-                        </option>
-                        <option value="team_coach" <?= ($old_input['role'] ?? '') === 'team_coach' ? 'selected' : '' ?>>
-                            Team Coach
-                        </option>
-                    </select>
+            <div class="form-section">
+                <div class="form-group">
+                    <label for="password" class="form-label required">Password</label>
+                    <div class="input-icon-container">
+                        <input 
+                            type="password" 
+                            class="form-control" 
+                            id="password" 
+                            name="password" 
+                            placeholder="Create a strong password" 
+                            required
+                            minlength="8"
+                            style="padding-right: 3.5rem;"
+                        >
+                        <i class="fas fa-lock input-icon"></i>
+                        <button 
+                            class="password-toggle" 
+                            type="button" 
+                            onclick="togglePassword('password')"
+                            aria-label="Toggle password visibility"
+                        >
+                            <i class="fas fa-eye" id="passwordIcon"></i>
+                        </button>
+                    </div>
+                    <div class="form-text">
+                        Must be at least 8 characters with uppercase, lowercase, number, and special character
+                    </div>
                 </div>
-                <div class="form-text">Choose the role that best describes your participation</div>
-            </div>
-            
-            <div class="mb-3">
-                <label for="password" class="form-label">Password *</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="password" 
-                        name="password" 
-                        placeholder="Create a strong password" 
-                        required
-                        minlength="8"
-                    >
-                    <button 
-                        class="btn btn-outline-secondary" 
-                        type="button" 
-                        onclick="togglePassword('password')"
-                    >
-                        <i class="fas fa-eye" id="passwordIcon"></i>
-                    </button>
+                
+                <div class="form-group">
+                    <label for="password_confirmation" class="form-label required">Confirm Password</label>
+                    <div class="input-icon-container">
+                        <input 
+                            type="password" 
+                            class="form-control" 
+                            id="password_confirmation" 
+                            name="password_confirmation" 
+                            placeholder="Confirm your password" 
+                            required
+                            minlength="8"
+                            style="padding-right: 3.5rem;"
+                        >
+                        <i class="fas fa-lock input-icon"></i>
+                        <button 
+                            class="password-toggle" 
+                            type="button" 
+                            onclick="togglePassword('password_confirmation')"
+                            aria-label="Toggle password confirmation visibility"
+                        >
+                            <i class="fas fa-eye" id="passwordConfirmationIcon"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="form-text">
-                    Must be at least 8 characters with uppercase, lowercase, number, and special character
-                </div>
-            </div>
-            
-            <div class="mb-3">
-                <label for="password_confirmation" class="form-label">Confirm Password *</label>
-                <div class="input-group">
-                    <span class="input-group-text">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    <input 
-                        type="password" 
-                        class="form-control" 
-                        id="password_confirmation" 
-                        name="password_confirmation" 
-                        placeholder="Confirm your password" 
-                        required
-                        minlength="8"
-                    >
-                    <button 
-                        class="btn btn-outline-secondary" 
-                        type="button" 
-                        onclick="togglePassword('password_confirmation')"
-                    >
-                        <i class="fas fa-eye" id="passwordConfirmationIcon"></i>
-                    </button>
+                
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="terms" required>
+                    <label class="form-check-label" for="terms">
+                        I agree to the <a href="/terms" target="_blank">Terms of Service</a> and 
+                        <a href="/privacy" target="_blank">Privacy Policy</a>
+                    </label>
                 </div>
             </div>
             
-            <div class="mb-3 form-check">
-                <input type="checkbox" class="form-check-input" id="terms" required>
-                <label class="form-check-label" for="terms">
-                    I agree to the <a href="/terms" target="_blank">Terms of Service</a> and 
-                    <a href="/privacy" target="_blank">Privacy Policy</a> *
-                </label>
-            </div>
-            
-            <div class="d-grid gap-2 mb-3">
+            <div class="d-grid">
                 <button type="submit" class="btn btn-auth btn-primary">
-                    <i class="fas fa-user-plus me-2"></i>
+                    <i class="fas fa-user-plus"></i>
                     Create Account
                 </button>
             </div>
