@@ -303,10 +303,29 @@ class Router
     private function callMiddleware($middleware, $request, $response, $next)
     {
         if (is_string($middleware)) {
-            $middlewareClass = "App\\Http\\Middleware\\{$middleware}";
+            // Parse middleware with parameters (e.g., 'role:admin' or 'permission:user.manage')
+            $middlewareParts = explode(':', $middleware, 2);
+            $middlewareName = $middlewareParts[0];
+            $middlewareParams = isset($middlewareParts[1]) ? $middlewareParts[1] : null;
+            
+            // Try Core middleware first, then Http middleware
+            $middlewareClass = "App\\Core\\Middleware\\{$middlewareName}Middleware";
+            if (!class_exists($middlewareClass)) {
+                $middlewareClass = "App\\Http\\Middleware\\{$middlewareName}Middleware";
+            }
+            if (!class_exists($middlewareClass)) {
+                $middlewareClass = "App\\Http\\Middleware\\{$middlewareName}";
+            }
+            
             if (class_exists($middlewareClass)) {
                 $middlewareInstance = new $middlewareClass();
-                return $middlewareInstance->handle($request, $next);
+                
+                // Pass parameters to middleware if they exist
+                if ($middlewareParams !== null) {
+                    return $middlewareInstance->handle($request, $next, $middlewareParams);
+                } else {
+                    return $middlewareInstance->handle($request, $next);
+                }
             }
         } elseif (is_callable($middleware)) {
             return $middleware($request, $next);

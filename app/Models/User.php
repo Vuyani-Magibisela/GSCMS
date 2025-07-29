@@ -419,4 +419,153 @@ class User extends BaseModel
     {
         return $query->where('email_verified', 1);
     }
+    
+    /**
+     * Check if user has specific permission
+     */
+    public function hasPermission($permission)
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->hasPermission($permission);
+    }
+    
+    /**
+     * Check if user has any of the given permissions
+     */
+    public function hasAnyPermission($permissions)
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->hasAnyPermission($permissions);
+    }
+    
+    /**
+     * Check if user has all of the given permissions
+     */
+    public function hasAllPermissions($permissions)
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->hasAllPermissions($permissions);
+    }
+    
+    /**
+     * Check if user can access resource based on role hierarchy
+     */
+    public function canAccess($requiredRole)
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->canAccess($requiredRole);
+    }
+    
+    /**
+     * Check if user can manage another role
+     */
+    public function canManage($targetRole)
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->canManage($targetRole);
+    }
+    
+    /**
+     * Check if user owns specific resource
+     */
+    public function ownsResource($resourceType, $resourceId)
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->ownsResource($resourceType, $resourceId);
+    }
+    
+    /**
+     * Get all permissions for this user
+     */
+    public function getPermissions()
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->getPermissions();
+    }
+    
+    /**
+     * Get role hierarchy level
+     */
+    public function getRoleLevel()
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->getRoleLevel($this->role);
+    }
+    
+    /**
+     * Get all roles this user can manage
+     */
+    public function getManageableRoles()
+    {
+        $auth = \App\Core\Auth::getInstance();
+        return $auth->getManageableRoles();
+    }
+    
+    /**
+     * Check if user is higher than or equal to given role in hierarchy
+     */
+    public function isHigherOrEqualTo($role)
+    {
+        $roleHierarchy = [
+            self::PARTICIPANT => 1,
+            self::TEAM_COACH => 2,
+            self::JUDGE => 3,
+            self::SCHOOL_COORDINATOR => 4, 
+            self::COMPETITION_ADMIN => 5,
+            self::SUPER_ADMIN => 6
+        ];
+        
+        $userLevel = $roleHierarchy[$this->role] ?? 0;
+        $targetLevel = $roleHierarchy[$role] ?? 999;
+        
+        return $userLevel >= $targetLevel;
+    }
+    
+    /**
+     * Check if user is specifically a super admin
+     */
+    public function isSuperAdmin()
+    {
+        return $this->role === self::SUPER_ADMIN;
+    }
+    
+    /**
+     * Check if user is competition admin
+     */
+    public function isCompetitionAdmin()
+    {
+        return $this->role === self::COMPETITION_ADMIN;
+    }
+    
+    /**
+     * Check if user is school coordinator
+     */
+    public function isSchoolCoordinator()
+    {
+        return $this->role === self::SCHOOL_COORDINATOR;
+    }
+    
+    /**
+     * Check if user is team coach
+     */
+    public function isTeamCoach()
+    {
+        return $this->role === self::TEAM_COACH;
+    }
+    
+    /**
+     * Check if user is judge
+     */
+    public function isJudge()
+    {
+        return $this->role === self::JUDGE;
+    }
+    
+    /**
+     * Check if user is participant
+     */
+    public function isParticipant()
+    {
+        return $this->role === self::PARTICIPANT;
+    }
 }

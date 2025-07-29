@@ -14,6 +14,86 @@ class Auth
     private $user = null;
     private $loginAttempts = [];
     
+    // Permission constants
+    const PERM_SYSTEM_ADMIN = 'system.admin';
+    const PERM_USER_MANAGE = 'user.manage';
+    const PERM_COMPETITION_MANAGE = 'competition.manage';
+    const PERM_COMPETITION_VIEW = 'competition.view';
+    const PERM_SCHOOL_MANAGE = 'school.manage';
+    const PERM_SCHOOL_VIEW = 'school.view';
+    const PERM_TEAM_MANAGE = 'team.manage';
+    const PERM_TEAM_VIEW = 'team.view';
+    const PERM_JUDGE_MANAGE = 'judge.manage';
+    const PERM_JUDGE_SCORE = 'judge.score';
+    const PERM_PARTICIPANT_MANAGE = 'participant.manage';
+    const PERM_PARTICIPANT_VIEW = 'participant.view';
+    const PERM_REPORT_VIEW = 'report.view';
+    const PERM_REPORT_EXPORT = 'report.export';
+    
+    // Role hierarchy (higher number = more permissions)
+    private static $roleHierarchy = [
+        User::PARTICIPANT => 1,
+        User::TEAM_COACH => 2,
+        User::JUDGE => 3,
+        User::SCHOOL_COORDINATOR => 4, 
+        User::COMPETITION_ADMIN => 5,
+        User::SUPER_ADMIN => 6
+    ];
+    
+    // Role permissions mapping
+    private static $rolePermissions = [
+        User::SUPER_ADMIN => [
+            self::PERM_SYSTEM_ADMIN,
+            self::PERM_USER_MANAGE,
+            self::PERM_COMPETITION_MANAGE,
+            self::PERM_COMPETITION_VIEW,
+            self::PERM_SCHOOL_MANAGE,
+            self::PERM_SCHOOL_VIEW,
+            self::PERM_TEAM_MANAGE,
+            self::PERM_TEAM_VIEW,
+            self::PERM_JUDGE_MANAGE,
+            self::PERM_JUDGE_SCORE,
+            self::PERM_PARTICIPANT_MANAGE,
+            self::PERM_PARTICIPANT_VIEW,
+            self::PERM_REPORT_VIEW,
+            self::PERM_REPORT_EXPORT,
+        ],
+        User::COMPETITION_ADMIN => [
+            self::PERM_COMPETITION_MANAGE,
+            self::PERM_COMPETITION_VIEW,
+            self::PERM_SCHOOL_VIEW,
+            self::PERM_TEAM_VIEW,
+            self::PERM_JUDGE_MANAGE,
+            self::PERM_PARTICIPANT_VIEW,
+            self::PERM_REPORT_VIEW,
+            self::PERM_REPORT_EXPORT,
+        ],
+        User::SCHOOL_COORDINATOR => [
+            self::PERM_COMPETITION_VIEW,
+            self::PERM_SCHOOL_MANAGE,
+            self::PERM_SCHOOL_VIEW,
+            self::PERM_TEAM_MANAGE,
+            self::PERM_TEAM_VIEW,
+            self::PERM_PARTICIPANT_MANAGE,
+            self::PERM_PARTICIPANT_VIEW,
+        ],
+        User::TEAM_COACH => [
+            self::PERM_COMPETITION_VIEW,
+            self::PERM_TEAM_VIEW,
+            self::PERM_PARTICIPANT_VIEW,
+        ],
+        User::JUDGE => [
+            self::PERM_COMPETITION_VIEW,
+            self::PERM_JUDGE_SCORE,
+            self::PERM_TEAM_VIEW,
+            self::PERM_PARTICIPANT_VIEW,
+        ],
+        User::PARTICIPANT => [
+            self::PERM_COMPETITION_VIEW,
+            self::PERM_TEAM_VIEW,
+        ],
+    ];
+    
     private function __construct()
     {
         $this->session = Session::getInstance();
@@ -227,6 +307,225 @@ class Auth
         }
         
         return true;
+    }
+    
+    /**
+     * Check if user has specific permission
+     */
+    public function hasPermission($permission)
+    {
+        if (!$this->user) {
+            return false;
+        }
+        
+        $userRole = $this->user->role;
+        
+        // Super admin has all permissions
+        if ($userRole === User::SUPER_ADMIN) {
+            return true;
+        }
+        
+        // Check if role has this permission
+        $rolePermissions = self::$rolePermissions[$userRole] ?? [];
+        return in_array($permission, $rolePermissions);
+    }
+    
+    /**
+     * Check if user has any of the given permissions
+     */
+    public function hasAnyPermission($permissions)
+    {
+        if (!is_array($permissions)) {
+            $permissions = [$permissions];
+        }
+        
+        foreach ($permissions as $permission) {
+            if ($this->hasPermission($permission)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if user has all of the given permissions
+     */
+    public function hasAllPermissions($permissions)
+    {
+        if (!is_array($permissions)) {
+            $permissions = [$permissions];
+        }
+        
+        foreach ($permissions as $permission) {
+            if (!$this->hasPermission($permission)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Require specific permission
+     */
+    public function requirePermission($permission)
+    {
+        $this->requireAuth();
+        
+        if (!$this->hasPermission($permission)) {
+            throw new Exception("Access denied. Required permission: {$permission}", 403);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Require any of the given permissions
+     */
+    public function requireAnyPermission($permissions)
+    {
+        $this->requireAuth();
+        
+        if (!$this->hasAnyPermission($permissions)) {
+            $permNames = is_array($permissions) ? implode(', ', $permissions) : $permissions;
+            throw new Exception("Access denied. Required permissions: {$permNames}", 403);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Require all of the given permissions
+     */
+    public function requireAllPermissions($permissions)
+    {
+        $this->requireAuth();
+        
+        if (!$this->hasAllPermissions($permissions)) {
+            $permNames = is_array($permissions) ? implode(', ', $permissions) : $permissions;
+            throw new Exception("Access denied. Required permissions: {$permNames}", 403);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Check if user can access resource (role hierarchy check)
+     */
+    public function canAccess($requiredRole)
+    {
+        if (!$this->user) {
+            return false;
+        }
+        
+        $userRoleLevel = self::$roleHierarchy[$this->user->role] ?? 0;
+        $requiredRoleLevel = self::$roleHierarchy[$requiredRole] ?? 999;
+        
+        return $userRoleLevel >= $requiredRoleLevel;
+    }
+    
+    /**
+     * Check if user can manage resource (one level above current)
+     */
+    public function canManage($targetRole)
+    {
+        if (!$this->user) {
+            return false;
+        }
+        
+        $userRoleLevel = self::$roleHierarchy[$this->user->role] ?? 0;
+        $targetRoleLevel = self::$roleHierarchy[$targetRole] ?? 999;
+        
+        return $userRoleLevel > $targetRoleLevel;
+    }
+    
+    /**
+     * Check if user owns resource (school/team specific access)
+     */
+    public function ownsResource($resourceType, $resourceId)
+    {
+        if (!$this->user) {
+            return false;
+        }
+        
+        switch ($resourceType) {
+            case 'school':
+                // School coordinators can only access their own school
+                if ($this->user->role === User::SCHOOL_COORDINATOR) {
+                    $school = $this->user->coordinatedSchool;
+                    return $school && $school->id == $resourceId;
+                }
+                break;
+                
+            case 'team':
+                // Team coaches can only access their own teams
+                if ($this->user->role === User::TEAM_COACH) {
+                    $teams = $this->user->coachedTeams;
+                    foreach ($teams as $team) {
+                        if ($team->id == $resourceId) {
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+                // School coordinators can access teams from their school
+                if ($this->user->role === User::SCHOOL_COORDINATOR) {
+                    $school = $this->user->coordinatedSchool;
+                    if ($school) {
+                        // Check if team belongs to coordinator's school
+                        $teamModel = new \App\Models\Team();
+                        $team = $teamModel->find($resourceId);
+                        return $team && $team->school_id == $school->id;
+                    }
+                }
+                break;
+        }
+        
+        // Super admin and competition admin can access all resources
+        return $this->hasAnyRole([User::SUPER_ADMIN, User::COMPETITION_ADMIN]);
+    }
+    
+    /**
+     * Get all permissions for current user
+     */
+    public function getPermissions()
+    {
+        if (!$this->user) {
+            return [];
+        }
+        
+        return self::$rolePermissions[$this->user->role] ?? [];
+    }
+    
+    /**
+     * Get role hierarchy level
+     */
+    public function getRoleLevel($role = null)
+    {
+        $role = $role ?? ($this->user ? $this->user->role : null);
+        return self::$roleHierarchy[$role] ?? 0;
+    }
+    
+    /**
+     * Get all roles that current user can manage
+     */
+    public function getManageableRoles()
+    {
+        if (!$this->user) {
+            return [];
+        }
+        
+        $userLevel = $this->getRoleLevel();
+        $manageableRoles = [];
+        
+        foreach (self::$roleHierarchy as $role => $level) {
+            if ($userLevel > $level) {
+                $manageableRoles[] = $role;
+            }
+        }
+        
+        return $manageableRoles;
     }
     
     /**

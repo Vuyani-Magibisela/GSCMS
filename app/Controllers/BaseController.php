@@ -3,8 +3,6 @@
 
 namespace App\Controllers;
 
-use App\Core\Request;
-use App\Core\Response;
 use App\Core\Database;
 use App\Core\Auth;
 use App\Core\Session;
@@ -244,6 +242,143 @@ abstract class BaseController
     protected function user()
     {
         return $this->auth->user();
+    }
+    
+    /**
+     * Check if user has specific permission
+     */
+    protected function hasPermission($permission)
+    {
+        return $this->auth->hasPermission($permission);
+    }
+    
+    /**
+     * Check if user has any of the given permissions
+     */
+    protected function hasAnyPermission($permissions)
+    {
+        return $this->auth->hasAnyPermission($permissions);
+    }
+    
+    /**
+     * Check if user has all of the given permissions
+     */
+    protected function hasAllPermissions($permissions)
+    {
+        return $this->auth->hasAllPermissions($permissions);
+    }
+    
+    /**
+     * Require specific permission
+     */
+    protected function requirePermission($permission)
+    {
+        try {
+            $this->auth->requirePermission($permission);
+        } catch (Exception $e) {
+            if ($e->getCode() === 401) {
+                $this->redirect($this->baseUrl('auth/login'));
+            } elseif ($e->getCode() === 403) {
+                $this->flash('error', $e->getMessage());
+                $this->redirect($this->baseUrl('dashboard'));
+            }
+            throw $e;
+        }
+    }
+    
+    /**
+     * Require any of the given permissions
+     */
+    protected function requireAnyPermission($permissions)
+    {
+        try {
+            $this->auth->requireAnyPermission($permissions);
+        } catch (Exception $e) {
+            if ($e->getCode() === 401) {
+                $this->redirect($this->baseUrl('auth/login'));
+            } elseif ($e->getCode() === 403) {
+                $this->flash('error', $e->getMessage());
+                $this->redirect($this->baseUrl('dashboard'));
+            }
+            throw $e;
+        }
+    }
+    
+    /**
+     * Require all of the given permissions
+     */
+    protected function requireAllPermissions($permissions)
+    {
+        try {
+            $this->auth->requireAllPermissions($permissions);
+        } catch (Exception $e) {
+            if ($e->getCode() === 401) {
+                $this->redirect($this->baseUrl('auth/login'));
+            } elseif ($e->getCode() === 403) {
+                $this->flash('error', $e->getMessage());
+                $this->redirect($this->baseUrl('dashboard'));
+            }
+            throw $e;
+        }
+    }
+    
+    /**
+     * Check if user can access resource based on role hierarchy
+     */
+    protected function canAccess($requiredRole)
+    {
+        return $this->auth->canAccess($requiredRole);
+    }
+    
+    /**
+     * Check if user can manage another role
+     */
+    protected function canManage($targetRole)
+    {
+        return $this->auth->canManage($targetRole);
+    }
+    
+    /**
+     * Check if user owns specific resource
+     */
+    protected function ownsResource($resourceType, $resourceId)
+    {
+        return $this->auth->ownsResource($resourceType, $resourceId);
+    }
+    
+    /**
+     * Require resource ownership or admin access
+     */
+    protected function requireResourceOwnership($resourceType, $resourceId)
+    {
+        if (!$this->ownsResource($resourceType, $resourceId)) {
+            $this->flash('error', 'You do not have permission to access this resource.');
+            $this->redirect($this->baseUrl('dashboard'));
+        }
+    }
+    
+    /**
+     * Get all permissions for current user
+     */
+    protected function getPermissions()
+    {
+        return $this->auth->getPermissions();
+    }
+    
+    /**
+     * Get role hierarchy level for current user
+     */
+    protected function getRoleLevel()
+    {
+        return $this->auth->getRoleLevel();
+    }
+    
+    /**
+     * Get all roles that current user can manage
+     */
+    protected function getManageableRoles()
+    {
+        return $this->auth->getManageableRoles();
     }
     
     /**
