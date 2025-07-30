@@ -11,9 +11,12 @@ class User extends BaseModel
     protected $table = 'users';
     protected $fillable = [
         'username', 'email', 'password_hash', 'first_name', 'last_name', 
-        'phone', 'role', 'status', 'email_verified', 'reset_token', 
+        'phone', 'role', 'status', 'school_id', 'email_verified', 'reset_token', 
         'reset_token_expires', 'remember_token', 'last_login'
     ];
+    
+    protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
+    protected $softDeletes = true;
     
     // User role constants
     const SUPER_ADMIN = 'super_admin';
@@ -28,6 +31,48 @@ class User extends BaseModel
     const STATUS_INACTIVE = 'inactive';
     const STATUS_SUSPENDED = 'suspended';
     const STATUS_PENDING = 'pending';
+    
+    // Relationships
+    protected $belongsTo = [
+        'school' => ['model' => School::class, 'foreign_key' => 'school_id']
+    ];
+    
+    /**
+     * Get school relationship (for coordinators)
+     */
+    public function school()
+    {
+        return $this->belongsTo('App\Models\School', 'school_id');
+    }
+    
+    /**
+     * Check if user is a school coordinator
+     */
+    public function isSchoolCoordinator()
+    {
+        return $this->role === self::SCHOOL_COORDINATOR;
+    }
+    
+    /**
+     * Check if user is a team coach
+     */
+    public function isTeamCoach()
+    {
+        return $this->role === self::TEAM_COACH;
+    }
+    
+    /**
+     * Get teams where user is a coach
+     */
+    public function coachedTeams()
+    {
+        return $this->db->query("
+            SELECT t.* 
+            FROM teams t 
+            WHERE (t.coach1_id = ? OR t.coach2_id = ?)
+            AND t.deleted_at IS NULL
+        ", [$this->id, $this->id]);
+    }
     
     /**
      * Get all available user roles
@@ -269,7 +314,7 @@ class User extends BaseModel
     /**
      * Validate user data
      */
-    public static function validate($data, $isUpdate = false, $userId = null)
+    public static function validateUserData($data, $isUpdate = false, $userId = null)
     {
         $validator = new Validator();
         $rules = self::getValidationRules($isUpdate, $userId);
@@ -370,14 +415,6 @@ class User extends BaseModel
     public function schools()
     {
         return $this->hasMany('App\\Models\\School', 'coordinator_id');
-    }
-    
-    /**
-     * Relationship: User has many teams (as coach)
-     */
-    public function coachedTeams()
-    {
-        return $this->hasMany('App\\Models\\Team', 'coach1_id');
     }
     
     /**
@@ -535,22 +572,6 @@ class User extends BaseModel
     public function isCompetitionAdmin()
     {
         return $this->role === self::COMPETITION_ADMIN;
-    }
-    
-    /**
-     * Check if user is school coordinator
-     */
-    public function isSchoolCoordinator()
-    {
-        return $this->role === self::SCHOOL_COORDINATOR;
-    }
-    
-    /**
-     * Check if user is team coach
-     */
-    public function isTeamCoach()
-    {
-        return $this->role === self::TEAM_COACH;
     }
     
     /**

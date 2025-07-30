@@ -137,7 +137,7 @@ class AuthController extends BaseController
             $data = $this->input();
             
             // Validate input
-            $validation = User::validate($data);
+            $validation = User::validateUserData($data);
             
             if (!$validation['valid']) {
                 throw new Exception('Validation failed: ' . implode(', ', $validation['errors']));

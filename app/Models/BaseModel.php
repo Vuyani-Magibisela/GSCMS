@@ -13,8 +13,13 @@ abstract class BaseModel
     protected $primaryKey = 'id';
     protected $fillable = [];
     protected $guarded = ['id', 'created_at', 'updated_at'];
-    protected $dates = ['created_at', 'updated_at'];
+    protected $dates = ['created_at', 'updated_at', 'deleted_at'];
     protected $timestamps = true;
+    protected $softDeletes = false;
+    
+    // Validation rules
+    protected $rules = [];
+    protected $messages = [];
     
     // Relationships
     protected $hasOne = [];
@@ -37,11 +42,24 @@ abstract class BaseModel
     }
     
     /**
-     * Find record by ID
+     * Find record by ID (excluding soft deleted)
      */
     public function find($id)
     {
-        $result = $this->db->table($this->table)->find($id);
+        $query = $this->db->table($this->table)->where($this->primaryKey, $id);
+        if ($this->softDeletes && $this->hasDeletedAtColumn()) {
+            $query->whereNull('deleted_at');
+        }
+        $result = $query->first();
+        return $result ? $this->newInstance($result) : null;
+    }
+    
+    /**
+     * Find record by ID including soft deleted
+     */
+    public function findWithTrashed($id)
+    {
+        $result = $this->db->table($this->table)->where($this->primaryKey, $id)->first();
         return $result ? $this->newInstance($result) : null;
     }
     
@@ -67,11 +85,38 @@ abstract class BaseModel
     }
     
     /**
-     * Get all records
+     * Get all records (excluding soft deleted)
      */
     public function all()
     {
+        $query = $this->db->table($this->table);
+        if ($this->softDeletes && $this->hasDeletedAtColumn()) {
+            $query->whereNull('deleted_at');
+        }
+        $results = $query->get();
+        return $this->collection($results);
+    }
+    
+    /**
+     * Get all records including soft deleted
+     */
+    public function withTrashed()
+    {
         $results = $this->db->table($this->table)->get();
+        return $this->collection($results);
+    }
+    
+    /**
+     * Get only soft deleted records
+     */
+    public function onlyTrashed()
+    {
+        if (!$this->softDeletes || !$this->hasDeletedAtColumn()) {
+            return [];
+        }
+        $results = $this->db->table($this->table)
+            ->whereNotNull('deleted_at')
+            ->get();
         return $this->collection($results);
     }
     
@@ -80,6 +125,11 @@ abstract class BaseModel
      */
     public function create($data)
     {
+        // Validate data
+        if (!$this->validate($data)) {
+            return false;
+        }
+        
         $data = $this->filterFillable($data);
         
         if ($this->timestamps) {
@@ -96,22 +146,57 @@ abstract class BaseModel
      */
     public function update($id, $data)
     {
+        // Validate data for update
+        if (!$this->validate($data, $id)) {
+            return false;
+        }
+        
         $data = $this->filterFillable($data);
         
         if ($this->timestamps) {
             $data['updated_at'] = date('Y-m-d H:i:s');
         }
         
-        $this->db->table($this->table)->where($this->primaryKey, $id)->update($data);
+        $query = $this->db->table($this->table)->where($this->primaryKey, $id);
+        if ($this->softDeletes && $this->hasDeletedAtColumn()) {
+            $query->whereNull('deleted_at');
+        }
+        $query->update($data);
         return $this->find($id);
     }
     
     /**
-     * Delete record
+     * Delete record (soft delete if enabled)
      */
     public function delete($id)
     {
+        if ($this->softDeletes && $this->hasDeletedAtColumn()) {
+            return $this->db->table($this->table)
+                ->where($this->primaryKey, $id)
+                ->update(['deleted_at' => date('Y-m-d H:i:s')]);
+        }
         return $this->db->table($this->table)->where($this->primaryKey, $id)->delete();
+    }
+    
+    /**
+     * Force delete (permanently delete)
+     */
+    public function forceDelete($id)
+    {
+        return $this->db->table($this->table)->where($this->primaryKey, $id)->delete();
+    }
+    
+    /**
+     * Restore soft deleted record
+     */
+    public function restore($id)
+    {
+        if ($this->softDeletes && $this->hasDeletedAtColumn()) {
+            return $this->db->table($this->table)
+                ->where($this->primaryKey, $id)
+                ->update(['deleted_at' => null]);
+        }
+        return false;
     }
     
     /**
@@ -247,6 +332,25 @@ abstract class BaseModel
     }
     
     /**
+     * Check if table has deleted_at column
+     */
+    protected function hasDeletedAtColumn()
+    {
+        static $checkedTables = [];
+        
+        if (!isset($checkedTables[$this->table])) {
+            try {
+                $this->db->query("SELECT deleted_at FROM {$this->table} LIMIT 1");
+                $checkedTables[$this->table] = true;
+            } catch (\Exception $e) {
+                $checkedTables[$this->table] = false;
+            }
+        }
+        
+        return $checkedTables[$this->table];
+    }
+    
+    /**
      * Filter fillable attributes
      */
     protected function filterFillable($data)
@@ -374,6 +478,145 @@ abstract class BaseModel
     }
     
     /**
+     * Validate data against rules
+     */
+    public function validate($data, $id = null)
+    {
+        if (empty($this->rules)) {
+            return true;
+        }
+        
+        $errors = [];
+        
+        foreach ($this->rules as $field => $rules) {
+            $rules = is_string($rules) ? explode('|', $rules) : $rules;
+            
+            foreach ($rules as $rule) {
+                $error = $this->validateRule($field, $data[$field] ?? null, $rule, $data, $id);
+                if ($error) {
+                    $errors[$field][] = $error;
+                }
+            }
+        }
+        
+        if (!empty($errors)) {
+            $this->validationErrors = $errors;
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Validate individual rule
+     */
+    protected function validateRule($field, $value, $rule, $data, $id = null)
+    {
+        if (strpos($rule, ':') !== false) {
+            list($rule, $parameter) = explode(':', $rule, 2);
+        } else {
+            $parameter = null;
+        }
+        
+        switch ($rule) {
+            case 'required':
+                if (empty($value)) {
+                    return $this->getValidationMessage($field, $rule, "The {$field} field is required.");
+                }
+                break;
+                
+            case 'email':
+                if (!empty($value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    return $this->getValidationMessage($field, $rule, "The {$field} must be a valid email address.");
+                }
+                break;
+                
+            case 'max':
+                if (!empty($value) && strlen($value) > $parameter) {
+                    return $this->getValidationMessage($field, $rule, "The {$field} may not be greater than {$parameter} characters.");
+                }
+                break;
+                
+            case 'min':
+                if (!empty($value) && strlen($value) < $parameter) {
+                    return $this->getValidationMessage($field, $rule, "The {$field} must be at least {$parameter} characters.");
+                }
+                break;
+                
+            case 'unique':
+                if (!empty($value)) {
+                    $query = $this->db->table($this->table)->where($field, $value);
+                    if ($id) {
+                        $query->where($this->primaryKey, '!=', $id);
+                    }
+                    if ($this->softDeletes && $this->hasDeletedAtColumn()) {
+                        $query->whereNull('deleted_at');
+                    }
+                    if ($query->first()) {
+                        return $this->getValidationMessage($field, $rule, "The {$field} has already been taken.");
+                    }
+                }
+                break;
+        }
+        
+        return null;
+    }
+    
+    /**
+     * Get validation message
+     */
+    protected function getValidationMessage($field, $rule, $default)
+    {
+        $key = "{$field}.{$rule}";
+        return $this->messages[$key] ?? $this->messages[$rule] ?? $default;
+    }
+    
+    /**
+     * Get validation errors
+     */
+    public function getValidationErrors()
+    {
+        return $this->validationErrors ?? [];
+    }
+    
+    /**
+     * Query scope: active records
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+    
+    /**
+     * Query scope: by status
+     */
+    public function scopeByStatus($query, $status)
+    {
+        return $query->where('status', $status);
+    }
+    
+    /**
+     * Query scope: recent records
+     */
+    public function scopeRecent($query, $days = 30)
+    {
+        $date = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+        return $query->where('created_at', '>=', $date);
+    }
+    
+    /**
+     * Apply scope method
+     */
+    public function scope($name, ...$parameters)
+    {
+        $method = 'scope' . ucfirst($name);
+        if (method_exists($this, $method)) {
+            return $this->$method($this->db->table($this->table), ...$parameters);
+        }
+        return $this->db->table($this->table);
+    }
+    
+    /**
      * Save model
      */
     public function save()
@@ -386,7 +629,9 @@ abstract class BaseModel
         } else {
             // Create new record
             $created = $this->create($data);
-            $this->{$this->primaryKey} = $created->{$this->primaryKey};
+            if ($created) {
+                $this->{$this->primaryKey} = $created->{$this->primaryKey};
+            }
             return $created;
         }
     }

@@ -4,6 +4,8 @@
 require_once __DIR__ . '/AdminUserSeeder.php';
 require_once __DIR__ . '/PhasesSeeder.php';
 require_once __DIR__ . '/CategoriesSeeder.php';
+require_once __DIR__ . '/DefaultCategoriesSeeder.php';
+require_once __DIR__ . '/DefaultPhasesSeeder.php';
 
 class ProductionSeeder extends Seeder
 {
@@ -13,8 +15,8 @@ class ProductionSeeder extends Seeder
         
         // Only run production-safe seeders
         $this->call('AdminUserSeeder');
-        $this->call('PhasesSeeder');
-        $this->call('CategoriesSeeder');
+        $this->call('DefaultPhasesSeeder');
+        $this->call('DefaultCategoriesSeeder');
         
         $this->logger->info("Production seeding completed");
     }

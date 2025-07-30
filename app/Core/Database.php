@@ -155,6 +155,32 @@ class Database
     }
     
     /**
+     * Add WHERE IS NULL condition
+     */
+    public function whereNull($column)
+    {
+        $this->where[] = [
+            'type' => 'AND',
+            'condition' => "{$column} IS NULL"
+        ];
+        
+        return $this;
+    }
+    
+    /**
+     * Add WHERE IS NOT NULL condition
+     */
+    public function whereNotNull($column)
+    {
+        $this->where[] = [
+            'type' => 'AND',
+            'condition' => "{$column} IS NOT NULL"
+        ];
+        
+        return $this;
+    }
+    
+    /**
      * Add JOIN
      */
     public function join($table, $first, $operator = '=', $second = null)
@@ -331,6 +357,24 @@ class Database
         $this->select = 'COUNT(*) as count';
         $result = $this->first();
         return $result ? (int)$result['count'] : 0;
+    }
+    
+    /**
+     * Check if records exist
+     */
+    public function exists()
+    {
+        return $this->count() > 0;
+    }
+    
+    /**
+     * Get sum of column
+     */
+    public function sum($column)
+    {
+        $this->select = "SUM({$column}) as sum";
+        $result = $this->first();
+        return $result ? (float)$result['sum'] : 0;
     }
     
     /**
