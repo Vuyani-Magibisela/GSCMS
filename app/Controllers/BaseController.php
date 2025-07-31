@@ -8,6 +8,9 @@ use App\Core\Auth;
 use App\Core\Session;
 use App\Core\CSRF;
 use App\Core\RateLimit;
+use App\Core\Validator;
+use App\Core\Sanitizer;
+use App\Core\Security;
 use Exception;
 
 abstract class BaseController
@@ -29,6 +32,9 @@ abstract class BaseController
         $this->csrf = CSRF::getInstance();
         $this->rateLimit = RateLimit::getInstance();
         
+        // Set security headers
+        $this->setSecurityHeaders();
+        
         // Attempt remember me login if not already authenticated
         if (!$this->auth->check()) {
             $this->auth->attemptRememberLogin();
@@ -36,7 +42,22 @@ abstract class BaseController
         
         // Make CSRF token available to all views
         $this->data['csrf_token'] = $this->csrf->getToken();
-        $this->data['csrf_field'] = '<input type="hidden" name="_csrf_token" value="' . htmlspecialchars($this->csrf->getToken()) . '">';
+        $this->data['csrf_field'] = $this->csrf->field();
+        $this->data['csrf_meta'] = $this->csrf->getMetaTag();
+        
+        // Make current user available to views
+        $this->data['current_user'] = $this->auth->user();
+        $this->data['is_authenticated'] = $this->auth->check();
+    }
+    
+    /**
+     * Set security headers
+     */
+    private function setSecurityHeaders()
+    {
+        if (!headers_sent()) {
+            Security::setSecurityHeaders();
+        }
     }
     
     /**
@@ -103,15 +124,43 @@ abstract class BaseController
     }
     
     /**
-     * Get request input
+     * Get request input (sanitized)
      */
-    protected function input($key = null, $default = null)
+    protected function input($key = null, $default = null, $sanitize = true)
     {
-        if ($key === null) {
-            return $_REQUEST;
+        $data = $_REQUEST;
+        
+        if ($sanitize) {
+            $data = Sanitizer::sanitize($data, Sanitizer::LEVEL_BASIC);
         }
         
-        return $_REQUEST[$key] ?? $default;
+        if ($key === null) {
+            return $data;
+        }
+        
+        return $data[$key] ?? $default;
+    }
+    
+    /**
+     * Get raw request input (unsanitized)
+     */
+    protected function rawInput($key = null, $default = null)
+    {
+        return $this->input($key, $default, false);
+    }
+    
+    /**
+     * Get sanitized input with specific level
+     */
+    protected function sanitizedInput($key = null, $level = Sanitizer::LEVEL_BASIC, $options = [])
+    {
+        $data = Sanitizer::sanitize($_REQUEST, $level, $options);
+        
+        if ($key === null) {
+            return $data;
+        }
+        
+        return $data[$key] ?? null;
     }
     
     /**
@@ -119,31 +168,54 @@ abstract class BaseController
      */
     protected function validate($rules, $messages = [])
     {
-        $validator = new \App\Core\Validator();
+        $validator = new Validator();
+        $data = $this->sanitizedInput(null, Sanitizer::LEVEL_DATABASE);
         
-        foreach ($rules as $field => $rule) {
-            $value = $this->input($field);
-            $fieldRules = explode('|', $rule);
-            
-            foreach ($fieldRules as $fieldRule) {
-                $ruleName = $fieldRule;
-                $ruleValue = null;
-                
-                if (strpos($fieldRule, ':') !== false) {
-                    [$ruleName, $ruleValue] = explode(':', $fieldRule, 2);
-                }
-                
-                if (!$validator->validate($value, $ruleName, $ruleValue)) {
-                    $message = $messages["{$field}.{$ruleName}"] ?? 
-                              $messages[$field] ?? 
-                              "The {$field} field is invalid";
-                    
-                    throw new Exception($message, 422);
+        $result = $validator->validate($data, $rules);
+        
+        if (!$result['valid']) {
+            $this->handleValidationErrors($result['errors'], $messages);
+        }
+        
+        return $result['validated_data'];
+    }
+    
+    /**
+     * Handle validation errors
+     */
+    private function handleValidationErrors($errors, $customMessages = [])
+    {
+        // Apply custom messages if provided
+        if (!empty($customMessages)) {
+            foreach ($errors as $field => $fieldErrors) {
+                if (isset($customMessages[$field])) {
+                    $errors[$field] = [$customMessages[$field]];
                 }
             }
         }
         
-        return true;
+        if ($this->isAjaxRequest()) {
+            http_response_code(422);
+            echo $this->json([
+                'error' => 'Validation failed',
+                'errors' => $errors,
+                'code' => 422
+            ], 422);
+            exit;
+        } else {
+            $this->flash('validation_errors', $errors);
+            $this->flash('old_input', $_POST);
+            $this->back();
+        }
+    }
+    
+    /**
+     * Check if request is AJAX
+     */
+    private function isAjaxRequest()
+    {
+        return !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
     }
     
     /**
@@ -502,5 +574,123 @@ abstract class BaseController
         $currentPage = explode('/', $uri)[0] ?: 'home';
         
         return $currentPage === $pageName;
+    }
+    
+    /**
+     * Sanitize output for display
+     */
+    protected function escape($value, $encoding = 'UTF-8')
+    {
+        if (is_array($value)) {
+            return array_map([$this, 'escape'], $value);
+        }
+        
+        return htmlspecialchars($value, ENT_QUOTES | ENT_HTML5, $encoding);
+    }
+    
+    /**
+     * Generate secure token
+     */
+    protected function generateToken($length = 32)
+    {
+        return Security::generateToken($length);
+    }
+    
+    /**
+     * Log security event
+     */
+    protected function logSecurityEvent($event, $details = [])
+    {
+        $logEntry = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'event' => $event,
+            'details' => $details,
+            'ip' => Security::getClientIP(),
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'user_id' => $this->auth->id(),
+            'session_id' => session_id()
+        ];
+        
+        $logDir = STORAGE_PATH . '/logs';
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+        
+        error_log('SECURITY_EVENT: ' . json_encode($logEntry), 3, $logDir . '/security.log');
+    }
+    
+    /**
+     * Handle file upload securely
+     */
+    protected function handleFileUpload($fieldName, $uploadDir, $allowedTypes = [], $maxSize = 2097152)
+    {
+        if (!isset($_FILES[$fieldName])) {
+            throw new Exception('No file uploaded');
+        }
+        
+        return Security::handleFileUpload($_FILES[$fieldName], $uploadDir, $allowedTypes, $maxSize);
+    }
+    
+    /**
+     * Check and enforce rate limit
+     */
+    protected function checkRateLimit($identifier, $maxAttempts, $timeWindow = 3600)
+    {
+        if (!Security::checkRateLimit($identifier, $maxAttempts, $timeWindow)) {
+            http_response_code(429);
+            
+            if ($this->isAjaxRequest()) {
+                echo $this->json([
+                    'error' => 'Rate limit exceeded',
+                    'message' => 'Too many requests. Please try again later.',
+                    'retry_after' => $timeWindow
+                ], 429);
+            } else {
+                $this->flash('error', 'Too many requests. Please try again later.');
+                $this->back();
+            }
+            
+            exit;
+        }
+    }
+    
+    /**
+     * Verify request came from same origin
+     */
+    protected function verifySameOrigin()
+    {
+        if (!CSRF::verifySameSite()) {
+            $this->logSecurityEvent('invalid_origin', [
+                'origin' => $_SERVER['HTTP_ORIGIN'] ?? '',
+                'referer' => $_SERVER['HTTP_REFERER'] ?? '',
+                'request_uri' => $_SERVER['REQUEST_URI'] ?? ''
+            ]);
+            
+            throw new Exception('Invalid request origin', 403);
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Get validation errors from session
+     */
+    protected function getValidationErrors()
+    {
+        return $this->session->flash('validation_errors');
+    }
+    
+    /**
+     * Get old input from session
+     */
+    protected function getOldInput($key = null, $default = null)
+    {
+        $oldInput = $this->session->flash('old_input') ?? [];
+        
+        if ($key === null) {
+            return $oldInput;
+        }
+        
+        return $oldInput[$key] ?? $default;
     }
 }

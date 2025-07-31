@@ -24,8 +24,23 @@ class Validator
         
         return [
             'valid' => empty($this->errors),
-            'errors' => $this->errors
+            'errors' => $this->errors,
+            'validated_data' => $this->getValidatedData()
         ];
+    }
+    
+    /**
+     * Get validated and sanitized data
+     */
+    private function getValidatedData()
+    {
+        $validated = [];
+        foreach ($this->data as $key => $value) {
+            if (!$this->hasErrors($key)) {
+                $validated[$key] = $value;
+            }
+        }
+        return $validated;
     }
     
     /**
@@ -140,6 +155,185 @@ class Validator
                         $this->addError($field, "The {$field} must be true or false");
                     }
                     break;
+                    
+                case 'alpha':
+                    if ($parameter && !preg_match('/^[a-zA-Z]+$/', $value)) {
+                        $this->addError($field, "The {$field} may only contain letters");
+                    }
+                    break;
+                    
+                case 'alpha_num':
+                    if ($parameter && !preg_match('/^[a-zA-Z0-9]+$/', $value)) {
+                        $this->addError($field, "The {$field} may only contain letters and numbers");
+                    }
+                    break;
+                    
+                case 'alpha_dash':
+                    if ($parameter && !preg_match('/^[a-zA-Z0-9_-]+$/', $value)) {
+                        $this->addError($field, "The {$field} may only contain letters, numbers, dashes and underscores");
+                    }
+                    break;
+                    
+                case 'between':
+                    if (is_array($parameter) && count($parameter) === 2) {
+                        [$min, $max] = $parameter;
+                        if (is_numeric($value)) {
+                            if ($value < $min || $value > $max) {
+                                $this->addError($field, "The {$field} must be between {$min} and {$max}");
+                            }
+                        } else {
+                            $length = strlen($value);
+                            if ($length < $min || $length > $max) {
+                                $this->addError($field, "The {$field} must be between {$min} and {$max} characters");
+                            }
+                        }
+                    }
+                    break;
+                    
+                case 'length':
+                    if (is_numeric($parameter) && strlen($value) !== (int)$parameter) {
+                        $this->addError($field, "The {$field} must be exactly {$parameter} characters");
+                    }
+                    break;
+                    
+                case 'exists':
+                    if (is_array($parameter)) {
+                        $table = $parameter['table'];
+                        $column = $parameter['column'];
+                        
+                        if (!$this->recordExists($table, $column, $value)) {
+                            $this->addError($field, "The selected {$field} is invalid");
+                        }
+                    }
+                    break;
+                    
+                case 'confirmed':
+                    $confirmField = $field . '_confirmation';
+                    $confirmValue = $this->data[$confirmField] ?? null;
+                    if ($value !== $confirmValue) {
+                        $this->addError($field, "The {$field} confirmation does not match");
+                    }
+                    break;
+                    
+                case 'date_format':
+                    if ($parameter && !$this->validateDateFormat($value, $parameter)) {
+                        $this->addError($field, "The {$field} does not match the format {$parameter}");
+                    }
+                    break;
+                    
+                case 'before':
+                    if ($parameter && strtotime($value) >= strtotime($parameter)) {
+                        $this->addError($field, "The {$field} must be a date before {$parameter}");
+                    }
+                    break;
+                    
+                case 'after':
+                    if ($parameter && strtotime($value) <= strtotime($parameter)) {
+                        $this->addError($field, "The {$field} must be a date after {$parameter}");
+                    }
+                    break;
+                    
+                case 'file':
+                    if ($parameter && !$this->validateFile($field)) {
+                        $this->addError($field, "The {$field} must be a file");
+                    }
+                    break;
+                    
+                case 'image':
+                    if ($parameter && !$this->validateImage($field)) {
+                        $this->addError($field, "The {$field} must be an image");
+                    }
+                    break;
+                    
+                case 'mimes':
+                    if (is_array($parameter) && !$this->validateMimes($field, $parameter)) {
+                        $allowedTypes = implode(', ', $parameter);
+                        $this->addError($field, "The {$field} must be a file of type: {$allowedTypes}");
+                    }
+                    break;
+                    
+                case 'max_file_size':
+                    if (is_numeric($parameter) && !$this->validateFileSize($field, $parameter)) {
+                        $maxSize = $parameter / 1024; // Convert to KB
+                        $this->addError($field, "The {$field} may not be greater than {$maxSize}KB");
+                    }
+                    break;
+                    
+                case 'array':
+                    if ($parameter && !is_array($value)) {
+                        $this->addError($field, "The {$field} must be an array");
+                    }
+                    break;
+                    
+                case 'json':
+                    if ($parameter && !$this->validateJson($value)) {
+                        $this->addError($field, "The {$field} must be a valid JSON string");
+                    }
+                    break;
+                    
+                case 'ip':
+                    if ($parameter && !filter_var($value, FILTER_VALIDATE_IP)) {
+                        $this->addError($field, "The {$field} must be a valid IP address");
+                    }
+                    break;
+                    
+                case 'phone':
+                    if ($parameter && !$this->validatePhone($value)) {
+                        $this->addError($field, "The {$field} must be a valid phone number");
+                    }
+                    break;
+                    
+                case 'password_strength':
+                    if ($parameter && !$this->validatePasswordStrength($value)) {
+                        $this->addError($field, "The {$field} must contain at least 8 characters with uppercase, lowercase, numbers and special characters");
+                    }
+                    break;
+                    
+                case 'not_in':
+                    if (is_array($parameter) && in_array($value, $parameter)) {
+                        $this->addError($field, "The selected {$field} is invalid");
+                    }
+                    break;
+                    
+                case 'different':
+                    $otherField = $parameter;
+                    $otherValue = $this->data[$otherField] ?? null;
+                    if ($value === $otherValue) {
+                        $this->addError($field, "The {$field} and {$otherField} must be different");
+                    }
+                    break;
+                    
+                case 'starts_with':
+                    if (is_array($parameter)) {
+                        $valid = false;
+                        foreach ($parameter as $prefix) {
+                            if (strpos($value, $prefix) === 0) {
+                                $valid = true;
+                                break;
+                            }
+                        }
+                        if (!$valid) {
+                            $prefixes = implode(', ', $parameter);
+                            $this->addError($field, "The {$field} must start with one of the following: {$prefixes}");
+                        }
+                    }
+                    break;
+                    
+                case 'ends_with':
+                    if (is_array($parameter)) {
+                        $valid = false;
+                        foreach ($parameter as $suffix) {
+                            if (substr($value, -strlen($suffix)) === $suffix) {
+                                $valid = true;
+                                break;
+                            }
+                        }
+                        if (!$valid) {
+                            $suffixes = implode(', ', $parameter);
+                            $this->addError($field, "The {$field} must end with one of the following: {$suffixes}");
+                        }
+                    }
+                    break;
             }
         }
     }
@@ -164,6 +358,109 @@ class Validator
             // If database check fails, assume not unique to be safe
             return false;
         }
+    }
+    
+    /**
+     * Check if record exists in database
+     */
+    private function recordExists($table, $column, $value)
+    {
+        try {
+            $db = Database::getInstance();
+            $result = $db->table($table)->where($column, $value)->first();
+            return $result !== null;
+            
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Validate date format
+     */
+    private function validateDateFormat($value, $format)
+    {
+        $date = \DateTime::createFromFormat($format, $value);
+        return $date && $date->format($format) === $value;
+    }
+    
+    /**
+     * Validate file upload
+     */
+    private function validateFile($field)
+    {
+        return isset($_FILES[$field]) && $_FILES[$field]['error'] === UPLOAD_ERR_OK;
+    }
+    
+    /**
+     * Validate image file
+     */
+    private function validateImage($field)
+    {
+        if (!$this->validateFile($field)) {
+            return false;
+        }
+        
+        $imageInfo = getimagesize($_FILES[$field]['tmp_name']);
+        return $imageInfo !== false;
+    }
+    
+    /**
+     * Validate file MIME types
+     */
+    private function validateMimes($field, $allowedMimes)
+    {
+        if (!$this->validateFile($field)) {
+            return false;
+        }
+        
+        $fileInfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($fileInfo, $_FILES[$field]['tmp_name']);
+        finfo_close($fileInfo);
+        
+        return in_array($mimeType, $allowedMimes);
+    }
+    
+    /**
+     * Validate file size
+     */
+    private function validateFileSize($field, $maxSize)
+    {
+        if (!$this->validateFile($field)) {
+            return false;
+        }
+        
+        return $_FILES[$field]['size'] <= $maxSize;
+    }
+    
+    /**
+     * Validate JSON string
+     */
+    private function validateJson($value)
+    {
+        json_decode($value);
+        return json_last_error() === JSON_ERROR_NONE;
+    }
+    
+    /**
+     * Validate phone number
+     */
+    private function validatePhone($value)
+    {
+        // Basic phone validation - can be enhanced for specific formats
+        return preg_match('/^[\+]?[1-9][\d]{0,15}$/', preg_replace('/[\s\-\(\)]/', '', $value));
+    }
+    
+    /**
+     * Validate password strength
+     */
+    private function validatePasswordStrength($value)
+    {
+        return strlen($value) >= 8 &&
+               preg_match('/[a-z]/', $value) &&
+               preg_match('/[A-Z]/', $value) &&
+               preg_match('/\d/', $value) &&
+               preg_match('/[^\w\s]/', $value);
     }
     
     /**

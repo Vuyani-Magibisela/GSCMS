@@ -378,22 +378,64 @@ class Database
     }
     
     /**
-     * Execute raw query
+     * Execute raw query (with SQL injection protection)
      */
     public function query($sql, $bindings = [])
     {
+        // Log potentially dangerous queries in development
+        $this->logSuspiciousQuery($sql, $bindings);
+        
         $stmt = $this->connection->prepare($sql);
+        
+        if (!$stmt) {
+            throw new Exception("Failed to prepare query: " . implode(' ', $this->connection->errorInfo()));
+        }
+        
         $stmt->execute($bindings);
         return $stmt->fetchAll();
     }
     
     /**
-     * Execute raw statement (INSERT, UPDATE, DELETE)
+     * Execute raw statement (INSERT, UPDATE, DELETE) with protection
      */
     public function statement($sql, $bindings = [])
     {
+        // Log potentially dangerous queries in development
+        $this->logSuspiciousQuery($sql, $bindings);
+        
         $stmt = $this->connection->prepare($sql);
+        
+        if (!$stmt) {
+            throw new Exception("Failed to prepare statement: " . implode(' ', $this->connection->errorInfo()));
+        }
+        
         return $stmt->execute($bindings);
+    }
+    
+    /**
+     * Log suspicious SQL queries
+     */
+    private function logSuspiciousQuery($sql, $bindings = [])
+    {
+        // Check for dangerous patterns
+        $dangerousPatterns = [
+            '/union\s+select/i',
+            '/;.*drop\s+table/i',
+            '/;.*delete\s+from/i',
+            '/;.*insert\s+into/i',
+            '/;.*update\s+.*set/i',
+            '/\/\*.*\*\//i',
+            '/--[^\r\n]*/i',
+            '/\bor\s+1\s*=\s*1/i',
+            '/\band\s+1\s*=\s*1/i'
+        ];
+        
+        foreach ($dangerousPatterns as $pattern) {
+            if (preg_match($pattern, $sql)) {
+                error_log("SUSPICIOUS SQL QUERY: " . $sql . " | Bindings: " . json_encode($bindings), 3, STORAGE_PATH . '/logs/security.log');
+                break;
+            }
+        }
     }
     
     /**
@@ -509,5 +551,125 @@ class Database
     public function __wakeup()
     {
         throw new Exception("Cannot unserialize singleton Database instance");
+    }
+    
+    /**
+     * Safely escape string for use in queries (last resort - use bindings instead)
+     */
+    public function escape($value)
+    {
+        return $this->connection->quote($value);
+    }
+    
+    /**
+     * Validate table name to prevent injection
+     */
+    public function validateTableName($table)
+    {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $table)) {
+            throw new Exception("Invalid table name: {$table}");
+        }
+        
+        return $table;
+    }
+    
+    /**
+     * Validate column name to prevent injection
+     */
+    public function validateColumnName($column)
+    {
+        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $column)) {
+            throw new Exception("Invalid column name: {$column}");
+        }
+        
+        return $column;
+    }
+    
+    /**
+     * Safely build WHERE clause with proper escaping
+     */
+    public function buildSafeWhere($conditions)
+    {
+        $whereParts = [];
+        $bindings = [];
+        
+        foreach ($conditions as $column => $value) {
+            $safeColumn = $this->validateColumnName($column);
+            $placeholder = ':' . $column . '_' . uniqid();
+            
+            if (is_array($value)) {
+                // Handle IN clause
+                $placeholders = [];
+                foreach ($value as $i => $val) {
+                    $ph = $placeholder . '_' . $i;
+                    $placeholders[] = $ph;
+                    $bindings[$ph] = $val;
+                }
+                $whereParts[] = "{$safeColumn} IN (" . implode(', ', $placeholders) . ")";
+            } elseif ($value === null) {
+                $whereParts[] = "{$safeColumn} IS NULL";
+            } else {
+                $whereParts[] = "{$safeColumn} = {$placeholder}";
+                $bindings[$placeholder] = $value;
+            }
+        }
+        
+        return [
+            'where' => implode(' AND ', $whereParts),
+            'bindings' => $bindings
+        ];
+    }
+    
+    /**
+     * Check if query is potentially dangerous
+     */
+    public function isDangerousQuery($sql)
+    {
+        $dangerousPatterns = [
+            '/drop\s+table/i',
+            '/truncate\s+table/i',
+            '/alter\s+table/i',
+            '/create\s+table/i',
+            '/grant\s+/i',
+            '/revoke\s+/i',
+            '/load\s+data/i',
+            '/into\s+outfile/i',
+            '/into\s+dumpfile/i',
+            '/load_file\s*\(/i',
+            '/sleep\s*\(/i',
+            '/benchmark\s*\(/i',
+            '/information_schema/i',
+            '/mysql\./i',
+            '/pg_/i',
+            '/xp_/i',
+            '/sp_/i'
+        ];
+        
+        foreach ($dangerousPatterns as $pattern) {
+            if (preg_match($pattern, $sql)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Enable query logging for debugging
+     */
+    public function enableQueryLogging($enabled = true)
+    {
+        if ($enabled) {
+            $this->connection->setAttribute(PDO::ATTR_STATEMENT_CLASS, ['LoggingPDOStatement']);
+        }
+    }
+    
+    /**
+     * Get logged queries (for debugging)
+     */
+    public function getLoggedQueries()
+    {
+        // This would need to be implemented with a custom PDOStatement class
+        return [];
     }
 }
