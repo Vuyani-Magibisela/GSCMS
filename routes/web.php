@@ -119,6 +119,17 @@ $router->group(['middleware' => 'auth'], function($router) {
     $router->group(['middleware' => 'role:super_admin', 'prefix' => 'admin', 'namespace' => 'Admin'], function($router) {
         // System administration
         $router->get('/dashboard', 'DashboardController@index', 'admin.dashboard');
+        
+        // File management (admin has all permissions)
+        $router->post('/upload/bulk', '\\App\\Controllers\\FileUploadController@bulkUpload', 'admin.upload.bulk');
+        $router->post('/upload/consent-form', '\\App\\Controllers\\FileUploadController@uploadConsentForm', 'admin.upload.consent');
+        $router->post('/upload/team-submission', '\\App\\Controllers\\FileUploadController@uploadTeamSubmission', 'admin.upload.submission');
+        $router->post('/upload/profile-photo', '\\App\\Controllers\\FileUploadController@uploadProfilePhoto', 'admin.upload.profile');
+        $router->get('/files/{id}/download', '\\App\\Controllers\\FileUploadController@downloadFile', 'admin.files.download');
+        $router->delete('/files/{id}', '\\App\\Controllers\\FileUploadController@deleteFile', 'admin.files.delete');
+        $router->get('/files/{id}/info', '\\App\\Controllers\\FileUploadController@getFileInfo', 'admin.files.info');
+        $router->get('/upload/{id}/progress', '\\App\\Controllers\\FileUploadController@getUploadProgress', 'admin.upload.progress');
+        
         $router->get('/system', 'SystemController@index', 'admin.system');
         $router->get('/system/settings', 'SystemController@settings', 'admin.system.settings');
         $router->post('/system/settings', 'SystemController@updateSettings', 'admin.system.settings.update');
@@ -217,6 +228,14 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->post('/registrations', 'RegistrationController@store', 'coordinator.registrations.store');
         $router->get('/submissions', 'SubmissionController@index', 'coordinator.submissions');
         $router->post('/submissions', 'SubmissionController@store', 'coordinator.submissions.store');
+        
+        // File uploads
+        $router->post('/upload/consent-form', '\\App\\Controllers\\FileUploadController@uploadConsentForm', 'coordinator.upload.consent');
+        $router->post('/upload/team-submission', '\\App\\Controllers\\FileUploadController@uploadTeamSubmission', 'coordinator.upload.submission');
+        $router->post('/upload/profile-photo', '\\App\\Controllers\\FileUploadController@uploadProfilePhoto', 'coordinator.upload.profile');
+        $router->get('/files/{id}/download', '\\App\\Controllers\\FileUploadController@downloadFile', 'coordinator.files.download');
+        $router->delete('/files/{id}', '\\App\\Controllers\\FileUploadController@deleteFile', 'coordinator.files.delete');
+        $router->get('/files/{id}/info', '\\App\\Controllers\\FileUploadController@getFileInfo', 'coordinator.files.info');
     });
     
     // ========================================================================
@@ -242,6 +261,14 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->post('/teams/{id}/submissions', 'SubmissionController@store', 'coach.submissions.store');
         $router->get('/submissions/{id}', 'SubmissionController@show', 'coach.submissions.show');
         $router->put('/submissions/{id}', 'SubmissionController@update', 'coach.submissions.update');
+        
+        // File uploads
+        $router->post('/upload/consent-form', '\\App\\Controllers\\FileUploadController@uploadConsentForm', 'coach.upload.consent');
+        $router->post('/upload/team-submission', '\\App\\Controllers\\FileUploadController@uploadTeamSubmission', 'coach.upload.submission');
+        $router->post('/upload/profile-photo', '\\App\\Controllers\\FileUploadController@uploadProfilePhoto', 'coach.upload.profile');
+        $router->get('/files/{id}/download', '\\App\\Controllers\\FileUploadController@downloadFile', 'coach.files.download');
+        $router->delete('/files/{id}', '\\App\\Controllers\\FileUploadController@deleteFile', 'coach.files.delete');
+        $router->get('/files/{id}/info', '\\App\\Controllers\\FileUploadController@getFileInfo', 'coach.files.info');
     });
     
     // ========================================================================

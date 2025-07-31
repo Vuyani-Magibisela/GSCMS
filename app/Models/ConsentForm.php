@@ -10,7 +10,8 @@ class ConsentForm extends BaseModel
     protected $fillable = [
         'participant_id', 'form_type', 'status', 'submitted_date', 'reviewed_date',
         'reviewed_by', 'parent_guardian_name', 'parent_guardian_signature',
-        'parent_guardian_date', 'file_path', 'notes', 'rejection_reason'
+        'parent_guardian_date', 'file_path', 'file_name', 'file_size', 'file_type',
+        'notes', 'rejection_reason', 'metadata', 'uploaded_file_id'
     ];
     
     protected $guarded = ['id', 'created_at', 'updated_at', 'deleted_at'];
@@ -46,7 +47,8 @@ class ConsentForm extends BaseModel
     
     protected $belongsTo = [
         'participant' => ['model' => Participant::class, 'foreign_key' => 'participant_id'],
-        'reviewer' => ['model' => User::class, 'foreign_key' => 'reviewed_by']
+        'reviewer' => ['model' => User::class, 'foreign_key' => 'reviewed_by'],
+        'uploadedFile' => ['model' => UploadedFile::class, 'foreign_key' => 'uploaded_file_id']
     ];
     
     /**
@@ -63,6 +65,14 @@ class ConsentForm extends BaseModel
     public function reviewer()
     {
         return $this->belongsTo('App\Models\User', 'reviewed_by');
+    }
+    
+    /**
+     * Get uploaded file relationship
+     */
+    public function uploadedFile()
+    {
+        return $this->belongsTo('App\Models\UploadedFile', 'uploaded_file_id');
     }
     
     /**
@@ -377,6 +387,140 @@ class ConsentForm extends BaseModel
     }
     
     /**
+     * Attach uploaded file to consent form
+     */
+    public function attachFile($uploadedFileId, $filePath = null, $fileName = null, $fileSize = null, $fileType = null)
+    {
+        $updateData = [
+            'uploaded_file_id' => $uploadedFileId,
+            'updated_at' => date('Y-m-d H:i:s')
+        ];
+        
+        if ($filePath) $updateData['file_path'] = $filePath;
+        if ($fileName) $updateData['file_name'] = $fileName;
+        if ($fileSize) $updateData['file_size'] = $fileSize;
+        if ($fileType) $updateData['file_type'] = $fileType;
+        
+        return $this->db->table($this->table)
+            ->where('id', $this->id)
+            ->update($updateData);
+    }
+    
+    /**
+     * Get file download URL
+     */
+    public function getFileUrl()
+    {
+        if (!$this->file_path) {
+            return null;
+        }
+        
+        // Generate secure download URL
+        return '/uploads/consent_forms/download/' . $this->id;
+    }
+    
+    /**
+     * Check if file exists
+     */
+    public function fileExists()
+    {
+        return $this->file_path && file_exists(PUBLIC_PATH . $this->file_path);
+    }
+    
+    /**
+     * Get formatted file size
+     */
+    public function getFormattedFileSize()
+    {
+        if (!$this->file_size) {
+            return 'Unknown';
+        }
+        
+        $units = ['B', 'KB', 'MB', 'GB'];
+        $power = floor(log($this->file_size, 1024));
+        $power = min($power, count($units) - 1);
+        
+        return round($this->file_size / pow(1024, $power), 2) . ' ' . $units[$power];
+    }
+    
+    /**
+     * Get metadata as array
+     */
+    public function getMetadata()
+    {
+        return $this->metadata ? json_decode($this->metadata, true) : [];
+    }
+    
+    /**
+     * Set metadata
+     */
+    public function setMetadata($metadata)
+    {
+        $this->metadata = json_encode($metadata);
+        
+        return $this->db->table($this->table)
+            ->where('id', $this->id)
+            ->update([
+                'metadata' => $this->metadata,
+                'updated_at' => date('Y-m-d H:i:s')
+            ]);
+    }
+    
+    /**
+     * Add to metadata
+     */
+    public function addMetadata($key, $value)
+    {
+        $metadata = $this->getMetadata();
+        $metadata[$key] = $value;
+        return $this->setMetadata($metadata);
+    }
+    
+    /**
+     * Check if consent form has digital signature
+     */
+    public function hasDigitalSignature()
+    {
+        $metadata = $this->getMetadata();
+        return isset($metadata['has_digital_signature']) && $metadata['has_digital_signature'];
+    }
+    
+    /**
+     * Validate document completeness
+     */
+    public function validateDocumentCompleteness()
+    {
+        if (!$this->fileExists()) {
+            return [
+                'complete' => false,
+                'missing' => ['File not found']
+            ];
+        }
+        
+        $missing = [];
+        
+        // Check required fields
+        if (!$this->parent_guardian_name) {
+            $missing[] = 'Parent/Guardian name';
+        }
+        
+        if (!$this->parent_guardian_date) {
+            $missing[] = 'Signature date';
+        }
+        
+        // Check for digital signature if required
+        $metadata = $this->getMetadata();
+        if (empty($metadata['signature_verified'])) {
+            $missing[] = 'Digital signature verification';
+        }
+        
+        return [
+            'complete' => empty($missing),
+            'missing' => $missing
+        ];
+    }
+    
+    /**
      * Override toArray to include calculated fields
      */
     public function toArray()
@@ -391,6 +535,12 @@ class ConsentForm extends BaseModel
         $attributes['status_label'] = self::getAvailableStatuses()[$this->status] ?? $this->status;
         $attributes['days_until_expiry'] = $this->getExpiryDate() ? 
             ceil((strtotime($this->getExpiryDate()) - time()) / (60 * 60 * 24)) : null;
+        $attributes['file_url'] = $this->getFileUrl();
+        $attributes['file_exists'] = $this->fileExists();
+        $attributes['formatted_file_size'] = $this->getFormattedFileSize();
+        $attributes['has_digital_signature'] = $this->hasDigitalSignature();
+        $attributes['document_complete'] = $this->validateDocumentCompleteness()['complete'];
+        $attributes['parsed_metadata'] = $this->getMetadata();
         
         return $attributes;
     }
