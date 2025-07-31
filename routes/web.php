@@ -46,6 +46,27 @@ $router->get('/test-dashboard-controller', function() {
 
 $router->get('/test/db', 'TestController@database', 'test.db');
 
+// Development only - Login as admin for testing (remove in production)
+$router->get('/dev-login-admin', function() {
+    if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
+        return 'Access denied';
+    }
+    
+    $_SESSION['user'] = [
+        'id' => 1,
+        'username' => 'admin',
+        'email' => 'admin@gde.gov.za',
+        'first_name' => 'System',
+        'last_name' => 'Administrator',
+        'role' => 'super_admin',
+        'status' => 'active'
+    ];
+    $_SESSION['user_id'] = 1;
+    $_SESSION['logged_in'] = true;
+    
+    return '<h1>Development Login Complete!</h1><p><a href="admin/dashboard">Go to Admin Dashboard</a></p>';
+}, 'dev-login-admin');
+
 // Development only - Create test user route
 $router->get('/create-test-user', function() {
     try {

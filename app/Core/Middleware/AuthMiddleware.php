@@ -34,7 +34,22 @@ class AuthMiddleware
             $session = \App\Core\Session::getInstance();
             $session->setIntendedUrl($request->getUri());
             
-            return $response->redirect('/auth/login');
+            return $response->redirect($this->getAppUrl('/auth/login'));
         }
+    }
+    
+    /**
+     * Get application URL with proper base path handling
+     */
+    private function getAppUrl($path = '')
+    {
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'];
+        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
+        $scriptPath = $scriptPath === '/' ? '' : $scriptPath;
+        
+        $baseUrl = $protocol . $host . $scriptPath;
+        
+        return $path ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $baseUrl;
     }
 }

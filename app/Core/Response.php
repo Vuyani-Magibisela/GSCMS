@@ -84,4 +84,68 @@ class Response
         // Output content
         echo $this->content;
     }
+    
+    /**
+     * Create a redirect response
+     */
+    public function redirect($url, $statusCode = 302)
+    {
+        $this->setStatusCode($statusCode);
+        $this->setHeader('Location', $url);
+        $this->setContent('');
+        
+        // Send immediately for redirects
+        $this->send();
+        exit;
+    }
+    
+    /**
+     * Create a JSON response
+     */
+    public function json($data, $statusCode = 200)
+    {
+        $this->setStatusCode($statusCode);
+        $this->setHeader('Content-Type', 'application/json');
+        $this->setContent(json_encode($data));
+        return $this;
+    }
+    
+    /**
+     * Create a view response
+     */
+    public function view($view, $data = [], $layout = null)
+    {
+        // This would typically be handled by the Controller
+        return $this;
+    }
+    
+    /**
+     * Set response as not found
+     */
+    public function notFound($message = 'Not Found')
+    {
+        $this->setStatusCode(404);
+        $this->setContent($message);
+        return $this;
+    }
+    
+    /**
+     * Set response as forbidden
+     */
+    public function forbidden($message = 'Forbidden')
+    {
+        $this->setStatusCode(403);
+        $this->setContent($message);
+        return $this;
+    }
+    
+    /**
+     * Set response as server error
+     */
+    public function serverError($message = 'Internal Server Error')
+    {
+        $this->setStatusCode(500);
+        $this->setContent($message);
+        return $this;
+    }
 }

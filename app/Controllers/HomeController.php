@@ -12,7 +12,7 @@ class HomeController extends BaseController
     {
         // If user is authenticated, redirect to dashboard
         if ($this->isAuthenticated()) {
-            return $response->redirect('/dashboard');
+            return $response->redirect($this->baseUrl('/dashboard'));
         }
         
         $data = [

@@ -1,0 +1,30 @@
+# Root .htaccess - Redirect all requests to public directory
+RewriteEngine On
+
+# Redirect all requests to public directory
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L,QSA]
+
+# Prevent direct access to sensitive directories
+RewriteCond %{REQUEST_URI} ^/(app|config|database|storage|vendor)/
+RewriteRule ^(.*)$ - [F,L]
+
+# Security headers
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options nosniff
+    Header always set X-Frame-Options DENY
+    Header always set X-XSS-Protection "1; mode=block"
+</IfModule>
+
+# Deny access to sensitive files
+<Files ~ "^\.">
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files ~ "\.php$">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Allow PHP files only in public directory (handled by public/.htaccess)

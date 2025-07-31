@@ -75,4 +75,67 @@ class Request
     {
         return $this->parameters;
     }
+    
+    /**
+     * Check if request expects JSON response
+     */
+    public function expectsJson()
+    {
+        $acceptHeader = $_SERVER['HTTP_ACCEPT'] ?? '';
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        
+        // Check Accept header for JSON
+        if (strpos($acceptHeader, 'application/json') !== false) {
+            return true;
+        }
+        
+        // Check Content-Type header for JSON
+        if (strpos($contentType, 'application/json') !== false) {
+            return true;
+        }
+        
+        // Check if request is AJAX
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+            strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Check if request is AJAX
+     */
+    public function isAjax()
+    {
+        return isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+               strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
+    }
+    
+    /**
+     * Get client IP address
+     */
+    public function getClientIp()
+    {
+        // Check for IP from shared internet
+        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
+            return $_SERVER['HTTP_CLIENT_IP'];
+        }
+        // Check for IP passed from proxy
+        elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+            return $_SERVER['HTTP_X_FORWARDED_FOR'];
+        }
+        // Return normal IP
+        else {
+            return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+        }
+    }
+    
+    /**
+     * Get user agent
+     */
+    public function getUserAgent()
+    {
+        return $_SERVER['HTTP_USER_AGENT'] ?? '';
+    }
 }
