@@ -3,6 +3,8 @@ RewriteEngine On
 
 # Redirect all requests to public directory
 RewriteCond %{REQUEST_URI} !^/public/
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(.*)$ public/$1 [L,QSA]
 
 # Prevent direct access to sensitive directories

@@ -64,8 +64,63 @@ $router->get('/dev-login-admin', function() {
     $_SESSION['user_id'] = 1;
     $_SESSION['logged_in'] = true;
     
-    return '<h1>Development Login Complete!</h1><p><a href="admin/dashboard">Go to Admin Dashboard</a></p>';
+    $baseUrl = (\$_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . \$_SERVER['HTTP_HOST'] . str_replace('/index.php', '', \$_SERVER['SCRIPT_NAME']);
+    
+    // Debug info
+    \$auth = \App\Core\Auth::getInstance();
+    \$debugInfo = '<h2>Debug Info:</h2>';
+    \$debugInfo .= 'Authenticated: ' . (\$auth->check() ? 'YES' : 'NO') . '<br>';
+    if (\$auth->check()) {
+        \$user = \$auth->user();
+        \$debugInfo .= 'User Role: ' . \$user->role . '<br>';
+        \$debugInfo .= 'Is Admin: ' . (\$user->isAdmin() ? 'YES' : 'NO') . '<br>';
+        \$debugInfo .= 'Has super_admin role: ' . (\$user->hasRole('super_admin') ? 'YES' : 'NO') . '<br>';
+    }
+    
+    return '<h1>Development Login Complete!</h1>' . \$debugInfo . '<p><a href="' . \$baseUrl . '/admin/dashboard">Go to Admin Dashboard</a></p>';
 }, 'dev-login-admin');
+
+// Development only - Test admin route without middleware
+$router->get('/test-admin-direct', function() {
+    if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
+        return 'Access denied';
+    }
+    
+    try {
+        $controller = new \App\Controllers\Admin\DashboardController();
+        return $controller->index();
+    } catch (Exception $e) {
+        return '<h1>Error</h1><p>' . htmlspecialchars($e->getMessage()) . '</p>';
+    }
+}, 'test-admin-direct');
+
+// Development only - Debug session and role
+$router->get('/debug-session', function() {
+    if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
+        return 'Access denied';
+    }
+    
+    $auth = \App\Core\Auth::getInstance();
+    $output = '<h1>Session & Role Debug</h1>';
+    
+    $output .= '<h2>Session Data:</h2>';
+    $output .= '<pre>' . print_r($_SESSION, true) . '</pre>';
+    
+    $output .= '<h2>Auth Status:</h2>';
+    $output .= 'Authenticated: ' . ($auth->check() ? 'YES' : 'NO') . '<br>';
+    
+    if ($auth->check()) {
+        $user = $auth->user();
+        $output .= 'User ID: ' . $user->id . '<br>';
+        $output .= 'Username: ' . $user->username . '<br>';
+        $output .= 'Role: ' . $user->role . '<br>';
+        $output .= 'Is Admin: ' . ($user->isAdmin() ? 'YES' : 'NO') . '<br>';
+        $output .= 'Has super_admin role: ' . ($user->hasRole('super_admin') ? 'YES' : 'NO') . '<br>';
+        $output .= 'Has any admin roles: ' . ($user->hasAnyRole(['super_admin', 'competition_admin']) ? 'YES' : 'NO') . '<br>';
+    }
+    
+    return $output;
+}, 'debug-session');
 
 // Development only - Create test user route
 $router->get('/create-test-user', function() {

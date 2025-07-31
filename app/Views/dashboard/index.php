@@ -39,7 +39,7 @@ ob_start();
                                 <div class="alert alert-primary">
                                     <h5><i class="fas fa-school me-2"></i>School Coordinator Dashboard</h5>
                                     <p>As a School Coordinator, you can manage your school's participation in competitions.</p>
-                                    <a href="/schools/manage" class="btn btn-outline-primary">
+                                    <a href="<?= $baseUrl ?? '' ?>/schools/manage" class="btn btn-outline-primary">
                                         <i class="fas fa-cog me-2"></i>Manage School
                                     </a>
                                 </div>
@@ -47,7 +47,7 @@ ob_start();
                                 <div class="alert alert-success">
                                     <h5><i class="fas fa-users me-2"></i>Team Coach Dashboard</h5>
                                     <p>As a Team Coach, you can manage your teams and participants.</p>
-                                    <a href="/teams/manage" class="btn btn-outline-success">
+                                    <a href="<?= $baseUrl ?? '' ?>/teams/manage" class="btn btn-outline-success">
                                         <i class="fas fa-users me-2"></i>Manage Teams
                                     </a>
                                 </div>
@@ -55,7 +55,7 @@ ob_start();
                                 <div class="alert alert-warning">
                                     <h5><i class="fas fa-gavel me-2"></i>Judge Dashboard</h5>
                                     <p>As a Judge, you can score competitions and view judging assignments.</p>
-                                    <a href="/judging/dashboard" class="btn btn-outline-warning">
+                                    <a href="<?= $baseUrl ?? '' ?>/judging/dashboard" class="btn btn-outline-warning">
                                         <i class="fas fa-clipboard-list me-2"></i>Judging Panel
                                     </a>
                                 </div>
@@ -63,7 +63,7 @@ ob_start();
                                 <div class="alert alert-danger">
                                     <h5><i class="fas fa-user-shield me-2"></i>Administrator Dashboard</h5>
                                     <p>You have administrative access to the system.</p>
-                                    <a href="/admin/dashboard" class="btn btn-outline-danger">
+                                    <a href="<?= $baseUrl ?? '' ?>/admin/dashboard" class="btn btn-outline-danger">
                                         <i class="fas fa-cogs me-2"></i>Admin Panel
                                     </a>
                                 </div>
@@ -97,16 +97,16 @@ ob_start();
                                 </div>
                                 <div class="card-body">
                                     <div class="d-grid gap-2">
-                                        <a href="/competitions" class="btn btn-outline-info btn-sm">
+                                        <a href="<?= $baseUrl ?? '' ?>/competitions" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-trophy me-2"></i>Competitions
                                         </a>
-                                        <a href="/schedule" class="btn btn-outline-info btn-sm">
+                                        <a href="<?= $baseUrl ?? '' ?>/schedule" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-calendar me-2"></i>Schedule
                                         </a>
-                                        <a href="/resources" class="btn btn-outline-info btn-sm">
+                                        <a href="<?= $baseUrl ?? '' ?>/resources" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-file-alt me-2"></i>Resources
                                         </a>
-                                        <a href="/support" class="btn btn-outline-info btn-sm">
+                                        <a href="<?= $baseUrl ?? '' ?>/support" class="btn btn-outline-info btn-sm">
                                             <i class="fas fa-question-circle me-2"></i>Support
                                         </a>
                                     </div>
