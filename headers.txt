@@ -1,0 +1,11 @@
+HTTP/1.1 200 OK
+Host: localhost:8000
+Date: Fri, 01 Aug 2025 03:33:26 GMT
+Connection: close
+X-Powered-By: PHP/8.1.2-1ubuntu2.22
+Expires: Thu, 19 Nov 1981 08:52:00 GMT
+Cache-Control: no-store, no-cache, must-revalidate
+Pragma: no-cache
+Set-Cookie: GSCMS_SESSION=n5cj5boennd2itogu12vqtrvik; expires=Fri, 01-Aug-2025 05:33:26 GMT; Max-Age=7200; path=/; HttpOnly; SameSite=Strict
+Content-type: text/html; charset=UTF-8
+

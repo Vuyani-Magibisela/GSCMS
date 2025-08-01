@@ -387,11 +387,17 @@ class Router
     private function prepareAction($action)
     {
         if (is_string($action) && strpos($action, '@') !== false) {
-            $namespace = $this->getGroupAttribute('namespace', 'App\\Controllers');
+            $baseNamespace = 'App\\Controllers';
+            $groupNamespace = $this->getGroupAttribute('namespace');
             [$controller, $method] = explode('@', $action);
             
             if (strpos($controller, '\\') === false) {
-                $controller = $namespace . '\\' . $controller;
+                // Combine base namespace with group namespace
+                if ($groupNamespace) {
+                    $controller = $baseNamespace . '\\' . $groupNamespace . '\\' . $controller;
+                } else {
+                    $controller = $baseNamespace . '\\' . $controller;
+                }
             }
             
             return $controller . '@' . $method;

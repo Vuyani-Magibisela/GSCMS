@@ -327,10 +327,18 @@ class User extends BaseModel
      */
     public static function createUser($data)
     {
-        $validation = self::validate($data);
+        $validation = self::validateUserData($data);
         
         if (!$validation['valid']) {
-            throw new Exception('Validation failed: ' . implode(', ', $validation['errors']));
+            $errorMessages = [];
+            foreach ($validation['errors'] as $field => $fieldErrors) {
+                if (is_array($fieldErrors)) {
+                    $errorMessages = array_merge($errorMessages, $fieldErrors);
+                } else {
+                    $errorMessages[] = $fieldErrors;
+                }
+            }
+            throw new Exception('Validation failed: ' . implode(', ', $errorMessages));
         }
         
         // Hash password
@@ -351,10 +359,18 @@ class User extends BaseModel
      */
     public function updateUser($data)
     {
-        $validation = self::validate($data, true, $this->id);
+        $validation = self::validateUserData($data, true, $this->id);
         
         if (!$validation['valid']) {
-            throw new Exception('Validation failed: ' . implode(', ', $validation['errors']));
+            $errorMessages = [];
+            foreach ($validation['errors'] as $field => $fieldErrors) {
+                if (is_array($fieldErrors)) {
+                    $errorMessages = array_merge($errorMessages, $fieldErrors);
+                } else {
+                    $errorMessages[] = $fieldErrors;
+                }
+            }
+            throw new Exception('Validation failed: ' . implode(', ', $errorMessages));
         }
         
         // Hash password if provided

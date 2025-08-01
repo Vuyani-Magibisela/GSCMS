@@ -45,7 +45,7 @@
             
             <!-- Admin Brand -->
             <div class="admin-brand">
-                <a href="/admin/dashboard" class="brand-link">
+                <a href="<?= url('/admin/dashboard') ?>" class="brand-link">
                     <i class="fas fa-shield-alt brand-icon"></i>
                     <span class="brand-text">Admin Panel</span>
                 </a>

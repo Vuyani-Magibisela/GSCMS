@@ -52,33 +52,121 @@ $router->get('/dev-login-admin', function() {
         return 'Access denied';
     }
     
-    $_SESSION['user'] = [
-        'id' => 1,
-        'username' => 'admin',
-        'email' => 'admin@gde.gov.za',
-        'first_name' => 'System',
-        'last_name' => 'Administrator',
-        'role' => 'super_admin',
-        'status' => 'active'
-    ];
-    $_SESSION['user_id'] = 1;
-    $_SESSION['logged_in'] = true;
+    // Properly authenticate using Auth class
+    $auth = App\Core\Auth::getInstance();
     
-    $baseUrl = (\$_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . \$_SERVER['HTTP_HOST'] . str_replace('/index.php', '', \$_SERVER['SCRIPT_NAME']);
+    // Find existing admin user first
+    $user = App\Models\User::findByEmail('admin@gscms.local');
     
-    // Debug info
-    \$auth = \App\Core\Auth::getInstance();
-    \$debugInfo = '<h2>Debug Info:</h2>';
-    \$debugInfo .= 'Authenticated: ' . (\$auth->check() ? 'YES' : 'NO') . '<br>';
-    if (\$auth->check()) {
-        \$user = \$auth->user();
-        \$debugInfo .= 'User Role: ' . \$user->role . '<br>';
-        \$debugInfo .= 'Is Admin: ' . (\$user->isAdmin() ? 'YES' : 'NO') . '<br>';
-        \$debugInfo .= 'Has super_admin role: ' . (\$user->hasRole('super_admin') ? 'YES' : 'NO') . '<br>';
+    if (!$user) {
+        // Try finding by email from seeding
+        $user = App\Models\User::findByEmail('admin@gde.gov.za');
     }
     
-    return '<h1>Development Login Complete!</h1>' . \$debugInfo . '<p><a href="' . \$baseUrl . '/admin/dashboard">Go to Admin Dashboard</a></p>';
+    if (!$user) {
+        // Create admin user if doesn't exist
+        $userData = [
+            'username' => 'devadmin',
+            'email' => 'admin@gscms.local',
+            'password' => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'first_name' => 'System',
+            'last_name' => 'Administrator',
+            'role' => 'super_admin',
+            'status' => 'active',
+            'email_verified' => 1
+        ];
+        
+        try {
+            $user = App\Models\User::createUser($userData);
+        } catch (Exception $e) {
+            return '<h1>Error creating admin user:</h1><p>' . htmlspecialchars($e->getMessage()) . '</p>';
+        }
+    }
+    
+    // Login the user properly through Auth class
+    $auth->login($user);
+    
+    $baseUrl = ($_SERVER['REQUEST_SCHEME'] ?? 'http') . '://' . $_SERVER['HTTP_HOST'] . str_replace('/index.php', '', $_SERVER['SCRIPT_NAME']);
+    
+    // Debug info
+    $debugInfo = '<h2>Debug Info:</h2>';
+    $debugInfo .= 'Authenticated: ' . ($auth->check() ? 'YES' : 'NO') . '<br>';
+    if ($auth->check()) {
+        $user = $auth->user();
+        $debugInfo .= 'User ID: ' . $user->id . '<br>';
+        $debugInfo .= 'User Role: ' . $user->role . '<br>';
+        $debugInfo .= 'Is Admin: ' . ($user->isAdmin() ? 'YES' : 'NO') . '<br>';
+        $debugInfo .= 'Has super_admin role: ' . ($user->hasRole('super_admin') ? 'YES' : 'NO') . '<br>';
+        $session = App\Core\Session::getInstance();
+        $debugInfo .= 'Session user_id: ' . ($session->get('user_id') ?? 'NOT SET') . '<br>';
+        $debugInfo .= 'Session user_role: ' . ($session->get('user_role') ?? 'NOT SET') . '<br>';
+    }
+    
+    return '<h1>Development Login Complete!</h1>' . $debugInfo . '<p><a href="' . $baseUrl . '/admin/dashboard">Go to Admin Dashboard</a></p>';
 }, 'dev-login-admin');
+
+// Development only - Test admin dashboard without middleware
+$router->get('/test-admin-dashboard', function() {
+    if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
+        return 'Access denied';
+    }
+    
+    $auth = App\Core\Auth::getInstance();
+    $debugInfo = '<h2>Debug Info:</h2>';
+    $debugInfo .= 'Authenticated: ' . ($auth->check() ? 'YES' : 'NO') . '<br>';
+    if ($auth->check()) {
+        $user = $auth->user();
+        $debugInfo .= 'User ID: ' . $user->id . '<br>';
+        $debugInfo .= 'User Role: ' . $user->role . '<br>';
+        $debugInfo .= 'Is Admin: ' . ($user->isAdmin() ? 'YES' : 'NO') . '<br>';
+        $debugInfo .= 'Has super_admin role: ' . ($user->hasRole('super_admin') ? 'YES' : 'NO') . '<br>';
+    }
+    
+    // Try to instantiate the controller
+    try {
+        $controller = new \App\Controllers\Admin\DashboardController();
+        $result = $controller->index();
+        return '<h1>Admin Dashboard Test</h1>' . $debugInfo . '<hr><h2>Controller Output:</h2>' . $result;
+    } catch (Exception $e) {
+        return '<h1>Admin Dashboard Test - Error</h1>' . $debugInfo . '<hr><h2>Error:</h2>' . $e->getMessage();
+    }
+}, 'test-admin-dashboard');
+
+
+// Test admin dashboard without middleware
+$router->get('/apache-admin-test', function() {
+    try {
+        $controller = new \App\Controllers\Admin\DashboardController();
+        $result = $controller->index();
+        return '<h1>Apache Admin Dashboard Test - SUCCESS</h1><hr>' . $result;
+    } catch (Exception $e) {
+        return '<h1>Apache Admin Dashboard Test - ERROR</h1><p>Error: ' . $e->getMessage() . '</p>';
+    }
+}, 'apache-admin-test');
+
+// Simple Apache test route
+$router->get('/apache-test', function() {
+    $debugInfo = '<h1>Apache Test Route Works!</h1>';
+    $debugInfo .= '<p>PHP Version: ' . phpversion() . '</p>';
+    $debugInfo .= '<p>Server: ' . ($_SERVER['SERVER_SOFTWARE'] ?? 'Unknown') . '</p>';
+    $debugInfo .= '<p>REQUEST_URI: ' . $_SERVER['REQUEST_URI'] . '</p>';
+    $debugInfo .= '<p>SCRIPT_NAME: ' . $_SERVER['SCRIPT_NAME'] . '</p>';
+    return $debugInfo;
+}, 'apache-test');
+
+// Simple debug auth route
+$router->get('/debug-auth-simple', function() {
+    $auth = \App\Core\Auth::getInstance();
+    $output = '<h1>Simple Auth Debug</h1>';
+    $output .= 'Authenticated: ' . ($auth->check() ? 'YES' : 'NO') . '<br>';
+    if ($auth->check()) {
+        $user = $auth->user();
+        $output .= 'User Role: ' . ($user->role ?? 'NO ROLE') . '<br>';
+        $output .= 'Has super_admin: ' . ($user->hasRole('super_admin') ? 'YES' : 'NO') . '<br>';
+    }
+    return $output;
+}, 'debug-auth-simple');
 
 // Development only - Test admin route without middleware
 $router->get('/test-admin-direct', function() {
@@ -117,6 +205,22 @@ $router->get('/debug-session', function() {
         $output .= 'Is Admin: ' . ($user->isAdmin() ? 'YES' : 'NO') . '<br>';
         $output .= 'Has super_admin role: ' . ($user->hasRole('super_admin') ? 'YES' : 'NO') . '<br>';
         $output .= 'Has any admin roles: ' . ($user->hasAnyRole(['super_admin', 'competition_admin']) ? 'YES' : 'NO') . '<br>';
+        
+        // Test the middleware logic
+        $output .= '<h2>Middleware Test:</h2>';
+        try {
+            $auth->requireAuth();
+            $output .= 'requireAuth(): PASSED<br>';
+        } catch (Exception $e) {
+            $output .= 'requireAuth(): FAILED - ' . $e->getMessage() . '<br>';
+        }
+        
+        try {
+            $auth->requireAnyRole(['super_admin']);
+            $output .= 'requireAnyRole([super_admin]): PASSED<br>';
+        } catch (Exception $e) {
+            $output .= 'requireAnyRole([super_admin]): FAILED - ' . $e->getMessage() . '<br>';
+        }
     }
     
     return $output;

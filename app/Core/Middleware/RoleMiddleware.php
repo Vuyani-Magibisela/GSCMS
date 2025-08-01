@@ -18,6 +18,7 @@ class RoleMiddleware
     {
         $auth = Auth::getInstance();
         
+        
         try {
             // Ensure user is authenticated first
             $auth->requireAuth();
@@ -29,6 +30,7 @@ class RoleMiddleware
             
             return $next($request);
         } catch (Exception $e) {
+            
             $response = new Response();
             
             if ($request->expectsJson()) {

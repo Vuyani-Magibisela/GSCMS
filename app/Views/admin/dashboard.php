@@ -14,27 +14,27 @@ ob_start();
     <div class="quick-actions-panel">
         <h3 class="quick-actions-title">Quick Actions</h3>
         <div class="quick-actions-grid">
-            <a href="/admin/schools/create" class="quick-action-btn">
+            <a href="<?= url('/admin/schools/create') ?>" class="quick-action-btn">
                 <i class="fas fa-school"></i>
                 <span>Add School</span>
             </a>
-            <a href="/admin/teams" class="quick-action-btn">
+            <a href="<?= url('/admin/teams') ?>" class="quick-action-btn">
                 <i class="fas fa-users"></i>
                 <span>Manage Teams</span>
             </a>
-            <a href="/admin/announcements/create" class="quick-action-btn">
+            <a href="<?= url('/admin/announcements/create') ?>" class="quick-action-btn">
                 <i class="fas fa-bullhorn"></i>
                 <span>Send Notice</span>
             </a>
-            <a href="/admin/reports" class="quick-action-btn">
+            <a href="<?= url('/admin/reports') ?>" class="quick-action-btn">
                 <i class="fas fa-chart-bar"></i>
                 <span>View Reports</span>
             </a>
-            <a href="/admin/competitions" class="quick-action-btn">
+            <a href="<?= url('/admin/competitions') ?>" class="quick-action-btn">
                 <i class="fas fa-trophy"></i>
                 <span>Competitions</span>
             </a>
-            <a href="/admin/system" class="quick-action-btn">
+            <a href="<?= url('/admin/system') ?>" class="quick-action-btn">
                 <i class="fas fa-cog"></i>
                 <span>System Status</span>
             </a>
@@ -182,7 +182,7 @@ ob_start();
                     <i class="fas fa-clock"></i>
                     Pending Approvals
                 </h3>
-                <a href="/admin/approvals" class="widget-action">View All</a>
+                <a href="<?= url('/admin/approvals') ?>" class="widget-action">View All</a>
             </div>
             <div class="widget-content">
                 <?php if (!empty($pendingApprovals) && array_sum($pendingApprovals) > 0): ?>
@@ -196,7 +196,7 @@ ob_start();
                                     <span class="approval-count"><?= $pendingApprovals['teams'] ?></span>
                                     <span class="approval-label">Team Registrations</span>
                                 </div>
-                                <a href="/admin/teams?status=pending" class="approval-action">
+                                <a href="<?= url('/admin/teams?status=pending') ?>" class="approval-action">
                                     <i class="fas fa-chevron-right"></i>
                                 </a>
                             </div>
@@ -211,7 +211,7 @@ ob_start();
                                     <span class="approval-count"><?= $pendingApprovals['consent_forms'] ?></span>
                                     <span class="approval-label">Consent Forms</span>
                                 </div>
-                                <a href="/admin/consent-forms?status=pending" class="approval-action">
+                                <a href="<?= url('/admin/consent-forms?status=pending') ?>" class="approval-action">
                                     <i class="fas fa-chevron-right"></i>
                                 </a>
                             </div>
@@ -226,7 +226,7 @@ ob_start();
                                     <span class="approval-count"><?= $pendingApprovals['submissions'] ?></span>
                                     <span class="approval-label">Team Submissions</span>
                                 </div>
-                                <a href="/admin/submissions?status=pending" class="approval-action">
+                                <a href="<?= url('/admin/submissions?status=pending') ?>" class="approval-action">
                                     <i class="fas fa-chevron-right"></i>
                                 </a>
                             </div>
@@ -249,7 +249,7 @@ ob_start();
                     <i class="fas fa-history"></i>
                     Recent Activity
                 </h3>
-                <a href="/admin/activity" class="widget-action">View All</a>
+                <a href="<?= url('/admin/activity') ?>" class="widget-action">View All</a>
             </div>
             <div class="widget-content">
                 <?php if (!empty($recentActivity)): ?>
@@ -286,7 +286,7 @@ ob_start();
                     <i class="fas fa-calendar-alt"></i>
                     Upcoming Deadlines
                 </h3>
-                <a href="/admin/schedule" class="widget-action">View Calendar</a>
+                <a href="<?= url('/admin/schedule') ?>" class="widget-action">View Calendar</a>
             </div>
             <div class="widget-content">
                 <?php if (!empty($upcomingDeadlines)): ?>
@@ -325,7 +325,7 @@ ob_start();
                     <i class="fas fa-chart-pie"></i>
                     Team Distribution
                 </h3>
-                <a href="/admin/analytics" class="widget-action">View Analytics</a>
+                <a href="<?= url('/admin/analytics') ?>" class="widget-action">View Analytics</a>
             </div>
             <div class="widget-content">
                 <div class="category-distribution">
@@ -352,7 +352,7 @@ ob_start();
                     <i class="fas fa-server"></i>
                     System Status
                 </h3>
-                <a href="/admin/system" class="widget-action">System Admin</a>
+                <a href="<?= url('/admin/system') ?>" class="widget-action">System Admin</a>
             </div>
             <div class="widget-content">
                 <div class="system-status">

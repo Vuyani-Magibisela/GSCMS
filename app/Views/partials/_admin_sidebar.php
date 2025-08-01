@@ -12,7 +12,7 @@ function isActiveAdminNav($path, $currentPath) {
 <ul class="admin-nav-menu">
     <!-- Dashboard -->
     <li class="nav-item">
-        <a href="/admin/dashboard" class="nav-link <?= isActiveAdminNav('/admin/dashboard', $currentPath) ?>">
+        <a href="<?= url('/admin/dashboard') ?>" class="nav-link <?= isActiveAdminNav('/admin/dashboard', $currentPath) ?>">
             <i class="nav-icon fas fa-tachometer-alt"></i>
             <span class="nav-text">Dashboard</span>
         </a>
@@ -24,14 +24,14 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/admin/users" class="nav-link <?= isActiveAdminNav('/admin/users', $currentPath) ?>">
+        <a href="<?= url('/admin/users') ?>" class="nav-link <?= isActiveAdminNav('/admin/users', $currentPath) ?>">
             <i class="nav-icon fas fa-users"></i>
             <span class="nav-text">Users</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/roles" class="nav-link <?= isActiveAdminNav('/admin/roles', $currentPath) ?>">
+        <a href="<?= url('/admin/roles') ?>" class="nav-link <?= isActiveAdminNav('/admin/roles', $currentPath) ?>">
             <i class="nav-icon fas fa-user-shield"></i>
             <span class="nav-text">Roles & Permissions</span>
         </a>
@@ -43,21 +43,21 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/admin/schools" class="nav-link <?= isActiveAdminNav('/admin/schools', $currentPath) ?>">
+        <a href="<?= url('/admin/schools') ?>" class="nav-link <?= isActiveAdminNav('/admin/schools', $currentPath) ?>">
             <i class="nav-icon fas fa-school"></i>
             <span class="nav-text">Schools</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/teams" class="nav-link <?= isActiveAdminNav('/admin/teams', $currentPath) ?>">
+        <a href="<?= url('/admin/teams') ?>" class="nav-link <?= isActiveAdminNav('/admin/teams', $currentPath) ?>">
             <i class="nav-icon fas fa-users"></i>
             <span class="nav-text">Teams</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/participants" class="nav-link <?= isActiveAdminNav('/admin/participants', $currentPath) ?>">
+        <a href="<?= url('/admin/participants') ?>" class="nav-link <?= isActiveAdminNav('/admin/participants', $currentPath) ?>">
             <i class="nav-icon fas fa-user-friends"></i>
             <span class="nav-text">Participants</span>
         </a>
@@ -69,28 +69,28 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/admin/competitions" class="nav-link <?= isActiveAdminNav('/admin/competitions', $currentPath) ?>">
+        <a href="<?= url('/admin/competitions') ?>" class="nav-link <?= isActiveAdminNav('/admin/competitions', $currentPath) ?>">
             <i class="nav-icon fas fa-trophy"></i>
             <span class="nav-text">Competitions</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/categories" class="nav-link <?= isActiveAdminNav('/admin/categories', $currentPath) ?>">
+        <a href="<?= url('/admin/categories') ?>" class="nav-link <?= isActiveAdminNav('/admin/categories', $currentPath) ?>">
             <i class="nav-icon fas fa-list"></i>
             <span class="nav-text">Categories</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/schedule" class="nav-link <?= isActiveAdminNav('/admin/schedule', $currentPath) ?>">
+        <a href="<?= url('/admin/schedule') ?>" class="nav-link <?= isActiveAdminNav('/admin/schedule', $currentPath) ?>">
             <i class="nav-icon fas fa-calendar-alt"></i>
             <span class="nav-text">Schedule</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/venues" class="nav-link <?= isActiveAdminNav('/admin/venues', $currentPath) ?>">
+        <a href="<?= url('/admin/venues') ?>" class="nav-link <?= isActiveAdminNav('/admin/venues', $currentPath) ?>">
             <i class="nav-icon fas fa-map-marker-alt"></i>
             <span class="nav-text">Venues</span>
         </a>
@@ -102,21 +102,21 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/admin/judges" class="nav-link <?= isActiveAdminNav('/admin/judges', $currentPath) ?>">
+        <a href="<?= url('/admin/judges') ?>" class="nav-link <?= isActiveAdminNav('/admin/judges', $currentPath) ?>">
             <i class="nav-icon fas fa-gavel"></i>
             <span class="nav-text">Judges</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/scoring" class="nav-link <?= isActiveAdminNav('/admin/scoring', $currentPath) ?>">
+        <a href="<?= url('/admin/scoring') ?>" class="nav-link <?= isActiveAdminNav('/admin/scoring', $currentPath) ?>">
             <i class="nav-icon fas fa-clipboard-list"></i>
             <span class="nav-text">Scoring System</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/rubrics" class="nav-link <?= isActiveAdminNav('/admin/rubrics', $currentPath) ?>">
+        <a href="<?= url('/admin/rubrics') ?>" class="nav-link <?= isActiveAdminNav('/admin/rubrics', $currentPath) ?>">
             <i class="nav-icon fas fa-tasks"></i>
             <span class="nav-text">Rubrics</span>
         </a>
@@ -128,21 +128,21 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/admin/resources" class="nav-link <?= isActiveAdminNav('/admin/resources', $currentPath) ?>">
+        <a href="<?= url('/admin/resources') ?>" class="nav-link <?= isActiveAdminNav('/admin/resources', $currentPath) ?>">
             <i class="nav-icon fas fa-download"></i>
             <span class="nav-text">Resources</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/announcements" class="nav-link <?= isActiveAdminNav('/admin/announcements', $currentPath) ?>">
+        <a href="<?= url('/admin/announcements') ?>" class="nav-link <?= isActiveAdminNav('/admin/announcements', $currentPath) ?>">
             <i class="nav-icon fas fa-bullhorn"></i>
             <span class="nav-text">Announcements</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/communications" class="nav-link <?= isActiveAdminNav('/admin/communications', $currentPath) ?>">
+        <a href="<?= url('/admin/communications') ?>" class="nav-link <?= isActiveAdminNav('/admin/communications', $currentPath) ?>">
             <i class="nav-icon fas fa-envelope"></i>
             <span class="nav-text">Communications</span>
         </a>
@@ -154,21 +154,21 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/admin/reports" class="nav-link <?= isActiveAdminNav('/admin/reports', $currentPath) ?>">
+        <a href="<?= url('/admin/reports') ?>" class="nav-link <?= isActiveAdminNav('/admin/reports', $currentPath) ?>">
             <i class="nav-icon fas fa-chart-bar"></i>
             <span class="nav-text">Reports</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/analytics" class="nav-link <?= isActiveAdminNav('/admin/analytics', $currentPath) ?>">
+        <a href="<?= url('/admin/analytics') ?>" class="nav-link <?= isActiveAdminNav('/admin/analytics', $currentPath) ?>">
             <i class="nav-icon fas fa-chart-line"></i>
             <span class="nav-text">Analytics</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/exports" class="nav-link <?= isActiveAdminNav('/admin/exports', $currentPath) ?>">
+        <a href="<?= url('/admin/exports') ?>" class="nav-link <?= isActiveAdminNav('/admin/exports', $currentPath) ?>">
             <i class="nav-icon fas fa-file-export"></i>
             <span class="nav-text">Data Export</span>
         </a>
@@ -180,28 +180,28 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/admin/settings" class="nav-link <?= isActiveAdminNav('/admin/settings', $currentPath) ?>">
+        <a href="<?= url('/admin/settings') ?>" class="nav-link <?= isActiveAdminNav('/admin/settings', $currentPath) ?>">
             <i class="nav-icon fas fa-cog"></i>
             <span class="nav-text">Settings</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/logs" class="nav-link <?= isActiveAdminNav('/admin/logs', $currentPath) ?>">
+        <a href="<?= url('/admin/logs') ?>" class="nav-link <?= isActiveAdminNav('/admin/logs', $currentPath) ?>">
             <i class="nav-icon fas fa-file-alt"></i>
             <span class="nav-text">System Logs</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/backup" class="nav-link <?= isActiveAdminNav('/admin/backup', $currentPath) ?>">
+        <a href="<?= url('/admin/backup') ?>" class="nav-link <?= isActiveAdminNav('/admin/backup', $currentPath) ?>">
             <i class="nav-icon fas fa-database"></i>
             <span class="nav-text">Backup</span>
         </a>
     </li>
     
     <li class="nav-item">
-        <a href="/admin/maintenance" class="nav-link <?= isActiveAdminNav('/admin/maintenance', $currentPath) ?>">
+        <a href="<?= url('/admin/maintenance') ?>" class="nav-link <?= isActiveAdminNav('/admin/maintenance', $currentPath) ?>">
             <i class="nav-icon fas fa-tools"></i>
             <span class="nav-text">Maintenance</span>
         </a>
@@ -213,7 +213,7 @@ function isActiveAdminNav($path, $currentPath) {
     </li>
     
     <li class="nav-item">
-        <a href="/dashboard" class="nav-link">
+        <a href="<?= url('/dashboard') ?>" class="nav-link">
             <i class="nav-icon fas fa-arrow-left"></i>
             <span class="nav-text">Back to Dashboard</span>
         </a>

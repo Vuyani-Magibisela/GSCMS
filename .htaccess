@@ -24,9 +24,4 @@ RewriteRule ^(.*)$ - [F,L]
     Deny from all
 </Files>
 
-<Files ~ "\.php$">
-    Order allow,deny
-    Deny from all
-</Files>
-
-# Allow PHP files only in public directory (handled by public/.htaccess)
+# Allow PHP execution (security handled by application)

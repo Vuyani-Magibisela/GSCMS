@@ -32,31 +32,31 @@ $userEmail = $currentUser['email'] ?? '';
         <div class="admin-user-menu-divider"></div>
         
         <nav class="admin-user-menu-nav">
-            <a href="/admin/profile" class="admin-user-menu-item">
+            <a href="<?= url('/admin/profile') ?>" class="admin-user-menu-item">
                 <i class="fas fa-user-edit"></i>
                 <span>Edit Profile</span>
             </a>
             
-            <a href="/admin/settings" class="admin-user-menu-item">
+            <a href="<?= url('/admin/settings') ?>" class="admin-user-menu-item">
                 <i class="fas fa-cog"></i>
                 <span>System Settings</span>
             </a>
             
-            <a href="/admin/logs" class="admin-user-menu-item">
+            <a href="<?= url('/admin/logs') ?>" class="admin-user-menu-item">
                 <i class="fas fa-file-alt"></i>
                 <span>System Logs</span>
             </a>
             
             <div class="admin-user-menu-divider"></div>
             
-            <a href="/dashboard" class="admin-user-menu-item">
+            <a href="<?= url('/dashboard') ?>" class="admin-user-menu-item">
                 <i class="fas fa-arrow-left"></i>
                 <span>Back to Dashboard</span>
             </a>
             
             <div class="admin-user-menu-divider"></div>
             
-            <a href="/auth/logout" class="admin-user-menu-item logout-item">
+            <a href="<?= url('/auth/logout') ?>" class="admin-user-menu-item logout-item">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </a>
