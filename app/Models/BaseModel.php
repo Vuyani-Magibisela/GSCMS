@@ -635,4 +635,43 @@ abstract class BaseModel
             return $created;
         }
     }
+    
+    // ========================================================================
+    // STATIC HELPER METHODS
+    // ========================================================================
+    
+    /**
+     * Static helper to get all records
+     */
+    public static function getAll()
+    {
+        $instance = new static();
+        return $instance->all();
+    }
+    
+    /**
+     * Static helper to find record by ID
+     */
+    public static function findById($id)
+    {
+        $instance = new static();
+        return $instance->find($id);
+    }
+    
+    /**
+     * Static helper to create record
+     */
+    public static function createRecord($data)
+    {
+        $instance = new static();
+        return $instance->create($data);
+    }
+    
+    /**
+     * Alias for update method
+     */
+    public function updateById($id, $data)
+    {
+        return $this->update($id, $data);
+    }
 }

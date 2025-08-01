@@ -21,6 +21,13 @@ $router->get('/leaderboard', 'PublicController@leaderboard', 'leaderboard');
 $router->get('/announcements', 'PublicController@announcements', 'announcements');
 $router->get('/resources', 'PublicController@resources', 'resources');
 
+// School management redirect route
+$router->get('/schools/manage', function() {
+    $baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
+    header('Location: ' . $baseUrl . '/admin/schools');
+    exit;
+}, 'schools.manage.redirect');
+
 // Test routes for framework verification
 $router->get('/test', function($request, $response) {
     return json_encode([
@@ -324,13 +331,15 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->delete('/users/{id}', 'UserController@destroy', 'admin.users.destroy');
         
         // School management (full access)
-        $router->get('/schools', 'SchoolController@index', 'admin.schools');
-        $router->get('/schools/create', 'SchoolController@create', 'admin.schools.create');
-        $router->post('/schools', 'SchoolController@store', 'admin.schools.store');
-        $router->get('/schools/{id}', 'SchoolController@show', 'admin.schools.show');
-        $router->get('/schools/{id}/edit', 'SchoolController@edit', 'admin.schools.edit');
-        $router->put('/schools/{id}', 'SchoolController@update', 'admin.schools.update');
-        $router->delete('/schools/{id}', 'SchoolController@destroy', 'admin.schools.destroy');
+        $router->get('/schools', 'SchoolManagementController@index', 'admin.schools');
+        $router->get('/schools/create', 'SchoolManagementController@create', 'admin.schools.create');
+        $router->post('/schools', 'SchoolManagementController@store', 'admin.schools.store');
+        $router->get('/schools/{id}', 'SchoolManagementController@show', 'admin.schools.show');
+        $router->get('/schools/{id}/edit', 'SchoolManagementController@edit', 'admin.schools.edit');
+        $router->put('/schools/{id}', 'SchoolManagementController@update', 'admin.schools.update');
+        $router->post('/schools/bulk-action', 'SchoolManagementController@bulkAction', 'admin.schools.bulk');
+        $router->get('/schools/export', 'SchoolManagementController@export', 'admin.schools.export');
+        $router->delete('/schools/{id}', 'SchoolManagementController@destroy', 'admin.schools.destroy');
         
         // System logs and monitoring
         $router->get('/logs', 'LogController@index', 'admin.logs');

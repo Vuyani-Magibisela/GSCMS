@@ -37,6 +37,22 @@ class Request
     }
     
     /**
+     * Get GET parameter
+     */
+    public function get($key, $default = null)
+    {
+        return $_GET[$key] ?? $default;
+    }
+    
+    /**
+     * Get POST parameter
+     */
+    public function post($key, $default = null)
+    {
+        return $_POST[$key] ?? $default;
+    }
+    
+    /**
      * Get all input
      */
     public function all()

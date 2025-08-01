@@ -11,6 +11,7 @@ use App\Core\RateLimit;
 use App\Core\Validator;
 use App\Core\Sanitizer;
 use App\Core\Security;
+use App\Core\Logger;
 use Exception;
 
 abstract class BaseController
@@ -22,6 +23,7 @@ abstract class BaseController
     protected $session;
     protected $csrf;
     protected $rateLimit;
+    protected $logger;
     protected $data = [];
     
     public function __construct()
@@ -31,6 +33,7 @@ abstract class BaseController
         $this->session = Session::getInstance();
         $this->csrf = CSRF::getInstance();
         $this->rateLimit = RateLimit::getInstance();
+        $this->logger = new Logger();
         
         // Set security headers
         $this->setSecurityHeaders();
@@ -103,6 +106,35 @@ abstract class BaseController
         header('Content-Type: application/json');
         http_response_code($statusCode);
         return json_encode($data);
+    }
+    
+    /**
+     * Return JSON response (alias for json method)
+     */
+    protected function jsonResponse($data, $statusCode = 200)
+    {
+        return $this->json($data, $statusCode);
+    }
+    
+    /**
+     * Return error response
+     */
+    protected function errorResponse($message, $statusCode = 500)
+    {
+        if (headers_sent()) {
+            return $message;
+        }
+        
+        http_response_code($statusCode);
+        
+        // Return JSON for AJAX requests
+        if (isset($_SERVER['HTTP_ACCEPT']) && strpos($_SERVER['HTTP_ACCEPT'], 'application/json') !== false) {
+            header('Content-Type: application/json');
+            return json_encode(['error' => $message, 'status' => $statusCode]);
+        }
+        
+        // Return HTML error page for regular requests
+        return $this->view('errors/' . $statusCode, ['message' => $message]);
     }
     
     /**
