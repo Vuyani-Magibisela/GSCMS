@@ -341,6 +341,18 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/schools/export', 'SchoolManagementController@export', 'admin.schools.export');
         $router->delete('/schools/{id}', 'SchoolManagementController@destroy', 'admin.schools.destroy');
         
+        // District management
+        $router->get('/districts', 'DistrictController@index', 'admin.districts');
+        $router->get('/districts/create', 'DistrictController@create', 'admin.districts.create');
+        $router->post('/districts', 'DistrictController@store', 'admin.districts.store');
+        $router->get('/districts/{id}', 'DistrictController@show', 'admin.districts.show');
+        $router->get('/districts/{id}/edit', 'DistrictController@edit', 'admin.districts.edit');
+        $router->put('/districts/{id}', 'DistrictController@update', 'admin.districts.update');
+        $router->get('/districts/{id}/schools', 'DistrictController@getSchools', 'admin.districts.schools');
+        $router->get('/districts/export', 'DistrictController@export', 'admin.districts.export');
+        $router->get('/districts/{id}/export', 'DistrictController@export', 'admin.districts.export.single');
+        $router->delete('/districts/{id}', 'DistrictController@destroy', 'admin.districts.destroy');
+        
         // System logs and monitoring
         $router->get('/logs', 'LogController@index', 'admin.logs');
         $router->get('/logs/{file}', 'LogController@show', 'admin.logs.show');
