@@ -55,7 +55,7 @@
             <div class="admin-header-actions">
                 <!-- Quick Actions -->
                 <div class="quick-actions">
-                    <button class="quick-action-btn" title="Notifications" data-count="3">
+                    <button class="quick-action-btn notifications" title="Notifications" data-count="3">
                         <i class="fas fa-bell"></i>
                     </button>
                     <button class="quick-action-btn" title="Messages">

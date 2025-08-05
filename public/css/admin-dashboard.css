@@ -20,7 +20,7 @@
 /* Dashboard Header */
 .dashboard-header {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr;
     gap: var(--dashboard-grid-gap);
     align-items: start;
     margin-bottom: 2rem;

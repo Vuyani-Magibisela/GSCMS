@@ -11,10 +11,10 @@ ob_start();
             <?php if (isset($breadcrumbs) && is_array($breadcrumbs)): ?>
                 <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
                     <?php if ($index === count($breadcrumbs) - 1): ?>
-                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['name']) ?></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['title']) ?></li>
                     <?php else: ?>
                         <li class="breadcrumb-item">
-                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['name']) ?></a>
+                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['title']) ?></a>
                         </li>
                     <?php endif; ?>
                 <?php endforeach; ?>

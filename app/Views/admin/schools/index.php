@@ -11,10 +11,10 @@ ob_start();
             <?php if (isset($breadcrumbs) && is_array($breadcrumbs)): ?>
                 <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
                     <?php if ($index === count($breadcrumbs) - 1): ?>
-                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['name']) ?></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['title']) ?></li>
                     <?php else: ?>
                         <li class="breadcrumb-item">
-                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['name']) ?></a>
+                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['title']) ?></a>
                         </li>
                     <?php endif; ?>
                 <?php endforeach; ?>
@@ -435,7 +435,7 @@ ob_start();
                                                 <?= htmlspecialchars($school['name']) ?>
                                             </a>
                                             <br>
-                                            <small class="text-muted"><?= htmlspecialchars($school->getSchoolTypeLabel()) ?></small>
+                                            <small class="text-muted"><?= htmlspecialchars(ucfirst($school['school_type'])) ?></small>
                                         </div>
                                     </div>
                                 </td>
@@ -460,8 +460,12 @@ ob_start();
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <span class="badge badge-<?= $school->getStatusInfo()['color'] ?>">
-                                        <?= htmlspecialchars($school->getStatusInfo()['label']) ?>
+                                    <?php 
+                                        $statusColors = ['active' => 'success', 'pending' => 'warning', 'inactive' => 'secondary', 'suspended' => 'danger'];
+                                        $statusColor = $statusColors[$school['status']] ?? 'secondary';
+                                    ?>
+                                    <span class="badge badge-<?= $statusColor ?>">
+                                        <?= htmlspecialchars(ucfirst($school['status'])) ?>
                                     </span>
                                 </td>
                                 <td>
@@ -542,8 +546,12 @@ ob_start();
                                         <div class="form-check">
                                             <input type="checkbox" class="form-check-input school-checkbox" value="<?= $school['id'] ?>" onchange="updateBulkActions()">
                                         </div>
-                                        <span class="badge badge-<?= $school->getStatusInfo()['color'] ?>">
-                                            <?= htmlspecialchars($school->getStatusInfo()['label']) ?>
+                                        <?php 
+                                            $statusColors = ['active' => 'success', 'pending' => 'warning', 'inactive' => 'secondary', 'suspended' => 'danger'];
+                                            $statusColor = $statusColors[$school['status']] ?? 'secondary';
+                                        ?>
+                                        <span class="badge badge-<?= $statusColor ?>">
+                                            <?= htmlspecialchars(ucfirst($school['status'])) ?>
                                         </span>
                                     </div>
                                     
@@ -554,7 +562,7 @@ ob_start();
                                     </h6>
                                     
                                     <p class="card-text small text-muted mb-2">
-                                        <?= htmlspecialchars($school->getSchoolTypeLabel()) ?> "
+                                        <?= htmlspecialchars(ucfirst($school['school_type'])) ?> "
                                         <?= htmlspecialchars($school['district_name'] ?? 'Unknown District') ?>
                                     </p>
                                     

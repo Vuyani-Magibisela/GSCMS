@@ -172,10 +172,13 @@ class School extends BaseModel
     public function participants()
     {
         // Get all participants from all teams belonging to this school
-        $teamIds = $this->db->table('teams')
+        $teams = $this->db->table('teams')
+            ->select('id')
             ->where('school_id', $this->id)
             ->whereNull('deleted_at')
-            ->pluck('id');
+            ->get();
+            
+        $teamIds = array_column($teams, 'id');
             
         if (empty($teamIds)) {
             return [];
@@ -442,11 +445,13 @@ class School extends BaseModel
         
         // Participation history filter
         if (!empty($criteria['has_teams'])) {
-            $schoolIds = $model->db->table('teams')
+            $schools = $model->db->table('teams')
                 ->select('school_id')
                 ->distinct()
                 ->whereNull('deleted_at')
-                ->pluck('school_id');
+                ->get();
+            
+            $schoolIds = array_column($schools, 'school_id');
             
             if ($criteria['has_teams'] === 'yes') {
                 $query->whereIn('s.id', $schoolIds);
