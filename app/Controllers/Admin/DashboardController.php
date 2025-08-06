@@ -76,11 +76,11 @@ class DashboardController extends BaseController
         $stats = [];
 
         try {
-            // Core statistics
-            $stats['total_schools'] = $this->getCount('schools', ['status' => 'active']);
-            $stats['total_teams'] = $this->getCount('teams', ['status' => 'approved']);
-            $stats['total_participants'] = $this->getCount('participants', ['status' => 'active']);
-            $stats['total_users'] = $this->getCount('users', ['status' => 'active']);
+            // Core statistics using direct SQL with proper soft delete handling
+            $stats['total_schools'] = $this->getCountWithSoftDelete('schools');
+            $stats['total_teams'] = $this->getCountWithSoftDelete('teams');
+            $stats['total_participants'] = $this->getCountWithSoftDelete('participants');
+            $stats['total_users'] = $this->getCountWithSoftDelete('users');
             
             // Competition statistics
             $stats['active_competitions'] = $this->getCount('competitions', ['status' => 'active']);
@@ -126,6 +126,28 @@ class DashboardController extends BaseController
                     $params[] = $value;
                 }
                 $sql .= " WHERE " . implode(' AND ', $whereClause);
+            }
+            
+            $result = $this->db->query($sql, $params);
+            return $result[0]['count'] ?? 0;
+            
+        } catch (\Exception $e) {
+            error_log("Count query error for {$table}: " . $e->getMessage());
+            return 0;
+        }
+    }
+
+    private function getCountWithSoftDelete($table, $conditions = [])
+    {
+        try {
+            $sql = "SELECT COUNT(*) as count FROM {$table} WHERE deleted_at IS NULL";
+            $params = [];
+            
+            if (!empty($conditions)) {
+                foreach ($conditions as $field => $value) {
+                    $sql .= " AND {$field} = ?";
+                    $params[] = $value;
+                }
             }
             
             $result = $this->db->query($sql, $params);
@@ -395,14 +417,25 @@ class DashboardController extends BaseController
 
     private function getBasicStats()
     {
-        return [
-            'total_schools' => 0,
-            'total_teams' => 0,
-            'total_participants' => 0,
-            'total_users' => 0,
-            'active_competitions' => 0,
-            'pending_approvals' => 0
-        ];
+        try {
+            return [
+                'total_schools' => $this->getCountWithSoftDelete('schools'),
+                'total_teams' => $this->getCountWithSoftDelete('teams'),
+                'total_participants' => $this->getCountWithSoftDelete('participants'),
+                'total_users' => $this->getCountWithSoftDelete('users'),
+                'active_competitions' => $this->getCountWithSoftDelete('competitions'),
+                'pending_approvals' => 0
+            ];
+        } catch (\Exception $e) {
+            return [
+                'total_schools' => 0,
+                'total_teams' => 0,
+                'total_participants' => 0,
+                'total_users' => 0,
+                'active_competitions' => 0,
+                'pending_approvals' => 0
+            ];
+        }
     }
 
     /**

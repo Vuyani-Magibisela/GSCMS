@@ -57,18 +57,39 @@ class DistrictController extends BaseController
             $criteria['sort_by'] = $request->get('sort_by', 'name');
             $criteria['sort_order'] = $request->get('sort_order', 'asc');
 
-            // Get districts with basic info using raw query to avoid object conversion issues
+            // Get districts with proper counts using raw query
             $db = \App\Core\Database::getInstance();
             $districts = $db->query("
                 SELECT d.*, 
                        u.first_name as coordinator_first_name,
                        u.last_name as coordinator_last_name, 
                        u.email as coordinator_email,
-                       0 as school_count,
-                       0 as team_count,
-                       0 as participant_count
+                       COALESCE(school_counts.school_count, 0) as school_count,
+                       COALESCE(team_counts.team_count, 0) as team_count,
+                       COALESCE(participant_counts.participant_count, 0) as participant_count
                 FROM districts d
                 LEFT JOIN users u ON d.coordinator_id = u.id  
+                LEFT JOIN (
+                    SELECT district_id, COUNT(*) as school_count
+                    FROM schools 
+                    WHERE deleted_at IS NULL
+                    GROUP BY district_id
+                ) school_counts ON d.id = school_counts.district_id
+                LEFT JOIN (
+                    SELECT s.district_id, COUNT(t.id) as team_count
+                    FROM schools s
+                    LEFT JOIN teams t ON s.id = t.school_id
+                    WHERE s.deleted_at IS NULL AND t.deleted_at IS NULL
+                    GROUP BY s.district_id
+                ) team_counts ON d.id = team_counts.district_id
+                LEFT JOIN (
+                    SELECT s.district_id, COUNT(p.id) as participant_count
+                    FROM schools s
+                    LEFT JOIN teams t ON s.id = t.school_id
+                    LEFT JOIN participants p ON t.id = p.team_id
+                    WHERE s.deleted_at IS NULL AND t.deleted_at IS NULL AND p.deleted_at IS NULL
+                    GROUP BY s.district_id
+                ) participant_counts ON d.id = participant_counts.district_id
                 WHERE d.deleted_at IS NULL
                 ORDER BY d.province, d.name
             ");

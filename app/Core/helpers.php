@@ -179,3 +179,25 @@ if (!function_exists('url')) {
         return \App\Core\ViewHelpers::url($path);
     }
 }
+
+// CSRF Helper Functions
+if (!function_exists('csrf_token')) {
+    function csrf_token($form = null)
+    {
+        return \App\Core\CSRF::getInstance()->getToken($form);
+    }
+}
+
+if (!function_exists('csrf_field')) {
+    function csrf_field($form = null)
+    {
+        return \App\Core\CSRF::getInstance()->field($form);
+    }
+}
+
+if (!function_exists('csrf_meta')) {
+    function csrf_meta($form = null)
+    {
+        return \App\Core\CSRF::getInstance()->getMetaTag($form);
+    }
+}

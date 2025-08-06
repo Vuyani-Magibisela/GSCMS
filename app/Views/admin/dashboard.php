@@ -14,6 +14,10 @@ ob_start();
     <div class="quick-actions-panel">
         <h3 class="quick-actions-title">Quick Actions</h3>
         <div class="quick-actions-grid">
+            <a href="<?= url('/admin/districts') ?>" class="quick-action-btn">
+                <i class="fas fa-school"></i>
+                <span>Districts</span>
+            </a>
             <a href="<?= url('/admin/schools') ?>" class="quick-action-btn">
                 <i class="fas fa-school"></i>
                 <span>Schools</span>

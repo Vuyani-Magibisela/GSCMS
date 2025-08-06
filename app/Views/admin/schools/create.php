@@ -1,7 +1,9 @@
 <?php 
 $layout = 'layouts/admin';
+$pageCSS = ['/css/school-form.css'];
 ob_start(); 
 ?>
+
 
 <!-- School Registration Form - Multi-Step Wizard -->
 <div class="school-registration-container">
@@ -11,10 +13,10 @@ ob_start();
             <?php if (isset($breadcrumbs) && is_array($breadcrumbs)): ?>
                 <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
                     <?php if ($index === count($breadcrumbs) - 1): ?>
-                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['name']) ?></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['title']) ?></li>
                     <?php else: ?>
                         <li class="breadcrumb-item">
-                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['name']) ?></a>
+                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['title']) ?></a>
                         </li>
                     <?php endif; ?>
                 <?php endforeach; ?>
@@ -63,7 +65,7 @@ ob_start();
     <!-- Registration Form -->
     <form id="schoolRegistrationForm" class="school-form" method="POST" action="/admin/schools" enctype="multipart/form-data">
         <!-- CSRF Token -->
-        <input type="hidden" name="csrf_token" value="<?= $this->csrf->generateToken() ?>">
+        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?? '' ?>">
 
         <!-- Step 1: Basic Information -->
         <div class="form-step active" data-step="1">
@@ -165,9 +167,12 @@ ob_start();
                         <?php if (isset($districts) && is_array($districts)): ?>
                             <?php foreach ($districts as $district): ?>
                                 <option value="<?= htmlspecialchars($district['id']) ?>">
-                                    <?= htmlspecialchars($district['name']) ?>
+                                    <?= htmlspecialchars($district['name']) ?> (<?= htmlspecialchars($district['province']) ?>)
                                 </option>
                             <?php endforeach; ?>
+                        <?php else: ?>
+                            <option value="">No districts available</option>
+                            <!-- Debug: <?= isset($districts) ? 'Districts is set but not array: ' . gettype($districts) : 'Districts not set' ?> -->
                         <?php endif; ?>
                     </select>
                     <div class="form-help">Select the education district</div>
@@ -440,7 +445,12 @@ function showStep(stepIndex) {
     });
     
     // Show current step
-    document.querySelector(`[data-step="${stepIndex}"]`).classList.add('active');
+    const targetStep = document.querySelector(`.form-step[data-step="${stepIndex}"]`);
+    if (targetStep) {
+        targetStep.classList.add('active');
+    } else {
+        console.error('Target step not found:', stepIndex);
+    }
     
     // Update progress indicator
     document.querySelectorAll('.progress-steps .step').forEach((step, index) => {
@@ -496,7 +506,12 @@ function goToStep(stepIndex) {
 }
 
 function validateCurrentStep() {
-    const currentStep = document.querySelector(`[data-step="${currentStepIndex}"]`);
+    const currentStep = document.querySelector(`.form-step[data-step="${currentStepIndex}"]`);
+    if (!currentStep) {
+        console.error('Current step not found:', currentStepIndex);
+        return false;
+    }
+    
     const requiredFields = currentStep.querySelectorAll('[required]');
     let isValid = true;
     
@@ -610,235 +625,45 @@ document.getElementById('schoolRegistrationForm').addEventListener('submit', fun
     
     fetch(this.action, {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             localStorage.removeItem('schoolRegistrationDraft');
             alert('School registration submitted successfully! You will be redirected to the school details page.');
             window.location.href = data.redirect;
         } else {
+            console.error('Server error:', data);
             alert('Error: ' + (data.message || 'Registration failed. Please try again.'));
+            if (data.errors) {
+                console.error('Validation errors:', data.errors);
+            }
             submitBtn.innerHTML = originalText;
             submitBtn.disabled = false;
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+        alert('An error occurred. Please try again. Check the browser console for details.');
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     });
 });
 
-// Initialize form
-showStep(1);
+// Initialize form when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    showStep(1);
+});
 </script>
-
-<style>
-/* Multi-step form styling */
-.school-registration-container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.registration-progress {
-    margin-bottom: 30px;
-}
-
-.progress-steps {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-.step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    opacity: 0.5;
-    transition: opacity 0.3s;
-}
-
-.step.active {
-    opacity: 1;
-}
-
-.step-number {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: #dee2e6;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: bold;
-    margin-bottom: 5px;
-    transition: background-color 0.3s;
-}
-
-.step.active .step-number {
-    background: #007bff;
-    color: white;
-}
-
-.step-label {
-    font-size: 12px;
-    text-align: center;
-}
-
-.progress-bar {
-    height: 4px;
-    background: #dee2e6;
-    border-radius: 2px;
-    overflow: hidden;
-}
-
-.progress-fill {
-    height: 100%;
-    background: #007bff;
-    transition: width 0.3s;
-}
-
-.form-step {
-    display: none;
-    animation: fadeIn 0.3s;
-}
-
-.form-step.active {
-    display: block;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-.step-header {
-    margin-bottom: 30px;
-    text-align: center;
-}
-
-.step-header h3 {
-    color: #495057;
-    margin-bottom: 10px;
-}
-
-.form-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.form-group.col-span-2 {
-    grid-column: span 2;
-}
-
-.contact-section {
-    background: #f8f9fa;
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-}
-
-.contact-section h4 {
-    color: #495057;
-    margin-bottom: 15px;
-}
-
-.form-navigation {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 30px;
-    padding-top: 20px;
-    border-top: 1px solid #dee2e6;
-}
-
-.step-info {
-    font-weight: bold;
-    color: #6c757d;
-}
-
-.review-section {
-    display: grid;
-    gap: 20px;
-    margin-bottom: 30px;
-}
-
-.review-card {
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 20px;
-    position: relative;
-}
-
-.review-card h4 {
-    margin-bottom: 15px;
-    color: #495057;
-}
-
-.review-card .btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-}
-
-.form-checkbox {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    cursor: pointer;
-}
-
-.form-checkbox input[type="checkbox"] {
-    margin: 0;
-}
-
-.autosave-notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #28a745;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 5px;
-    transform: translateX(100%);
-    transition: transform 0.3s;
-    z-index: 1000;
-}
-
-.autosave-notification.show {
-    transform: translateX(0);
-}
-
-.form-control.error {
-    border-color: #dc3545;
-}
-
-@media (max-width: 768px) {
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .form-group.col-span-2 {
-        grid-column: span 1;
-    }
-    
-    .progress-steps {
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-    
-    .step-label {
-        display: none;
-    }
-}
-</style>
 
 <?php 
 $content = ob_get_clean(); 

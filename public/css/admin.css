@@ -99,17 +99,19 @@
   position: absolute;
   top: -5px;
   right: -5px;
-  background: var(--error-color);
+  background: var(--error-color, #ff6b6b);
   color: white;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-bold);
+  font-size: var(--font-size-xs, 0.75rem);
+  font-weight: var(--font-weight-bold, 700);
   padding: 2px 6px;
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-full, 50px);
   min-width: 18px;
   height: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 /* Admin Sidebar */

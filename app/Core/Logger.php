@@ -19,6 +19,7 @@ class Logger
     private $logPath;
     private $maxFileSize = 10485760; // 10MB
     private $maxFiles = 5;
+    private $isLogging = false; // Recursion protection
     
     public function __construct($logPath = null)
     {
@@ -95,8 +96,23 @@ class Logger
      */
     public function log($level, $message, $context = [])
     {
-        $logEntry = $this->formatLogEntry($level, $message, $context);
-        $this->writeToFile($level, $logEntry);
+        // Prevent recursion if logger encounters an error while logging
+        if ($this->isLogging) {
+            return;
+        }
+        
+        $this->isLogging = true;
+        
+        try {
+            $logEntry = $this->formatLogEntry($level, $message, $context);
+            $this->writeToFile($level, $logEntry);
+        } catch (Exception $e) {
+            // If logging fails, try to write to error_log as last resort
+            // Don't recurse back into our logger
+            error_log("Logger failed: " . $e->getMessage() . " | Original message: " . $message);
+        } finally {
+            $this->isLogging = false;
+        }
     }
     
     /**
@@ -149,13 +165,22 @@ class Logger
         $filename = $this->getLogFilename($level);
         $filepath = $this->logPath . '/' . $filename;
         
+        // Ensure directory is writable
+        if (!is_writable($this->logPath)) {
+            throw new Exception("Log directory is not writable: {$this->logPath}");
+        }
+        
         // Check if log rotation is needed
         if (file_exists($filepath) && filesize($filepath) >= $this->maxFileSize) {
             $this->rotateLogFile($filepath);
         }
         
-        // Write log entry
-        file_put_contents($filepath, $entry, FILE_APPEND | LOCK_EX);
+        // Write log entry with error handling
+        $result = file_put_contents($filepath, $entry, FILE_APPEND | LOCK_EX);
+        
+        if ($result === false) {
+            throw new Exception("Failed to write to log file: {$filepath}");
+        }
     }
     
     /**
