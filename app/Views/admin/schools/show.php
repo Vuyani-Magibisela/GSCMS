@@ -11,10 +11,10 @@ ob_start();
             <?php if (isset($breadcrumbs) && is_array($breadcrumbs)): ?>
                 <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
                     <?php if ($index === count($breadcrumbs) - 1): ?>
-                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['name']) ?></li>
+                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['title']) ?></li>
                     <?php else: ?>
                         <li class="breadcrumb-item">
-                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['name']) ?></a>
+                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['title']) ?></a>
                         </li>
                     <?php endif; ?>
                 <?php endforeach; ?>
@@ -29,13 +29,13 @@ ob_start();
                 <h1 class="page-title">
                     <i class="fas fa-school"></i>
                     <?= htmlspecialchars($school['name']) ?>
-                    <span class="badge badge-<?= $school->getStatusInfo()['color'] ?> ml-2">
-                        <?= htmlspecialchars($school->getStatusInfo()['label']) ?>
+                    <span class="badge badge-<?= ($school['status'] == 'active') ? 'success' : (($school['status'] == 'pending') ? 'warning' : 'secondary') ?> ml-2">
+                        <?= htmlspecialchars(ucfirst($school['status'])) ?>
                     </span>
                 </h1>
                 <p class="page-subtitle">
-                    <?= htmlspecialchars($school->getSchoolTypeLabel()) ?> • 
-                    <?= htmlspecialchars($school->getDistrictName()) ?> • 
+                    <?= htmlspecialchars(ucfirst($school['school_type'])) ?> • 
+                    <?= htmlspecialchars($school['district']) ?> • 
                     <?= htmlspecialchars($school['province']) ?>
                 </p>
             </div>
@@ -198,7 +198,7 @@ ob_start();
                                 </tr>
                                 <tr>
                                     <th>School Type:</th>
-                                    <td><?= htmlspecialchars($school->getSchoolTypeLabel()) ?></td>
+                                    <td><?= htmlspecialchars(ucfirst($school['school_type'])) ?></td>
                                 </tr>
                                 <tr>
                                     <th>Quintile:</th>
@@ -229,11 +229,11 @@ ob_start();
                             <table class="table table-borderless">
                                 <tr>
                                     <th width="40%">Address:</th>
-                                    <td><?= htmlspecialchars($school->getFullAddress()) ?></td>
+                                    <td><?= htmlspecialchars(trim($school['address_line1'] . ' ' . $school['address_line2'] . ', ' . $school['city'] . ' ' . $school['postal_code'])) ?></td>
                                 </tr>
                                 <tr>
                                     <th>District:</th>
-                                    <td><?= htmlspecialchars($school->getDistrictName()) ?></td>
+                                    <td><?= htmlspecialchars($school['district']) ?></td>
                                 </tr>
                                 <tr>
                                     <th>Province:</th>
@@ -355,7 +355,7 @@ ob_start();
                 <div class="tab-pane fade" id="teams" role="tabpanel">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h5><i class="fas fa-users text-success"></i> School Teams</h5>
-                        <?php if ($school->canRegisterTeams()): ?>
+                        <?php if ($school['status'] === 'approved' || $school['status'] === 'active'): ?>
                         <a href="/teams/create?school_id=<?= $school['id'] ?>" class="btn btn-success btn-sm">
                             <i class="fas fa-plus"></i> Register New Team
                         </a>
@@ -365,7 +365,7 @@ ob_start();
                     <?php if (empty($teams)): ?>
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i> No teams have been registered for this school yet.
-                            <?php if ($school->canRegisterTeams()): ?>
+                            <?php if ($school['status'] === 'approved' || $school['status'] === 'active'): ?>
                                 <a href="/teams/create?school_id=<?= $school['id'] ?>" class="alert-link">Register the first team</a>.
                             <?php endif; ?>
                         </div>

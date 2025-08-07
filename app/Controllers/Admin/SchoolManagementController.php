@@ -267,6 +267,34 @@ class SchoolManagementController extends BaseController
         try {
             $request = new Request();
             
+            // Log form submission attempt with detailed info
+            error_log("School form submission started - IP: " . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+            error_log("User authenticated: " . ($this->auth->check() ? 'YES' : 'NO'));
+            error_log("User ID: " . ($this->auth->check() ? $this->auth->id() : 'NONE'));
+            error_log("User role: " . ($this->auth->check() ? $this->auth->user()->role : 'NONE'));
+            error_log("Request method: " . $_SERVER['REQUEST_METHOD']);
+            error_log("Content type: " . ($_SERVER['CONTENT_TYPE'] ?? 'not set'));
+            error_log("Form data keys: " . implode(', ', array_keys($request->all())));
+            
+            // Check authentication first
+            if (!$this->auth->check()) {
+                error_log("School form submission failed - user not authenticated");
+                return $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'Authentication required. Please log in again.',
+                    'redirect' => '/auth/login'
+                ], 401);
+            }
+            
+            // Check user role
+            if (!$this->auth->user()->hasAnyRole(['super_admin', 'competition_admin'])) {
+                error_log("School form submission failed - insufficient permissions");
+                return $this->jsonResponse([
+                    'success' => false,
+                    'message' => 'Insufficient permissions for this action.'
+                ], 403);
+            }
+            
             // Simple validation for required fields
             $requiredFields = ['name', 'registration_number', 'school_type', 'district_id', 'province', 'address_line1', 'city', 'postal_code', 'email'];
             $missingFields = [];
@@ -278,6 +306,7 @@ class SchoolManagementController extends BaseController
             }
             
             if (!empty($missingFields)) {
+                error_log("School form validation failed - missing fields: " . implode(', ', $missingFields));
                 return $this->jsonResponse([
                     'success' => false,
                     'message' => 'Required fields are missing: ' . implode(', ', $missingFields),
@@ -296,6 +325,7 @@ class SchoolManagementController extends BaseController
                     'registration_number' => $request->post('registration_number'),
                     'school_type' => $request->post('school_type'),
                     'quintile' => $request->post('quintile'),
+                    'district' => $request->post('district'),
                     'district_id' => $request->post('district_id'),
                     'province' => $request->post('province'),
                     'address_line1' => $request->post('address_line1'),
@@ -329,10 +359,52 @@ class SchoolManagementController extends BaseController
                 $placeholders = ':' . implode(', :', array_keys($schoolData));
                 
                 $sql = "INSERT INTO schools ({$fields}) VALUES ({$placeholders})";
-                $this->db->execute($sql, $schoolData);
+                $this->db->statement($sql, $schoolData);
                 $schoolId = $this->db->getConnection()->lastInsertId();
 
-                // Skip contact creation for now to avoid model issues
+                // Create principal contact using direct SQL to avoid model issues
+                if (!empty($request->post('principal_name')) && !empty($request->post('principal_email'))) {
+                    $contactData = [
+                        'school_id' => $schoolId,
+                        'contact_type' => 'principal',
+                        'first_name' => $this->extractFirstName($request->post('principal_name')),
+                        'last_name' => $this->extractLastName($request->post('principal_name')),
+                        'email' => $request->post('principal_email'),
+                        'phone' => $request->post('principal_phone'),
+                        'position' => 'Principal',
+                        'is_primary' => 1,
+                        'status' => 'active',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $contactFields = implode(', ', array_keys($contactData));
+                    $contactPlaceholders = ':' . implode(', :', array_keys($contactData));
+                    
+                    $contactSql = "INSERT INTO contacts ({$contactFields}) VALUES ({$contactPlaceholders})";
+                    $this->db->statement($contactSql, $contactData);
+                }
+
+                // Create coordinator contact if provided
+                if (!empty($request->post('coordinator_name')) && !empty($request->post('coordinator_email'))) {
+                    $coordinatorData = [
+                        'school_id' => $schoolId,
+                        'contact_type' => 'coordinator',
+                        'first_name' => $this->extractFirstName($request->post('coordinator_name')),
+                        'last_name' => $this->extractLastName($request->post('coordinator_name')),
+                        'email' => $request->post('coordinator_email'),
+                        'phone' => $request->post('coordinator_phone'),
+                        'position' => 'SciBOTICS Coordinator',
+                        'is_primary' => 0,
+                        'status' => 'active',
+                        'created_at' => date('Y-m-d H:i:s')
+                    ];
+                    
+                    $coordFields = implode(', ', array_keys($coordinatorData));
+                    $coordPlaceholders = ':' . implode(', :', array_keys($coordinatorData));
+                    
+                    $coordSql = "INSERT INTO contacts ({$coordFields}) VALUES ({$coordPlaceholders})";
+                    $this->db->statement($coordSql, $coordinatorData);
+                }
 
                 $this->db->commit();
 
@@ -346,7 +418,7 @@ class SchoolManagementController extends BaseController
                     'success' => true,
                     'message' => 'School registered successfully and is pending approval.',
                     'school_id' => $schoolId,
-                    'redirect' => '/admin/schools/' . $schoolId
+                    'redirect' => $this->baseUrl('/admin/schools')
                 ]);
 
             } catch (Exception $e) {
@@ -355,10 +427,17 @@ class SchoolManagementController extends BaseController
             }
 
         } catch (Exception $e) {
+            error_log("School form submission error: " . $e->getMessage() . " at " . $e->getFile() . ":" . $e->getLine());
+            error_log("Stack trace: " . $e->getTraceAsString());
             $this->logger->error('Error in SchoolManagementController@store: ' . $e->getMessage());
             return $this->jsonResponse([
                 'success' => false,
-                'message' => 'Error registering school: ' . $e->getMessage()
+                'message' => 'Error registering school: ' . $e->getMessage(),
+                'debug_info' => [
+                    'error' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ]
             ], 500);
         }
     }
@@ -368,20 +447,55 @@ class SchoolManagementController extends BaseController
      */
     public function show($id)
     {
-        try {
-            $school = $this->schoolModel->findOrFail($id);
-            $contacts = Contact::getBySchool($id);
-            $teams = $school->teams();
-            $participants = $school->participants();
+        // Handle case where $id might be a Request object (router issue)
+        if (is_object($id) && method_exists($id, 'getParameter')) {
+            $actualId = $id->getParameter('id');
+            
+            // If parameter is empty, try to extract from URL
+            if (empty($actualId) && method_exists($id, 'getUri')) {
+                $uri = $id->getUri();
+                // Extract ID from URI like /GSCMS/public/admin/schools/32
+                if (preg_match('/\/admin\/schools\/(\d+)/', $uri, $matches)) {
+                    $actualId = $matches[1];
+                }
+            }
+        } elseif (is_object($id) && isset($id->id)) {
+            $actualId = $id->id;
+        } else {
+            $actualId = $id;
+        }
+            
+            // Bypass model and use direct SQL to avoid parameter issues
+            $sql = "SELECT * FROM schools WHERE id = ? AND deleted_at IS NULL";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->execute([$actualId]);
+            $school = $stmt->fetch();
+            
+            if (!$school) {
+                // Try without deleted_at condition to see if it exists but is soft deleted
+                $sql2 = "SELECT * FROM schools WHERE id = ?";
+                $stmt2 = $this->db->getConnection()->prepare($sql2);
+                $stmt2->execute([$actualId]);
+                $school2 = $stmt2->fetch();
+                
+                if ($school2) {
+                    throw new Exception("School found but appears to be deleted (actualId: $actualId)");
+                } else {
+                    throw new Exception("School not found at all (actualId: $actualId, type: " . gettype($actualId) . ")");
+                }
+            }
+            
+            // Temporarily simplified - skip complex relationships to get basic page working
+            $contacts = []; // Contact::getBySchool($actualId);
+            $teams = [];    // $school->teams();
+            $participants = []; // $school->participants();
             
             // Get school statistics
             $stats = [
-                'total_teams' => count($teams),
-                'total_participants' => count($participants),
-                'active_teams' => count(array_filter($teams, function($team) {
-                    return $team['status'] === 'active';
-                })),
-                'document_requirements' => $school->checkDocumentRequirements()
+                'total_teams' => 0,
+                'total_participants' => 0,
+                'active_teams' => 0,
+                'document_requirements' => []
             ];
 
             // Get communication history (placeholder for future implementation)
@@ -390,6 +504,8 @@ class SchoolManagementController extends BaseController
             // Get change log (placeholder for future implementation)
             $changeLog = [];
 
+            $schoolName = $school['name'] ?? 'Unknown School';
+            
             $data = [
                 'school' => $school,
                 'contacts' => $contacts,
@@ -398,20 +514,22 @@ class SchoolManagementController extends BaseController
                 'stats' => $stats,
                 'communicationHistory' => $communicationHistory,
                 'changeLog' => $changeLog,
-                'title' => 'School Details - ' . $school['name'],
+                'title' => 'School Details - ' . $schoolName,
                 'breadcrumbs' => [
-                    ['name' => 'Dashboard', 'url' => '/admin/dashboard'],
-                    ['name' => 'School Management', 'url' => '/admin/schools'],
-                    ['name' => $school['name'], 'url' => '']
+                    ['title' => 'Dashboard', 'url' => '/admin/dashboard'],
+                    ['title' => 'School Management', 'url' => '/admin/schools'],
+                    ['title' => $schoolName, 'url' => '']
                 ]
             ];
 
-            return $this->view('admin/schools/show', $data);
-
-        } catch (Exception $e) {
-            $this->logger->error('Error in SchoolManagementController@show: ' . $e->getMessage());
-            return $this->errorResponse('School not found', 404);
-        }
+            try {
+                return $this->view('admin/schools/show', $data);
+            } catch (Exception $e) {
+                error_log("View rendering error: " . $e->getMessage());
+                error_log("Error file: " . $e->getFile() . ":" . $e->getLine());
+                error_log("Stack trace: " . $e->getTraceAsString());
+                return $this->errorResponse('View rendering failed: ' . $e->getMessage(), 500);
+            }
     }
 
     /**

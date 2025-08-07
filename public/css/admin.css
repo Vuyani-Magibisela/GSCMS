@@ -83,9 +83,15 @@
   cursor: pointer;
   transition: var(--transition-all);
 }
-.notifications{
-  background: red;
-  color: white;
+.quick-action-btn.notifications {
+  background: var(--error-color, #ff6b6b) !important;
+  color: white !important;
+  border-color: var(--error-color, #ff6b6b) !important;
+}
+
+.quick-action-btn.notifications:hover {
+  background: var(--primary-color, #667eea) !important;
+  border-color: var(--primary-color, #667eea) !important;
 }
 
 .quick-action-btn:hover {
@@ -95,23 +101,25 @@
 }
 
 .quick-action-btn[data-count]::after {
-  content: attr(data-count);
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--error-color, #ff6b6b);
-  color: white;
-  font-size: var(--font-size-xs, 0.75rem);
-  font-weight: var(--font-weight-bold, 700);
-  padding: 2px 6px;
-  border-radius: var(--radius-full, 50px);
-  min-width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  content: attr(data-count) !important;
+  position: absolute !important;
+  top: -8px !important;
+  right: -8px !important;
+  background: var(--error-color, #ff6b6b) !important;
+  color: white !important;
+  font-size: var(--font-size-xs, 0.75rem) !important;
+  font-weight: var(--font-weight-bold, 700) !important;
+  padding: 4px 8px !important;
+  border-radius: var(--radius-full, 50px) !important;
+  min-width: 20px !important;
+  height: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1000 !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
+  border: 2px solid white !important;
+  line-height: 1 !important;
 }
 
 /* Admin Sidebar */

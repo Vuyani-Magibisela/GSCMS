@@ -53,6 +53,78 @@ $router->get('/test-dashboard-controller', function() {
 
 $router->get('/test/db', 'TestController@database', 'test.db');
 
+// Test form submission endpoint (development only)
+$router->post('/test/form-submit', function() {
+    if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
+        return 'Access denied';
+    }
+    
+    $request = new \App\Core\Request();
+    
+    return json_encode([
+        'success' => true,
+        'message' => 'Test form submission received',
+        'data' => $request->all(),
+        'method' => $_SERVER['REQUEST_METHOD'],
+        'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'not set',
+        'timestamp' => date('Y-m-d H:i:s')
+    ]);
+}, 'test.form-submit');
+
+// Debug route for test page
+$router->get('/test-admin', function() {
+    return '
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Admin Debug Test</title>
+    </head>
+    <body>
+        <h1>Admin Debug Test</h1>
+        
+        <h2>Authentication Status</h2>
+        <p><strong>Authenticated:</strong> ' . (\App\Core\Auth::getInstance()->check() ? 'YES' : 'NO') . '</p>
+        ' . (\App\Core\Auth::getInstance()->check() ? '<p><strong>User ID:</strong> ' . \App\Core\Auth::getInstance()->id() . '</p>' : '') . '
+        ' . (\App\Core\Auth::getInstance()->check() ? '<p><strong>User Role:</strong> ' . \App\Core\Auth::getInstance()->user()->role . '</p>' : '') . '
+        
+        <h2>Quick Links</h2>
+        <ul>
+            <li><a href="' . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/dev-login-admin">Development Login (Admin)</a></li>
+            <li><a href="' . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/admin/dashboard">Admin Dashboard</a></li>
+            <li><a href="' . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/admin/schools/create">Create School Form</a></li>
+        </ul>
+        
+        <h2>Test Form</h2>
+        <form id="testForm">
+            <input type="text" name="test_field" placeholder="Enter test value" required>
+            <button type="submit">Test Submit</button>
+        </form>
+        
+        <div id="result"></div>
+        
+        <script>
+        document.getElementById("testForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            
+            fetch("' . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/test/form-submit", {
+                method: "POST",
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerHTML = "<h3>Test Result:</h3><pre>" + JSON.stringify(data, null, 2) + "</pre>";
+            })
+            .catch(error => {
+                document.getElementById("result").innerHTML = "<h3>Test Error:</h3><p>" + error.message + "</p>";
+            });
+        });
+        </script>
+    </body>
+    </html>';
+}, 'test-admin');
+
 // Development only - Login as admin for testing (remove in production)
 $router->get('/dev-login-admin', function() {
     if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
@@ -356,6 +428,12 @@ $router->group(['middleware' => 'auth'], function($router) {
         // System logs and monitoring
         $router->get('/logs', 'LogController@index', 'admin.logs');
         $router->get('/logs/{file}', 'LogController@show', 'admin.logs.show');
+        
+        // AJAX API endpoints for admin dashboard
+        $router->get('/api/system-status', 'DashboardController@systemStatus', 'admin.api.system-status');
+        $router->get('/api/dashboard-updates', 'DashboardController@dashboardUpdates', 'admin.api.dashboard-updates');
+        $router->get('/api/notifications', 'DashboardController@notifications', 'admin.api.notifications');
+        $router->post('/api/notifications/mark-read', 'DashboardController@markNotificationsRead', 'admin.api.notifications.mark-read');
     });
     
     // ========================================================================

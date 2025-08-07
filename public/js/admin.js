@@ -433,6 +433,52 @@
                 }
             },
 
+            // Pagination functionality
+            initPagination: function() {
+                const paginationContainer = GSCMS.utils.$('.pagination-container');
+                if (!paginationContainer) return;
+
+                const paginationLinks = GSCMS.utils.$$('.pagination-link', paginationContainer);
+                
+                paginationLinks.forEach(link => {
+                    GSCMS.utils.on(link, 'click', (e) => {
+                        e.preventDefault();
+                        const page = GSCMS.utils.getData(link, 'page');
+                        this.loadPage(page);
+                    });
+                });
+
+                // Page size selector
+                const pageSizeSelect = GSCMS.utils.$('.page-size-select');
+                if (pageSizeSelect) {
+                    GSCMS.utils.on(pageSizeSelect, 'change', () => {
+                        this.changePageSize(pageSizeSelect.value);
+                    });
+                }
+            },
+
+            loadPage: function(page) {
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.set('page', page);
+                
+                // Show loading state
+                const tableContainer = GSCMS.utils.$('.data-table-container');
+                if (tableContainer) {
+                    GSCMS.utils.addClass(tableContainer, 'loading');
+                }
+                
+                // Navigate to new page
+                window.location.href = currentUrl.toString();
+            },
+
+            changePageSize: function(pageSize) {
+                const currentUrl = new URL(window.location);
+                currentUrl.searchParams.set('per_page', pageSize);
+                currentUrl.searchParams.delete('page'); // Reset to first page
+                
+                window.location.href = currentUrl.toString();
+            },
+
             // Bulk actions functionality
             initBulkActions: function() {
                 const bulkActionForm = GSCMS.utils.$('.bulk-actions-form');

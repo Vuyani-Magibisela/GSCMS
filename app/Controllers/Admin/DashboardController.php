@@ -457,4 +457,119 @@ class DashboardController extends BaseController
             return 'Just now';
         }
     }
+
+    /**
+     * AJAX endpoint for system status
+     */
+    public function systemStatus()
+    {
+        try {
+            $health = $this->getSystemHealth();
+            $stats = $this->getBasicStats();
+            
+            return $this->jsonResponse([
+                'success' => true,
+                'data' => [
+                    'health' => $health,
+                    'stats' => $stats,
+                    'timestamp' => date('Y-m-d H:i:s')
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Error fetching system status: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * AJAX endpoint for dashboard updates
+     */
+    public function dashboardUpdates()
+    {
+        try {
+            $activity = $this->getRecentActivity(10);
+            $deadlines = $this->getUpcomingDeadlines(5);
+            
+            return $this->jsonResponse([
+                'success' => true,
+                'data' => [
+                    'recent_activity' => $activity,
+                    'upcoming_deadlines' => $deadlines,
+                    'timestamp' => date('Y-m-d H:i:s')
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Error fetching dashboard updates: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * AJAX endpoint for notifications
+     */
+    public function notifications()
+    {
+        try {
+            $notifications = [
+                [
+                    'id' => 1,
+                    'title' => 'New School Registration',
+                    'message' => 'Westside High School has registered for the competition',
+                    'type' => 'info',
+                    'timestamp' => date('Y-m-d H:i:s', strtotime('-2 hours')),
+                    'read' => false
+                ],
+                [
+                    'id' => 2,
+                    'title' => 'Team Submission',
+                    'message' => 'Team Alpha submitted their project for review',
+                    'type' => 'success',
+                    'timestamp' => date('Y-m-d H:i:s', strtotime('-4 hours')),
+                    'read' => false
+                ],
+                [
+                    'id' => 3,
+                    'title' => 'Competition Deadline',
+                    'message' => 'Registration deadline in 5 days',
+                    'type' => 'warning',
+                    'timestamp' => date('Y-m-d H:i:s', strtotime('-1 day')),
+                    'read' => true
+                ]
+            ];
+            
+            return $this->jsonResponse([
+                'success' => true,
+                'data' => $notifications,
+                'unread_count' => count(array_filter($notifications, function($n) { return !$n['read']; }))
+            ]);
+        } catch (\Exception $e) {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Error fetching notifications: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * AJAX endpoint to mark notifications as read
+     */
+    public function markNotificationsRead()
+    {
+        try {
+            // In a real implementation, this would update the database
+            return $this->jsonResponse([
+                'success' => true,
+                'message' => 'Notifications marked as read'
+            ]);
+        } catch (\Exception $e) {
+            return $this->jsonResponse([
+                'success' => false,
+                'message' => 'Error marking notifications as read: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }

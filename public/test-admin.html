@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Admin Access</title>
+</head>
+<body>
+    <h1>Test Admin Access</h1>
+    <p>This is a simple test page. If you can see this, the server is running.</p>
+    
+    <h2>Test Links:</h2>
+    <ul>
+        <li><a href="/admin/dashboard" target="_blank">Admin Dashboard</a></li>
+        <li><a href="/admin/schools" target="_blank">Schools List</a></li>
+        <li><a href="/admin/schools/create" target="_blank">Create School Form</a></li>
+        <li><a href="/dev-login-admin" target="_blank">Development Login (Admin)</a></li>
+    </ul>
+    
+    <h2>Test Form Submission:</h2>
+    <form id="testForm">
+        <input type="text" name="test_field" placeholder="Test Field" required>
+        <button type="submit">Test Submit</button>
+    </form>
+    
+    <script>
+    document.getElementById('testForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        
+        fetch('/test/form-submit', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert('Test successful: ' + JSON.stringify(data));
+        })
+        .catch(error => {
+            alert('Test failed: ' + error.message);
+        });
+    });
+    </script>
+</body>
+</html>

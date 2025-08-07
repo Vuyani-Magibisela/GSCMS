@@ -63,7 +63,7 @@ ob_start();
     </div>
 
     <!-- Registration Form -->
-    <form id="schoolRegistrationForm" class="school-form" method="POST" action="/admin/schools" enctype="multipart/form-data">
+    <form id="schoolRegistrationForm" class="school-form" method="POST" action="<?= $baseUrl ?>/admin/schools" enctype="multipart/form-data">
         <!-- CSRF Token -->
         <input type="hidden" name="csrf_token" value="<?= csrf_token() ?? '' ?>">
 
@@ -166,7 +166,8 @@ ob_start();
                         <option value="">Select district</option>
                         <?php if (isset($districts) && is_array($districts)): ?>
                             <?php foreach ($districts as $district): ?>
-                                <option value="<?= htmlspecialchars($district['id']) ?>">
+                                <option value="<?= htmlspecialchars($district['id']) ?>" 
+                                        data-name="<?= htmlspecialchars($district['name']) ?>">
                                     <?= htmlspecialchars($district['name']) ?> (<?= htmlspecialchars($district['province']) ?>)
                                 </option>
                             <?php endforeach; ?>
@@ -175,6 +176,7 @@ ob_start();
                             <!-- Debug: <?= isset($districts) ? 'Districts is set but not array: ' . gettype($districts) : 'Districts not set' ?> -->
                         <?php endif; ?>
                     </select>
+                    <input type="hidden" id="district" name="district" value="">
                     <div class="form-help">Select the education district</div>
                 </div>
 
@@ -605,63 +607,106 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Form submission
-document.getElementById('schoolRegistrationForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    if (!document.getElementById('terms_agreement').checked) {
-        alert('Please agree to the terms and conditions.');
-        return;
-    }
-    
-    // Show loading state
-    const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
-    submitBtn.disabled = true;
-    
-    // Submit form
-    const formData = new FormData(this);
-    
-    fetch(this.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        if (data.success) {
-            localStorage.removeItem('schoolRegistrationDraft');
-            alert('School registration submitted successfully! You will be redirected to the school details page.');
-            window.location.href = data.redirect;
-        } else {
-            console.error('Server error:', data);
-            alert('Error: ' + (data.message || 'Registration failed. Please try again.'));
-            if (data.errors) {
-                console.error('Validation errors:', data.errors);
-            }
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again. Check the browser console for details.');
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
-    });
-});
 
 // Initialize form when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
     showStep(1);
+    
+    // Handle district selection to populate hidden district field
+    const districtSelect = document.getElementById('district_id');
+    const districtHidden = document.getElementById('district');
+    
+    if (districtSelect && districtHidden) {
+        districtSelect.addEventListener('change', function() {
+            const selectedOption = this.selectedOptions[0];
+            if (selectedOption && selectedOption.dataset.name) {
+                districtHidden.value = selectedOption.dataset.name;
+            } else {
+                districtHidden.value = '';
+            }
+        });
+    }
+    
+    // Form submission handler
+    const form = document.getElementById('schoolRegistrationForm');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!document.getElementById('terms_agreement').checked) {
+                alert('Please agree to the terms and conditions.');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+            submitBtn.disabled = true;
+            
+            // Submit form
+            const formData = new FormData(this);
+            
+            fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    // Try to get error message from response
+                    return response.text().then(text => {
+                        console.error('Server error response:', text);
+                        throw new Error(`HTTP ${response.status}: ${response.statusText} - ${text.substring(0, 200)}`);
+                    });
+                }
+                
+                return response.text().then(text => {
+                    console.log('Raw response:', text);
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('Failed to parse JSON:', text);
+                        throw new Error('Invalid JSON response from server');
+                    }
+                });
+            })
+            .then(data => {
+                console.log('Parsed data:', data);
+                if (data.success) {
+                    localStorage.removeItem('schoolRegistrationDraft');
+                    alert('School registration submitted successfully! You will be redirected to the school details page.');
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        window.location.reload();
+                    }
+                } else {
+                    console.error('Server error:', data);
+                    alert('Error: ' + (data.message || 'Registration failed. Please try again.'));
+                    if (data.errors) {
+                        console.error('Validation errors:', data.errors);
+                    }
+                    if (data.debug_info) {
+                        console.error('Debug info:', data.debug_info);
+                    }
+                    submitBtn.innerHTML = originalText;
+                    submitBtn.disabled = false;
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+                alert('An error occurred: ' + error.message + '. Check the browser console for details.');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        });
+    }
 });
 </script>
 
