@@ -788,6 +788,18 @@ class School extends BaseModel
     }
     
     /**
+     * Get schools by status
+     */
+    public function getByStatus($status)
+    {
+        return $this->db->table($this->table)
+            ->where('status', $status)
+            ->whereNull('deleted_at')
+            ->orderBy('name')
+            ->get();
+    }
+    
+    /**
      * Override toArray to include calculated fields
      */
     public function toArray()

@@ -13,31 +13,43 @@ class UpdateTeamsTable extends Migration
         // Check and add coach2_id column if it doesn't exist (it already exists, so skip)
         // coach2_id already exists based on table description
         
-        // First update existing status values to match new enum
+        // Add temporary status column with new enum values
         $this->execute(
-            "UPDATE `teams` SET `status` = 'registered' WHERE `status` IN ('draft', 'submitted')",
-            "Updating existing status values to match new enum"
+            "ALTER TABLE `teams` ADD COLUMN `status_new` ENUM('registered', 'approved', 'competing', 'eliminated', 'completed') DEFAULT 'registered'",
+            "Adding temporary status column with new enum values"
+        );
+        
+        // Map old status values to new enum values
+        $this->execute(
+            "UPDATE `teams` SET `status_new` = 'registered' WHERE `status` IN ('draft', 'submitted')",
+            "Mapping draft/submitted to registered"
         );
         
         $this->execute(
-            "UPDATE `teams` SET `status` = 'approved' WHERE `status` = 'approved'",
-            "Updating approved status values"
+            "UPDATE `teams` SET `status_new` = 'approved' WHERE `status` = 'approved'",
+            "Mapping approved status"
         );
         
         $this->execute(
-            "UPDATE `teams` SET `status` = 'competing' WHERE `status` = 'qualified'",
-            "Updating qualified status to competing"
+            "UPDATE `teams` SET `status_new` = 'competing' WHERE `status` = 'qualified'",
+            "Mapping qualified to competing"
         );
         
         $this->execute(
-            "UPDATE `teams` SET `status` = 'eliminated' WHERE `status` IN ('rejected', 'eliminated')",
-            "Updating eliminated status values"
+            "UPDATE `teams` SET `status_new` = 'eliminated' WHERE `status` IN ('rejected', 'eliminated')",
+            "Mapping rejected/eliminated to eliminated"
         );
         
-        // Update status enum values to match our enhanced model
+        // Drop old status column
         $this->execute(
-            "ALTER TABLE `teams` MODIFY COLUMN `status` ENUM('registered', 'approved', 'competing', 'eliminated', 'completed') DEFAULT 'registered'",
-            "Updating status enum values for teams table"
+            "ALTER TABLE `teams` DROP COLUMN `status`",
+            "Dropping old status column"
+        );
+        
+        // Rename new status column
+        $this->execute(
+            "ALTER TABLE `teams` CHANGE `status_new` `status` ENUM('registered', 'approved', 'competing', 'eliminated', 'completed') DEFAULT 'registered'",
+            "Renaming status_new to status"
         );
         
         // qualification_score already exists, skip

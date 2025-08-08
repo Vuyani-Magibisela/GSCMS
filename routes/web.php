@@ -393,6 +393,23 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/system/settings', 'SystemController@settings', 'admin.system.settings');
         $router->post('/system/settings', 'SystemController@updateSettings', 'admin.system.settings.update');
         
+        // Team management
+        $router->get('/teams', 'TeamManagementController@index', 'admin.teams');
+        $router->get('/teams/create', 'TeamManagementController@create', 'admin.teams.create');
+        $router->post('/teams', 'TeamManagementController@store', 'admin.teams.store');
+        $router->get('/teams/{id}', 'TeamManagementController@show', 'admin.teams.show');
+        $router->get('/teams/{id}/edit', 'TeamManagementController@edit', 'admin.teams.edit');
+        $router->put('/teams/{id}', 'TeamManagementController@update', 'admin.teams.update');
+        $router->delete('/teams/{id}', 'TeamManagementController@destroy', 'admin.teams.destroy');
+        
+        // Team participant management
+        $router->post('/teams/{id}/participants', 'TeamManagementController@addParticipant', 'admin.teams.participants.add');
+        $router->delete('/teams/{teamId}/participants/{participantId}', 'TeamManagementController@removeParticipant', 'admin.teams.participants.remove');
+        
+        // Team status management
+        $router->post('/teams/{id}/status', 'TeamManagementController@updateStatus', 'admin.teams.status.update');
+        $router->post('/teams/bulk-action', 'TeamManagementController@bulkAction', 'admin.teams.bulk');
+        
         // User management
         $router->get('/users', 'UserController@index', 'admin.users');
         $router->get('/users/create', 'UserController@create', 'admin.users.create');
