@@ -577,6 +577,12 @@ abstract class BaseController
         $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
         $scriptPath = $scriptPath === '/' ? '' : $scriptPath;
         
+        // Handle both direct public access and root access
+        // If accessed via /public/, remove the /public part for consistent URLs
+        if (substr($scriptPath, -7) === '/public') {
+            $scriptPath = substr($scriptPath, 0, -7); // Remove '/public'
+        }
+        
         $baseUrl = $protocol . $host . $scriptPath;
         
         return $path ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $baseUrl;

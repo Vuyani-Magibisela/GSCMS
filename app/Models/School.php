@@ -250,16 +250,13 @@ class School extends BaseModel
      */
     public function isRegistrationOpen()
     {
-        // Check if registration deadline has passed
-        $registrationDeadline = $this->db->table('settings')
-            ->where('key', 'registration_deadline')
-            ->value('value');
-            
-        if ($registrationDeadline && strtotime($registrationDeadline) < time()) {
+        if ($this->status !== self::STATUS_ACTIVE) {
             return false;
         }
         
-        return $this->status === self::STATUS_ACTIVE;
+        // Use deadline manager for accurate deadline checking
+        $deadlineManager = new \App\Core\RegistrationDeadlineManager();
+        return $deadlineManager->isSchoolRegistrationOpen();
     }
     
     /**

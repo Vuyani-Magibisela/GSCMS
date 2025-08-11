@@ -30,6 +30,10 @@ ob_start();
                 <i class="fas fa-users"></i>
                 <span>Manage Teams</span>
             </a>
+            <a href="<?= url('/admin/teams/create') ?>" class="quick-action-btn">
+                <i class="fas fa-users"></i>
+                <span>Add Teams</span>
+            </a>
             <a href="<?= url('/admin/announcements/create') ?>" class="quick-action-btn">
                 <i class="fas fa-bullhorn"></i>
                 <span>Send Notice</span>

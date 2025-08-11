@@ -54,6 +54,9 @@ class TeamManagementController extends BaseController
                 'categories' => $categories,
                 'schools' => $schools,
                 'title' => 'Team Management',
+                'pageTitle' => 'Team Management',
+                'pageSubtitle' => 'Manage competition teams, participants, and registrations',
+                'pageCSS' => ['/css/admin-teams.css'],
                 'breadcrumbs' => [
                     ['title' => 'Dashboard', 'url' => $this->baseUrl('/admin/dashboard')],
                     ['title' => 'Team Management', 'url' => '']

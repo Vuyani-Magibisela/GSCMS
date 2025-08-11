@@ -43,8 +43,8 @@ class Team extends BaseModel
     const STATUS_ELIMINATED = 'eliminated';
     const STATUS_COMPLETED = 'completed';
     
-    // Team composition limits
-    const MAX_PARTICIPANTS = 6;
+    // Team composition limits (per GDE SciBOTICS 2025 Competition rules)
+    const MAX_PARTICIPANTS = 4;  // Updated from 6 to match 2025 competition requirements
     const MAX_COACHES = 2;
 
     protected $belongsTo = [
@@ -260,7 +260,7 @@ class Team extends BaseModel
         // Check participant count
         $participantCount = $this->getParticipantCount();
         if ($participantCount > self::MAX_PARTICIPANTS) {
-            $errors[] = "Team cannot have more than " . self::MAX_PARTICIPANTS . " participants.";
+            $errors[] = "Team cannot have more than " . self::MAX_PARTICIPANTS . " participants (per 2025 competition rules).";
         }
         
         // Check coach count
@@ -298,7 +298,18 @@ class Team extends BaseModel
      */
     public function canAddParticipant()
     {
-        return $this->getParticipantCount() < self::MAX_PARTICIPANTS;
+        if ($this->getParticipantCount() >= self::MAX_PARTICIPANTS) {
+            return false;
+        }
+        
+        // Check deadline
+        try {
+            $deadlineManager = new \App\Core\RegistrationDeadlineManager();
+            $deadlineManager->checkRegistrationDeadlines($this->category_id, 'ADD_PARTICIPANT');
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
     
     /**
@@ -306,6 +317,17 @@ class Team extends BaseModel
      */
     public function validateCategoryEligibility()
     {
+        // Check deadline first
+        try {
+            $deadlineManager = new \App\Core\RegistrationDeadlineManager();
+            $deadlineManager->checkRegistrationDeadlines($this->category_id, 'CREATE_TEAM');
+        } catch (\Exception $e) {
+            return [
+                'valid' => false,
+                'message' => $e->getMessage()
+            ];
+        }
+        
         $existingTeam = $this->db->table('teams')
             ->where('school_id', $this->school_id)
             ->where('category_id', $this->category_id)

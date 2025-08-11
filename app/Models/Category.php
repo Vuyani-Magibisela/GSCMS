@@ -39,9 +39,9 @@ class Category extends BaseModel
         'status.required' => 'Category status is required.'
     ];
     
-    // Category constants based on GDE SciBOTICS categories
+    // Category constants based on GDE SciBOTICS 2025 Competition
     const CATEGORY_JUNIOR = 'JUNIOR';
-    const CATEGORY_SPIKE = 'SPIKE';
+    const CATEGORY_EXPLORER = 'EXPLORER';
     const CATEGORY_ARDUINO = 'ARDUINO';
     const CATEGORY_INVENTOR = 'INVENTOR';
     
@@ -50,18 +50,18 @@ class Category extends BaseModel
     const STATUS_INACTIVE = 'inactive';
     const STATUS_DRAFT = 'draft';
     
-    // Equipment types
+    // Equipment types for 2025 Competition
     const EQUIPMENT_CUBROID = 'Cubroid';
-    const EQUIPMENT_LEGO_SPIKE = 'LEGO Spike';
-    const EQUIPMENT_ARDUINO = 'Arduino';
-    const EQUIPMENT_MIXED = 'Mixed';
+    const EQUIPMENT_LEGO_SPIKE = 'LEGO Spike Prime';
+    const EQUIPMENT_ARDUINO = 'Arduino/Open Hardware';
+    const EQUIPMENT_MIXED = 'Any Technology';
     
     protected $hasMany = [
         'teams' => ['model' => Team::class, 'foreign_key' => 'category_id']
     ];
     
     /**
-     * Get default categories for competition
+     * Get default categories for 2025 GDE SciBOTICS Competition
      */
     public static function getDefaultCategories()
     {
@@ -69,49 +69,53 @@ class Category extends BaseModel
             [
                 'name' => 'Junior Category',
                 'code' => self::CATEGORY_JUNIOR,
-                'description' => 'For younger participants using Cubroid robotics kits',
-                'min_age' => 8,
-                'max_age' => 12,
-                'min_grade' => 'Grade 4',
-                'max_grade' => 'Grade 7',
+                'description' => 'Life on the Red Planet - For Grade R-3 using Cubroid robotics kits',
+                'min_age' => 5,
+                'max_age' => 9,
+                'min_grade' => 'Grade R',
+                'max_grade' => 'Grade 3',
                 'equipment_requirements' => self::EQUIPMENT_CUBROID,
                 'competition_duration' => 120, // minutes
+                'max_teams_per_school' => 1,
                 'status' => self::STATUS_ACTIVE
             ],
             [
-                'name' => 'Spike Category',
-                'code' => self::CATEGORY_SPIKE,
-                'description' => 'For participants using LEGO Spike Prime robotics kits',
-                'min_age' => 10,
+                'name' => 'Explorer Category',
+                'code' => self::CATEGORY_EXPLORER,
+                'description' => 'Cosmic Cargo (Grade 4-7) or Lost in Space (Grade 8-9) using LEGO Spike Prime',
+                'min_age' => 9,
                 'max_age' => 15,
-                'min_grade' => 'Grade 5',
-                'max_grade' => 'Grade 10',
+                'min_grade' => 'Grade 4',
+                'max_grade' => 'Grade 9',
                 'equipment_requirements' => self::EQUIPMENT_LEGO_SPIKE,
                 'competition_duration' => 150,
+                'max_teams_per_school' => 1,
                 'status' => self::STATUS_ACTIVE
             ],
             [
                 'name' => 'Arduino Category',
                 'code' => self::CATEGORY_ARDUINO,
-                'description' => 'For advanced participants using Arduino microcontrollers',
-                'min_age' => 12,
-                'max_age' => 18,
-                'min_grade' => 'Grade 7',
-                'max_grade' => 'Grade 12',
+                'description' => 'Thunderdrome (Grade 8-9) or Yellow Planet (Grade 10-11) using Arduino/Open Hardware',
+                'min_age' => 13,
+                'max_age' => 17,
+                'min_grade' => 'Grade 8',
+                'max_grade' => 'Grade 11',
                 'equipment_requirements' => self::EQUIPMENT_ARDUINO,
                 'competition_duration' => 180,
+                'max_teams_per_school' => 1,
                 'status' => self::STATUS_ACTIVE
             ],
             [
                 'name' => 'Inventor Category',
                 'code' => self::CATEGORY_INVENTOR,
-                'description' => 'Open category for innovative solutions using any technology',
-                'min_age' => 10,
-                'max_age' => 18,
-                'min_grade' => 'Grade 5',
-                'max_grade' => 'Grade 12',
+                'description' => 'Open innovation category for all grades using any technology',
+                'min_age' => 5,
+                'max_age' => 17,
+                'min_grade' => 'Grade R',
+                'max_grade' => 'Grade 11',
                 'equipment_requirements' => self::EQUIPMENT_MIXED,
                 'competition_duration' => 200,
+                'max_teams_per_school' => 1,
                 'status' => self::STATUS_ACTIVE
             ]
         ];
@@ -189,18 +193,26 @@ class Category extends BaseModel
     }
     
     /**
-     * Validate participant grade for this category
+     * Validate participant grade for this category (2025 Competition)
      */
     public function validateParticipantGrade($grade)
     {
         $gradeNumbers = [
+            'Grade R' => 0, 'Grade 1' => 1, 'Grade 2' => 2, 'Grade 3' => 3,
             'Grade 4' => 4, 'Grade 5' => 5, 'Grade 6' => 6, 'Grade 7' => 7,
             'Grade 8' => 8, 'Grade 9' => 9, 'Grade 10' => 10, 'Grade 11' => 11, 'Grade 12' => 12
         ];
         
-        $participantGradeNum = $gradeNumbers[$grade] ?? 0;
-        $minGradeNum = $gradeNumbers[$this->min_grade] ?? 0;
-        $maxGradeNum = $gradeNumbers[$this->max_grade] ?? 0;
+        $participantGradeNum = $gradeNumbers[$grade] ?? -1;
+        $minGradeNum = $gradeNumbers[$this->min_grade] ?? -1;
+        $maxGradeNum = $gradeNumbers[$this->max_grade] ?? -1;
+        
+        if ($participantGradeNum === -1) {
+            return [
+                'valid' => false,
+                'message' => "Invalid grade format: {$grade}. Expected format: 'Grade R', 'Grade 1', etc."
+            ];
+        }
         
         if ($participantGradeNum < $minGradeNum) {
             return [
@@ -232,41 +244,46 @@ class Category extends BaseModel
     }
     
     /**
-     * Get default scoring rubric for category
+     * Get default scoring rubric for 2025 competition category
      */
     public function getDefaultScoringRubric()
     {
         switch ($this->code) {
             case self::CATEGORY_JUNIOR:
+                // Junior (Grade R-3): Life on the Red Planet
                 return [
-                    'creativity' => ['weight' => 25, 'max_score' => 100],
-                    'functionality' => ['weight' => 30, 'max_score' => 100],
-                    'presentation' => ['weight' => 20, 'max_score' => 100],
-                    'teamwork' => ['weight' => 25, 'max_score' => 100]
+                    'problem_identification' => ['weight' => 20, 'max_score' => 20],
+                    'solution_development' => ['weight' => 20, 'max_score' => 20],
+                    'robot_functionality' => ['weight' => 30, 'max_score' => 30],
+                    'presentation' => ['weight' => 30, 'max_score' => 30]
                 ];
                 
-            case self::CATEGORY_SPIKE:
+            case self::CATEGORY_EXPLORER:
+                // Explorer: Cosmic Cargo (4-7) or Lost in Space (8-9)
                 return [
-                    'programming' => ['weight' => 30, 'max_score' => 100],
-                    'mechanical_design' => ['weight' => 25, 'max_score' => 100],
-                    'problem_solving' => ['weight' => 25, 'max_score' => 100],
-                    'presentation' => ['weight' => 20, 'max_score' => 100]
+                    'problem_identification' => ['weight' => 20, 'max_score' => 20],
+                    'solution_development' => ['weight' => 20, 'max_score' => 20],
+                    'robot_functionality' => ['weight' => 30, 'max_score' => 30],
+                    'presentation' => ['weight' => 30, 'max_score' => 30]
                 ];
                 
             case self::CATEGORY_ARDUINO:
+                // Arduino: Thunderdrome (8-9) or Yellow Planet (10-11)
                 return [
-                    'technical_complexity' => ['weight' => 35, 'max_score' => 100],
-                    'innovation' => ['weight' => 25, 'max_score' => 100],
-                    'code_quality' => ['weight' => 20, 'max_score' => 100],
-                    'documentation' => ['weight' => 20, 'max_score' => 100]
+                    'problem_identification' => ['weight' => 20, 'max_score' => 20],
+                    'solution_development' => ['weight' => 20, 'max_score' => 20],
+                    'robot_functionality' => ['weight' => 30, 'max_score' => 30],
+                    'presentation' => ['weight' => 30, 'max_score' => 30]
                 ];
                 
             case self::CATEGORY_INVENTOR:
+                // Inventor: All grades, any technology
                 return [
-                    'innovation' => ['weight' => 30, 'max_score' => 100],
-                    'feasibility' => ['weight' => 25, 'max_score' => 100],
-                    'impact' => ['weight' => 25, 'max_score' => 100],
-                    'presentation' => ['weight' => 20, 'max_score' => 100]
+                    'problem_identification' => ['weight' => 20, 'max_score' => 20],
+                    'solution_development' => ['weight' => 20, 'max_score' => 20],
+                    'innovation_creativity' => ['weight' => 25, 'max_score' => 25],
+                    'feasibility_impact' => ['weight' => 20, 'max_score' => 20],
+                    'presentation' => ['weight' => 15, 'max_score' => 15]
                 ];
                 
             default:
@@ -349,15 +366,15 @@ class Category extends BaseModel
     }
     
     /**
-     * Get available equipment types
+     * Get available equipment types for 2025 Competition
      */
     public static function getAvailableEquipmentTypes()
     {
         return [
             self::EQUIPMENT_CUBROID => 'Cubroid Robotics Kits',
             self::EQUIPMENT_LEGO_SPIKE => 'LEGO Spike Prime',
-            self::EQUIPMENT_ARDUINO => 'Arduino Microcontrollers',
-            self::EQUIPMENT_MIXED => 'Mixed Technologies'
+            self::EQUIPMENT_ARDUINO => 'Arduino/Open Hardware (SCIBOT, PRIMO, etc.)',
+            self::EQUIPMENT_MIXED => 'Any Technology (Open Innovation)'
         ];
     }
     

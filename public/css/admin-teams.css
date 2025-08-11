@@ -1,0 +1,414 @@
+/* ==========================================================================
+   Admin Teams Management Styles
+   ========================================================================== */
+
+/* Teams page specific styles */
+.participant-count {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.participant-count i {
+    color: var(--primary-color);
+    font-size: var(--font-size-sm);
+}
+
+/* Empty state styling */
+.empty-state {
+    text-align: center;
+    padding: var(--space-16) var(--space-6);
+}
+
+.empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.empty-state-icon {
+    font-size: var(--font-size-6xl);
+    color: var(--gray-400);
+    margin-bottom: var(--space-4);
+}
+
+.empty-state-title {
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.empty-state-text {
+    font-size: var(--font-size-base);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+/* Team code styling */
+.team-code {
+    background: var(--bg-secondary);
+    color: var(--primary-color);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-sm);
+    font-family: var(--font-family-mono);
+    font-weight: var(--font-weight-medium);
+    border: 1px solid var(--gray-200);
+}
+
+/* Team information display */
+.team-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.team-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+}
+
+.robot-name {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.school-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.school-name {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+}
+
+.school-district {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+}
+
+/* Coach information */
+.coach-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.coach-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.coach-item i {
+    color: var(--primary-color);
+    width: 14px;
+    text-align: center;
+}
+
+/* Participant count with slots indicator */
+.participant-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.slots-indicator {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+.slot-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--gray-300);
+}
+
+.slot-dot.filled {
+    background: var(--primary-color);
+}
+
+.slot-dot.available {
+    background: var(--success-color);
+}
+
+/* Enhanced status badges */
+.status-badge.registered {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+}
+
+.status-badge.approved {
+    background: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+}
+
+.status-badge.competing {
+    background: rgba(249, 115, 22, 0.1);
+    color: #c2410c;
+}
+
+.status-badge.eliminated {
+    background: rgba(107, 114, 128, 0.1);
+    color: #4b5563;
+}
+
+.status-badge.completed {
+    background: rgba(139, 69, 19, 0.1);
+    color: #92400e;
+}
+
+/* Category badges with specific colors */
+.category-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-badge.junior {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+}
+
+.category-badge.explorer {
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+}
+
+.category-badge.arduino {
+    background: rgba(245, 101, 101, 0.1);
+    color: #dc2626;
+}
+
+.category-badge.inventor {
+    background: rgba(139, 92, 246, 0.1);
+    color: #7c3aed;
+}
+
+/* Table enhancements */
+.data-table td small {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.data-table .status-badge {
+    white-space: nowrap;
+}
+
+/* Action button improvements */
+.table-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: var(--radius-base);
+    cursor: pointer;
+    transition: var(--transition-all);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+    position: relative;
+}
+
+.action-btn.view-btn {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+}
+
+.action-btn.view-btn:hover {
+    background: #1d4ed8;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.action-btn.edit-btn {
+    background: rgba(16, 185, 129, 0.1);
+    color: #047857;
+}
+
+.action-btn.edit-btn:hover {
+    background: #047857;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.action-btn.delete-btn {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+}
+
+.action-btn.delete-btn:hover {
+    background: #dc2626;
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Enhanced hover effects for rows */
+.data-table tbody tr {
+    transition: var(--transition-all);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--gray-50);
+    transform: translateX(2px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Improved filter section */
+.admin-filters .form-group label {
+    font-weight: var(--font-weight-medium);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+}
+
+/* Statistics cards improvements */
+.stat-card .stat-card-icon .text-success {
+    color: var(--success-color) !important;
+}
+
+.stat-card .stat-card-icon .text-warning {
+    color: var(--warning-color) !important;
+}
+
+.stat-card .stat-card-icon .text-info {
+    color: var(--info-color) !important;
+}
+
+.stat-card .stat-card-icon .text-primary {
+    color: var(--primary-color) !important;
+}
+
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .admin-form-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-4);
+    }
+    
+    .table-actions {
+        justify-content: center;
+    }
+    
+    .data-table {
+        font-size: var(--font-size-xs);
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: var(--space-2);
+    }
+    
+    .empty-state {
+        padding: var(--space-8) var(--space-4);
+    }
+    
+    .empty-state-icon {
+        font-size: var(--font-size-4xl);
+    }
+    
+    .team-info,
+    .school-info,
+    .coach-list {
+        gap: var(--space-1);
+    }
+    
+    .participant-info {
+        gap: var(--space-1);
+    }
+}
+
+@media (max-width: 480px) {
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: var(--font-size-xs);
+    }
+    
+    .category-badge,
+    .status-badge {
+        font-size: var(--font-size-xs);
+        padding: var(--space-1) var(--space-2);
+    }
+    
+    .participant-count {
+        font-size: var(--font-size-sm);
+    }
+}
+
+/* Loading state for dynamic content */
+.loading-row {
+    position: relative;
+    opacity: 0.6;
+}
+
+.loading-row::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: loading-shimmer 1.5s infinite;
+}
+
+@keyframes loading-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Accessibility improvements */
+.action-btn:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.data-table tbody tr:focus-within {
+    background-color: var(--gray-50);
+    box-shadow: var(--shadow-md);
+}
+
+/* Print styles */
+@media print {
+    .admin-filters,
+    .data-table-header .data-table-actions,
+    .table-actions {
+        display: none;
+    }
+    
+    .data-table-container {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+    }
+    
+    .data-table {
+        font-size: 12px;
+    }
+}

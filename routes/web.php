@@ -21,6 +21,24 @@ $router->get('/leaderboard', 'PublicController@leaderboard', 'leaderboard');
 $router->get('/announcements', 'PublicController@announcements', 'announcements');
 $router->get('/resources', 'PublicController@resources', 'resources');
 
+// ============================================================================
+// SCHOOL SELF-REGISTRATION ROUTES (Public access)
+// ============================================================================
+
+$router->group(['prefix' => '/register/school'], function($router) {
+    // School registration wizard
+    $router->get('/', 'Registration\\SchoolRegistrationController@index', 'school.register');
+    $router->get('/step/{step}', 'Registration\\SchoolRegistrationController@showStep', 'school.register.step');
+    $router->post('/step/{step}', 'Registration\\SchoolRegistrationController@processStep', 'school.register.step.process');
+    
+    // Registration management
+    $router->get('/resume', 'Registration\\SchoolRegistrationController@resume', 'school.register.resume');
+    
+    // Status checking
+    $router->get('/status', 'Registration\\SchoolRegistrationController@showStatusForm', 'school.register.status');
+    $router->post('/status', 'Registration\\SchoolRegistrationController@checkStatus', 'school.register.status.check');
+});
+
 // School management redirect route
 $router->get('/schools/manage', function() {
     $baseUrl = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/');
@@ -524,6 +542,12 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->post('/registrations', 'RegistrationController@store', 'coordinator.registrations.store');
         $router->get('/submissions', 'SubmissionController@index', 'coordinator.submissions');
         $router->post('/submissions', 'SubmissionController@store', 'coordinator.submissions.store');
+        
+        // Bulk student import
+        $router->get('/bulk-import', '\\App\\Controllers\\Registration\\BulkImportController@index', 'coordinator.bulk-import');
+        $router->get('/bulk-import/template/{categoryId?}', '\\App\\Controllers\\Registration\\BulkImportController@downloadTemplate', 'coordinator.bulk-import.template');
+        $router->post('/bulk-import', '\\App\\Controllers\\Registration\\BulkImportController@processImport', 'coordinator.bulk-import.process');
+        $router->get('/bulk-import/results', '\\App\\Controllers\\Registration\\BulkImportController@showResults', 'coordinator.bulk-import.results');
         
         // File uploads
         $router->post('/upload/consent-form', '\\App\\Controllers\\FileUploadController@uploadConsentForm', 'coordinator.upload.consent');
