@@ -3,189 +3,179 @@ $layout = 'layouts/admin';
 ob_start(); 
 ?>
 
-<!-- School Details View -->
-<div class="school-details-container">
+<div class="admin-content">
     <!-- Breadcrumbs -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <?php if (isset($breadcrumbs) && is_array($breadcrumbs)): ?>
-                <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
-                    <?php if ($index === count($breadcrumbs) - 1): ?>
-                        <li class="breadcrumb-item active" aria-current="page"><?= htmlspecialchars($breadcrumb['title']) ?></li>
-                    <?php else: ?>
-                        <li class="breadcrumb-item">
-                            <a href="<?= htmlspecialchars($breadcrumb['url']) ?>"><?= htmlspecialchars($breadcrumb['title']) ?></a>
-                        </li>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            <?php endif; ?>
+    <?php if (isset($breadcrumbs) && is_array($breadcrumbs)): ?>
+    <nav class="admin-breadcrumbs" aria-label="breadcrumb">
+        <ol class="breadcrumb-list">
+            <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
+                <?php if ($index === count($breadcrumbs) - 1): ?>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <?= htmlspecialchars($breadcrumb['title']) ?>
+                    </li>
+                <?php else: ?>
+                    <li class="breadcrumb-item">
+                        <a href="<?= $baseUrl . htmlspecialchars($breadcrumb['url']) ?>" class="breadcrumb-link">
+                            <?= htmlspecialchars($breadcrumb['title']) ?>
+                        </a>
+                    </li>
+                <?php endif; ?>
+            <?php endforeach; ?>
         </ol>
     </nav>
+    <?php endif; ?>
 
     <!-- Page Header -->
-    <div class="page-header">
-        <div class="row align-items-center">
-            <div class="col">
-                <h1 class="page-title">
-                    <i class="fas fa-school"></i>
-                    <?= htmlspecialchars($school['name']) ?>
-                    <span class="badge badge-<?= ($school['status'] == 'active') ? 'success' : (($school['status'] == 'pending') ? 'warning' : 'secondary') ?> ml-2">
-                        <?= htmlspecialchars(ucfirst($school['status'])) ?>
-                    </span>
-                </h1>
-                <p class="page-subtitle">
-                    <?= htmlspecialchars(ucfirst($school['school_type'])) ?> • 
-                    <?= htmlspecialchars($school['district']) ?> • 
-                    <?= htmlspecialchars($school['province']) ?>
-                </p>
-            </div>
-            <div class="col-auto">
-                <div class="btn-group">
-                    <a href="/admin/schools/<?= $school['id'] ?>/edit" class="btn btn-primary">
-                        <i class="fas fa-edit"></i> Edit School
+    <div class="school-details-header">
+        <div class="school-title-section">
+            <h1>
+                <i class="fas fa-school"></i>
+                <?= htmlspecialchars($school['name']) ?>
+                <span class="school-status-badge <?= $school['status'] ?? 'inactive' ?>">
+                    <?= htmlspecialchars(ucfirst($school['status'] ?? 'inactive')) ?>
+                </span>
+            </h1>
+            <p class="school-subtitle">
+                <?= htmlspecialchars(ucfirst($school['school_type'])) ?> • 
+                <?= htmlspecialchars($school['district'] ?? 'Unknown District') ?> • 
+                <?= htmlspecialchars($school['province'] ?? '') ?>
+            </p>
+        </div>
+        <div class="school-actions">
+            <a href="<?= $baseUrl ?>/admin/schools/<?= $school['id'] ?>/edit" class="btn btn-primary">
+                <i class="fas fa-edit"></i> Edit School
+            </a>
+            <div class="dropdown">
+                <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+                    <i class="fas fa-ellipsis-h"></i> More Actions
+                </button>
+                <div class="dropdown-menu dropdown-menu-right">
+                    <a class="dropdown-item" href="<?= $baseUrl ?>/admin/schools/<?= $school['id'] ?>/teams">
+                        <i class="fas fa-users"></i> Manage Teams
                     </a>
-                    <button type="button" class="btn btn-secondary dropdown-toggle dropdown-toggle-split" data-toggle="dropdown">
-                        <span class="sr-only">Toggle Dropdown</span>
-                    </button>
-                    <div class="dropdown-menu dropdown-menu-right">
-                        <a class="dropdown-item" href="/admin/schools/<?= $school['id'] ?>/teams">
-                            <i class="fas fa-users"></i> Manage Teams
-                        </a>
-                        <a class="dropdown-item" href="/admin/schools/<?= $school['id'] ?>/contacts">
-                            <i class="fas fa-address-book"></i> Manage Contacts
-                        </a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#" onclick="exportSchoolData(<?= $school['id'] ?>)">
-                            <i class="fas fa-download"></i> Export Data
-                        </a>
-                        <a class="dropdown-item" href="#" onclick="printSchoolProfile(<?= $school['id'] ?>)">
-                            <i class="fas fa-print"></i> Print Profile
-                        </a>
-                        <?php if ($school['status'] === 'pending'): ?>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item text-success" href="#" onclick="approveSchool(<?= $school['id'] ?>)">
-                            <i class="fas fa-check"></i> Approve School
-                        </a>
-                        <a class="dropdown-item text-danger" href="#" onclick="rejectSchool(<?= $school['id'] ?>)">
-                            <i class="fas fa-times"></i> Reject School
-                        </a>
-                        <?php elseif ($school['status'] === 'active'): ?>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item text-warning" href="#" onclick="suspendSchool(<?= $school['id'] ?>)">
-                            <i class="fas fa-pause"></i> Suspend School
-                        </a>
-                        <?php endif; ?>
-                    </div>
+                    <a class="dropdown-item" href="<?= $baseUrl ?>/admin/schools/<?= $school['id'] ?>/contacts">
+                        <i class="fas fa-address-book"></i> Manage Contacts
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" onclick="exportSchoolData(<?= $school['id'] ?>)">
+                        <i class="fas fa-download"></i> Export Data
+                    </a>
+                    <a class="dropdown-item" href="#" onclick="printSchoolProfile(<?= $school['id'] ?>)">
+                        <i class="fas fa-print"></i> Print Profile
+                    </a>
+                    <?php if ($school['status'] === 'pending'): ?>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-success" href="#" onclick="approveSchool(<?= $school['id'] ?>)">
+                        <i class="fas fa-check"></i> Approve School
+                    </a>
+                    <a class="dropdown-item text-danger" href="#" onclick="rejectSchool(<?= $school['id'] ?>)">
+                        <i class="fas fa-times"></i> Reject School
+                    </a>
+                    <?php elseif ($school['status'] === 'active'): ?>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item text-warning" href="#" onclick="suspendSchool(<?= $school['id'] ?>)">
+                        <i class="fas fa-pause"></i> Suspend School
+                    </a>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- School Statistics Cards -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card bg-primary text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title mb-0"><?= $stats['total_teams'] ?></h3>
-                            <p class="card-text">Teams Registered</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-users fa-2x opacity-75"></i>
-                        </div>
-                    </div>
+    <div class="school-stats-grid">
+        <div class="school-stat-card primary">
+            <div class="school-stat-content">
+                <div class="school-stat-info">
+                    <h3><?= $stats['total_teams'] ?? 0 ?></h3>
+                    <p>Teams Registered</p>
+                </div>
+                <div class="school-stat-icon">
+                    <i class="fas fa-users"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-success text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title mb-0"><?= $stats['total_participants'] ?></h3>
-                            <p class="card-text">Total Participants</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-user-graduate fa-2x opacity-75"></i>
-                        </div>
-                    </div>
+        
+        <div class="school-stat-card success">
+            <div class="school-stat-content">
+                <div class="school-stat-info">
+                    <h3><?= $stats['total_participants'] ?? 0 ?></h3>
+                    <p>Total Participants</p>
+                </div>
+                <div class="school-stat-icon">
+                    <i class="fas fa-user-graduate"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-info text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title mb-0"><?= $stats['active_teams'] ?></h3>
-                            <p class="card-text">Active Teams</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-trophy fa-2x opacity-75"></i>
-                        </div>
-                    </div>
+        
+        <div class="school-stat-card info">
+            <div class="school-stat-content">
+                <div class="school-stat-info">
+                    <h3><?= $stats['active_teams'] ?? 0 ?></h3>
+                    <p>Active Teams</p>
+                </div>
+                <div class="school-stat-icon">
+                    <i class="fas fa-trophy"></i>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card bg-warning text-white">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between">
-                        <div>
-                            <h3 class="card-title mb-0"><?= count($stats['document_requirements']) ?></h3>
-                            <p class="card-text">Missing Documents</p>
-                        </div>
-                        <div class="align-self-center">
-                            <i class="fas fa-exclamation-triangle fa-2x opacity-75"></i>
-                        </div>
-                    </div>
+        
+        <div class="school-stat-card warning">
+            <div class="school-stat-content">
+                <div class="school-stat-info">
+                    <h3><?= count($stats['document_requirements'] ?? []) ?></h3>
+                    <p>Missing Documents</p>
+                </div>
+                <div class="school-stat-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Tabbed Content -->
-    <div class="card">
-        <div class="card-header">
-            <ul class="nav nav-tabs card-header-tabs" role="tablist">
-                <li class="nav-item">
-                    <a class="nav-link active" id="basic-tab" data-toggle="tab" href="#basic" role="tab">
+    <div class="school-tabs-container">
+        <div class="school-tabs-header">
+            <ul class="school-nav-tabs" role="tablist">
+                <li class="school-nav-item">
+                    <a class="school-nav-link active" id="basic-tab" data-tab="basic" href="#basic" role="tab">
                         <i class="fas fa-info-circle"></i> Basic Information
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="contacts-tab" data-toggle="tab" href="#contacts" role="tab">
+                <li class="school-nav-item">
+                    <a class="school-nav-link" id="contacts-tab" data-tab="contacts" href="#contacts" role="tab">
                         <i class="fas fa-address-book"></i> Contacts
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="teams-tab" data-toggle="tab" href="#teams" role="tab">
-                        <i class="fas fa-users"></i> Teams (<?= count($teams) ?>)
+                <li class="school-nav-item">
+                    <a class="school-nav-link" id="teams-tab" data-tab="teams" href="#teams" role="tab">
+                        <i class="fas fa-users"></i> Teams (<?= count($teams ?? []) ?>)
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="facilities-tab" data-toggle="tab" href="#facilities" role="tab">
+                <li class="school-nav-item">
+                    <a class="school-nav-link" id="facilities-tab" data-tab="facilities" href="#facilities" role="tab">
                         <i class="fas fa-building"></i> Facilities
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" id="history-tab" data-toggle="tab" href="#history" role="tab">
+                <li class="school-nav-item">
+                    <a class="school-nav-link" id="history-tab" data-tab="history" href="#history" role="tab">
                         <i class="fas fa-history"></i> History
                     </a>
                 </li>
             </ul>
         </div>
-        <div class="card-body">
-            <div class="tab-content">
-                <!-- Basic Information Tab -->
-                <div class="tab-pane fade show active" id="basic" role="tabpanel">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h5><i class="fas fa-school text-primary"></i> School Details</h5>
-                            <table class="table table-borderless">
+        <div class="school-tabs-content">
+            <!-- Basic Information Tab -->
+            <div class="school-tab-content active" id="basic" role="tabpanel">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: var(--space-6);">
+                        <div>
+                            <div class="school-section-heading">
+                                <i class="fas fa-school"></i>
+                                <h5>School Details</h5>
+                            </div>
+                            <table class="school-info-table">
                                 <tr>
-                                    <th width="40%">School Name:</th>
+                                    <th>School Name:</th>
                                     <td><?= htmlspecialchars($school['name']) ?></td>
                                 </tr>
                                 <tr>
@@ -206,7 +196,7 @@ ob_start();
                                 </tr>
                                 <tr>
                                     <th>Total Learners:</th>
-                                    <td><?= number_format($school['total_learners']) ?></td>
+                                    <td><?= number_format($school['total_learners'] ?? 0) ?></td>
                                 </tr>
                                 <tr>
                                     <th>Established:</th>
@@ -224,24 +214,27 @@ ob_start();
                                 <?php endif; ?>
                             </table>
                         </div>
-                        <div class="col-md-6">
-                            <h5><i class="fas fa-map-marker-alt text-success"></i> Location & Contact</h5>
-                            <table class="table table-borderless">
+                        <div>
+                            <div class="school-section-heading">
+                                <i class="fas fa-map-marker-alt"></i>
+                                <h5>Location & Contact</h5>
+                            </div>
+                            <table class="school-info-table">
                                 <tr>
-                                    <th width="40%">Address:</th>
-                                    <td><?= htmlspecialchars(trim($school['address_line1'] . ' ' . $school['address_line2'] . ', ' . $school['city'] . ' ' . $school['postal_code'])) ?></td>
+                                    <th>Address:</th>
+                                    <td><?= htmlspecialchars(trim(($school['address_line1'] ?? '') . ' ' . ($school['address_line2'] ?? '') . ', ' . ($school['city'] ?? '') . ' ' . ($school['postal_code'] ?? ''))) ?></td>
                                 </tr>
                                 <tr>
                                     <th>District:</th>
-                                    <td><?= htmlspecialchars($school['district']) ?></td>
+                                    <td><?= htmlspecialchars($school['district'] ?? 'Unknown') ?></td>
                                 </tr>
                                 <tr>
                                     <th>Province:</th>
-                                    <td><?= htmlspecialchars($school['province']) ?></td>
+                                    <td><?= htmlspecialchars($school['province'] ?? 'Unknown') ?></td>
                                 </tr>
                                 <tr>
                                     <th>Phone:</th>
-                                    <td><?= htmlspecialchars($school['phone']) ?></td>
+                                    <td><?= htmlspecialchars($school['phone'] ?? 'Not provided') ?></td>
                                 </tr>
                                 <?php if ($school['fax']): ?>
                                 <tr>
@@ -261,16 +254,16 @@ ob_start();
                                 <?php endif; ?>
                                 <tr>
                                     <th>Communication Preference:</th>
-                                    <td><?= htmlspecialchars($school['communication_preference_label'] ?? 'Email') ?></td>
+                                    <td><?= htmlspecialchars($school['communication_preference'] ?? 'Email') ?></td>
                                 </tr>
                             </table>
                         </div>
                     </div>
 
                     <?php if ($school['notes']): ?>
-                    <div class="mt-4">
-                        <h5><i class="fas fa-sticky-note text-warning"></i> Administrative Notes</h5>
-                        <div class="alert alert-info">
+                    <div class="school-admin-notes">
+                        <h5><i class="fas fa-sticky-note"></i> Administrative Notes</h5>
+                        <div class="school-admin-notes-content">
                             <?= nl2br(htmlspecialchars($school['notes'])) ?>
                         </div>
                     </div>
@@ -278,71 +271,81 @@ ob_start();
                 </div>
 
                 <!-- Contacts Tab -->
-                <div class="tab-pane fade" id="contacts" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5><i class="fas fa-users text-primary"></i> School Contacts</h5>
-                        <a href="/admin/contacts/create?school_id=<?= $school['id'] ?>" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus"></i> Add Contact
+                <div class="school-tab-content" id="contacts" role="tabpanel">
+                    <div class="contacts-header">
+                        <h3 class="contacts-title">
+                            <i class="fas fa-users" aria-hidden="true"></i>
+                            School Contacts
+                        </h3>
+                        <a href="<?= $baseUrl ?>/admin/contacts/create?school_id=<?= $school['id'] ?>" class="btn btn-primary">
+                            <i class="fas fa-plus" aria-hidden="true"></i>
+                            Add Contact
                         </a>
                     </div>
 
                     <?php if (empty($contacts)): ?>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No contacts have been added for this school yet.
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-users" aria-hidden="true"></i>
+                            </div>
+                            <h4 class="empty-state-title">No Contacts Added</h4>
+                            <p class="empty-state-description">No contacts have been added for this school yet.</p>
                         </div>
                     <?php else: ?>
-                        <div class="row">
+                        <div class="contacts-grid">
                             <?php foreach ($contacts as $contact): ?>
-                            <div class="col-md-6 mb-3">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <div class="d-flex justify-content-between align-items-start">
-                                            <div>
-                                                <h6 class="card-title mb-1">
-                                                    <?= htmlspecialchars($contact->getFullName()) ?>
-                                                    <?php if ($contact->isPrimary()): ?>
-                                                        <span class="badge badge-primary badge-sm ml-1">Primary</span>
-                                                    <?php endif; ?>
-                                                    <?php if ($contact->isEmergency()): ?>
-                                                        <span class="badge badge-danger badge-sm ml-1">Emergency</span>
-                                                    <?php endif; ?>
-                                                </h6>
-                                                <p class="card-text text-muted mb-2"><?= htmlspecialchars($contact['position']) ?></p>
-                                                <p class="card-text small mb-1">
-                                                    <i class="fas fa-envelope text-muted mr-1"></i>
-                                                    <a href="mailto:<?= htmlspecialchars($contact['email']) ?>"><?= htmlspecialchars($contact['email']) ?></a>
-                                                </p>
-                                                <?php if ($contact['phone']): ?>
-                                                <p class="card-text small mb-1">
-                                                    <i class="fas fa-phone text-muted mr-1"></i>
-                                                    <a href="tel:<?= htmlspecialchars($contact['phone']) ?>"><?= htmlspecialchars($contact['phone']) ?></a>
-                                                </p>
-                                                <?php endif; ?>
-                                                <?php if ($contact['mobile']): ?>
-                                                <p class="card-text small mb-0">
-                                                    <i class="fas fa-mobile-alt text-muted mr-1"></i>
-                                                    <a href="tel:<?= htmlspecialchars($contact['mobile']) ?>"><?= htmlspecialchars($contact['mobile']) ?></a>
-                                                </p>
-                                                <?php endif; ?>
-                                            </div>
-                                            <div class="dropdown">
-                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown">
-                                                    <i class="fas fa-ellipsis-v"></i>
-                                                </button>
-                                                <div class="dropdown-menu dropdown-menu-right">
-                                                    <a class="dropdown-item" href="/admin/contacts/<?= $contact['id'] ?>/edit">
-                                                        <i class="fas fa-edit"></i> Edit
-                                                    </a>
-                                                    <a class="dropdown-item" href="#" onclick="sendEmail('<?= htmlspecialchars($contact['email']) ?>')">
-                                                        <i class="fas fa-envelope"></i> Send Email
-                                                    </a>
-                                                    <div class="dropdown-divider"></div>
-                                                    <a class="dropdown-item text-danger" href="#" onclick="deleteContact(<?= $contact['id'] ?>)">
-                                                        <i class="fas fa-trash"></i> Delete
-                                                    </a>
-                                                </div>
+                            <div class="contact-card">
+                                <div class="contact-card-header">
+                                    <div class="contact-name-badges">
+                                        <h4 class="contact-name"><?= htmlspecialchars($contact->getFullName()) ?></h4>
+                                        <div class="contact-badges">
+                                            <?php if ($contact->isPrimary()): ?>
+                                                <span class="badge badge-primary">Primary</span>
+                                            <?php endif; ?>
+                                            <?php if ($contact->isEmergency()): ?>
+                                                <span class="badge badge-danger">Emergency</span>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                    <div class="contact-actions">
+                                        <div class="dropdown">
+                                            <button class="btn btn-ghost btn-sm dropdown-toggle" type="button" data-toggle="dropdown">
+                                                <i class="fas fa-ellipsis-v" aria-hidden="true"></i>
+                                            </button>
+                                            <div class="dropdown-menu dropdown-menu-right">
+                                                <a class="dropdown-item" href="<?= $baseUrl ?>/admin/contacts/<?= $contact['id'] ?>/edit">
+                                                    <i class="fas fa-edit" aria-hidden="true"></i> Edit
+                                                </a>
+                                                <a class="dropdown-item" href="#" onclick="sendEmail('<?= htmlspecialchars($contact['email']) ?>')">
+                                                    <i class="fas fa-envelope" aria-hidden="true"></i> Send Email
+                                                </a>
+                                                <div class="dropdown-divider"></div>
+                                                <a class="dropdown-item text-danger" href="#" onclick="deleteContact(<?= $contact['id'] ?>)">
+                                                    <i class="fas fa-trash" aria-hidden="true"></i> Delete
+                                                </a>
                                             </div>
                                         </div>
+                                    </div>
+                                </div>
+                                <div class="contact-details">
+                                    <p class="contact-position"><?= htmlspecialchars($contact['position']) ?></p>
+                                    <div class="contact-info">
+                                        <div class="contact-info-item">
+                                            <i class="fas fa-envelope" aria-hidden="true"></i>
+                                            <a href="mailto:<?= htmlspecialchars($contact['email']) ?>"><?= htmlspecialchars($contact['email']) ?></a>
+                                        </div>
+                                        <?php if ($contact['phone']): ?>
+                                        <div class="contact-info-item">
+                                            <i class="fas fa-phone" aria-hidden="true"></i>
+                                            <a href="tel:<?= htmlspecialchars($contact['phone']) ?>"><?= htmlspecialchars($contact['phone']) ?></a>
+                                        </div>
+                                        <?php endif; ?>
+                                        <?php if ($contact['mobile']): ?>
+                                        <div class="contact-info-item">
+                                            <i class="fas fa-mobile-alt" aria-hidden="true"></i>
+                                            <a href="tel:<?= htmlspecialchars($contact['mobile']) ?>"><?= htmlspecialchars($contact['mobile']) ?></a>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                 </div>
                             </div>
@@ -352,145 +355,173 @@ ob_start();
                 </div>
 
                 <!-- Teams Tab -->
-                <div class="tab-pane fade" id="teams" role="tabpanel">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5><i class="fas fa-users text-success"></i> School Teams</h5>
+                <div class="school-tab-content" id="teams" role="tabpanel">
+                    <div class="teams-header">
+                        <h3 class="teams-title">
+                            <i class="fas fa-users" aria-hidden="true"></i>
+                            School Teams
+                        </h3>
                         <?php if ($school['status'] === 'approved' || $school['status'] === 'active'): ?>
-                        <a href="/teams/create?school_id=<?= $school['id'] ?>" class="btn btn-success btn-sm">
-                            <i class="fas fa-plus"></i> Register New Team
+                        <a href="<?= $baseUrl ?>/teams/create?school_id=<?= $school['id'] ?>" class="btn btn-success">
+                            <i class="fas fa-plus" aria-hidden="true"></i>
+                            Register New Team
                         </a>
                         <?php endif; ?>
                     </div>
 
                     <?php if (empty($teams)): ?>
-                        <div class="alert alert-info">
-                            <i class="fas fa-info-circle"></i> No teams have been registered for this school yet.
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-users" aria-hidden="true"></i>
+                            </div>
+                            <h4 class="empty-state-title">No Teams Registered</h4>
+                            <p class="empty-state-description">No teams have been registered for this school yet.</p>
                             <?php if ($school['status'] === 'approved' || $school['status'] === 'active'): ?>
-                                <a href="/teams/create?school_id=<?= $school['id'] ?>" class="alert-link">Register the first team</a>.
+                                <a href="<?= $baseUrl ?>/teams/create?school_id=<?= $school['id'] ?>" class="btn btn-primary">Register First Team</a>
                             <?php endif; ?>
                         </div>
                     <?php else: ?>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Team Name</th>
-                                        <th>Category</th>
-                                        <th>Phase</th>
-                                        <th>Participants</th>
-                                        <th>Coach</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($teams as $team): ?>
-                                    <tr>
-                                        <td>
-                                            <a href="/admin/teams/<?= $team['id'] ?>" class="font-weight-bold text-decoration-none">
-                                                <?= htmlspecialchars($team['name']) ?>
-                                            </a>
-                                        </td>
-                                        <td><?= htmlspecialchars($team['category_name'] ?? 'N/A') ?></td>
-                                        <td><?= htmlspecialchars($team['phase_name'] ?? 'N/A') ?></td>
-                                        <td>
-                                            <span class="badge badge-info"><?= $team['participant_count'] ?? 0 ?></span>
-                                        </td>
-                                        <td><?= htmlspecialchars($team['coach_name'] ?? 'Not assigned') ?></td>
-                                        <td>
-                                            <span class="badge badge-<?= $team['status'] === 'active' ? 'success' : 'secondary' ?>">
-                                                <?= ucfirst($team['status']) ?>
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <a href="/admin/teams/<?= $team['id'] ?>" class="btn btn-outline-primary btn-sm">
-                                                    <i class="fas fa-eye"></i>
+                        <div class="teams-table-container">
+                            <div class="admin-table-wrapper">
+                                <table class="admin-table">
+                                    <thead class="admin-table-header">
+                                        <tr>
+                                            <th class="admin-table-th">Team Name</th>
+                                            <th class="admin-table-th">Category</th>
+                                            <th class="admin-table-th">Phase</th>
+                                            <th class="admin-table-th">Participants</th>
+                                            <th class="admin-table-th">Coach</th>
+                                            <th class="admin-table-th">Status</th>
+                                            <th class="admin-table-th">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="admin-table-body">
+                                        <?php foreach ($teams as $team): ?>
+                                        <tr class="admin-table-row">
+                                            <td class="admin-table-td">
+                                                <a href="<?= $baseUrl ?>/admin/teams/<?= $team['id'] ?>" class="table-link-primary">
+                                                    <?= htmlspecialchars($team['name']) ?>
                                                 </a>
-                                                <a href="/admin/teams/<?= $team['id'] ?>/edit" class="btn btn-outline-secondary btn-sm">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                                            </td>
+                                            <td class="admin-table-td"><?= htmlspecialchars($team['category_name'] ?? 'N/A') ?></td>
+                                            <td class="admin-table-td"><?= htmlspecialchars($team['phase_name'] ?? 'N/A') ?></td>
+                                            <td class="admin-table-td">
+                                                <span class="badge badge-info"><?= $team['participant_count'] ?? 0 ?></span>
+                                            </td>
+                                            <td class="admin-table-td"><?= htmlspecialchars($team['coach_name'] ?? 'Not assigned') ?></td>
+                                            <td class="admin-table-td">
+                                                <span class="badge badge-<?= $team['status'] === 'active' ? 'success' : 'secondary' ?>">
+                                                    <?= ucfirst($team['status']) ?>
+                                                </span>
+                                            </td>
+                                            <td class="admin-table-td">
+                                                <div class="table-actions">
+                                                    <a href="<?= $baseUrl ?>/admin/teams/<?= $team['id'] ?>" class="btn btn-sm btn-ghost" title="View Team">
+                                                        <i class="fas fa-eye" aria-hidden="true"></i>
+                                                    </a>
+                                                    <a href="<?= $baseUrl ?>/admin/teams/<?= $team['id'] ?>/edit" class="btn btn-sm btn-ghost" title="Edit Team">
+                                                        <i class="fas fa-edit" aria-hidden="true"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     <?php endif; ?>
                 </div>
 
                 <!-- Facilities Tab -->
-                <div class="tab-pane fade" id="facilities" role="tabpanel">
-                    <h5><i class="fas fa-building text-info"></i> School Facilities</h5>
+                <div class="school-tab-content" id="facilities" role="tabpanel">
+                    <h3 class="facilities-title">
+                        <i class="fas fa-building" aria-hidden="true"></i>
+                        School Facilities
+                    </h3>
                     
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-building"></i> General Facilities</h6>
+                    <div class="facilities-grid">
+                        <div class="facility-section">
+                            <div class="facility-card">
+                                <div class="facility-card-header">
+                                    <h4 class="facility-card-title">
+                                        <i class="fas fa-building" aria-hidden="true"></i>
+                                        General Facilities
+                                    </h4>
                                 </div>
-                                <div class="card-body">
+                                <div class="facility-card-body">
                                     <?php if ($school['facilities']): ?>
-                                        <p><?= nl2br(htmlspecialchars($school['facilities'])) ?></p>
+                                        <div class="facility-content"><?= nl2br(htmlspecialchars($school['facilities'])) ?></div>
                                     <?php else: ?>
-                                        <p class="text-muted">No facility information provided.</p>
+                                        <div class="facility-empty">No facility information provided.</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-laptop"></i> Computer Laboratory</h6>
+                            <div class="facility-card">
+                                <div class="facility-card-header">
+                                    <h4 class="facility-card-title">
+                                        <i class="fas fa-laptop" aria-hidden="true"></i>
+                                        Computer Laboratory
+                                    </h4>
                                 </div>
-                                <div class="card-body">
+                                <div class="facility-card-body">
                                     <?php if ($school['computer_lab']): ?>
-                                        <p><?= nl2br(htmlspecialchars($school['computer_lab'])) ?></p>
+                                        <div class="facility-content"><?= nl2br(htmlspecialchars($school['computer_lab'])) ?></div>
                                     <?php else: ?>
-                                        <p class="text-muted">No computer lab information provided.</p>
+                                        <div class="facility-empty">No computer lab information provided.</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-md-6">
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-wifi"></i> Internet Connectivity</h6>
+                        <div class="facility-section">
+                            <div class="facility-card">
+                                <div class="facility-card-header">
+                                    <h4 class="facility-card-title">
+                                        <i class="fas fa-wifi" aria-hidden="true"></i>
+                                        Internet Connectivity
+                                    </h4>
                                 </div>
-                                <div class="card-body">
+                                <div class="facility-card-body">
                                     <?php if ($school['internet_status']): ?>
-                                        <span class="badge badge-<?= $school['internet_status'] === 'high_speed_fiber' ? 'success' : ($school['internet_status'] === 'none' ? 'danger' : 'warning') ?> badge-lg">
+                                        <span class="connectivity-badge connectivity-<?= $school['internet_status'] === 'high_speed_fiber' ? 'excellent' : ($school['internet_status'] === 'none' ? 'none' : 'limited') ?>">
                                             <?= ucwords(str_replace('_', ' ', $school['internet_status'])) ?>
                                         </span>
                                     <?php else: ?>
-                                        <p class="text-muted">Internet status not specified.</p>
+                                        <div class="facility-empty">Internet status not specified.</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-wheelchair"></i> Accessibility Features</h6>
+                            <div class="facility-card">
+                                <div class="facility-card-header">
+                                    <h4 class="facility-card-title">
+                                        <i class="fas fa-wheelchair" aria-hidden="true"></i>
+                                        Accessibility Features
+                                    </h4>
                                 </div>
-                                <div class="card-body">
+                                <div class="facility-card-body">
                                     <?php if ($school['accessibility_features']): ?>
-                                        <p><?= nl2br(htmlspecialchars($school['accessibility_features'])) ?></p>
+                                        <div class="facility-content"><?= nl2br(htmlspecialchars($school['accessibility_features'])) ?></div>
                                     <?php else: ?>
-                                        <p class="text-muted">No accessibility information provided.</p>
+                                        <div class="facility-empty">No accessibility information provided.</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
 
-                            <div class="card mb-3">
-                                <div class="card-header">
-                                    <h6 class="mb-0"><i class="fas fa-trophy"></i> Previous Participation</h6>
+                            <div class="facility-card">
+                                <div class="facility-card-header">
+                                    <h4 class="facility-card-title">
+                                        <i class="fas fa-trophy" aria-hidden="true"></i>
+                                        Previous Participation
+                                    </h4>
                                 </div>
-                                <div class="card-body">
+                                <div class="facility-card-body">
                                     <?php if ($school['previous_participation']): ?>
-                                        <p><?= nl2br(htmlspecialchars($school['previous_participation'])) ?></p>
+                                        <div class="facility-content"><?= nl2br(htmlspecialchars($school['previous_participation'])) ?></div>
                                     <?php else: ?>
-                                        <p class="text-muted">No previous participation history provided.</p>
+                                        <div class="facility-empty">No previous participation history provided.</div>
                                     <?php endif; ?>
                                 </div>
                             </div>
@@ -499,72 +530,99 @@ ob_start();
                 </div>
 
                 <!-- History Tab -->
-                <div class="tab-pane fade" id="history" role="tabpanel">
-                    <h5><i class="fas fa-history text-secondary"></i> School History</h5>
+                <div class="school-tab-content" id="history" role="tabpanel">
+                    <h3 class="history-title">
+                        <i class="fas fa-history" aria-hidden="true"></i>
+                        School History
+                    </h3>
                     
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-success"></div>
-                            <div class="timeline-content">
-                                <h6 class="timeline-title">School Registered</h6>
-                                <p class="timeline-text">School was registered in the SciBOTICS system.</p>
-                                <small class="timeline-date"><?= date('j F Y', strtotime($school['registration_date'])) ?></small>
+                    <div class="school-timeline">
+                        <div class="school-timeline-item">
+                            <div class="school-timeline-marker school-timeline-marker-success"></div>
+                            <div class="school-timeline-content">
+                                <h4 class="school-timeline-title">School Registered</h4>
+                                <p class="school-timeline-text">School was registered in the SciBOTICS system.</p>
+                                <time class="school-timeline-date"><?= date('j F Y', strtotime($school['registration_date'])) ?></time>
                             </div>
                         </div>
 
                         <?php if ($school['approval_date']): ?>
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-primary"></div>
-                            <div class="timeline-content">
-                                <h6 class="timeline-title">School Approved</h6>
-                                <p class="timeline-text">School registration was approved by administrators.</p>
-                                <small class="timeline-date"><?= date('j F Y', strtotime($school['approval_date'])) ?></small>
+                        <div class="school-timeline-item">
+                            <div class="school-timeline-marker school-timeline-marker-primary"></div>
+                            <div class="school-timeline-content">
+                                <h4 class="school-timeline-title">School Approved</h4>
+                                <p class="school-timeline-text">School registration was approved by administrators.</p>
+                                <time class="school-timeline-date"><?= date('j F Y', strtotime($school['approval_date'])) ?></time>
                             </div>
                         </div>
                         <?php endif; ?>
 
                         <?php if (!empty($teams)): ?>
                             <?php foreach (array_slice($teams, 0, 5) as $team): ?>
-                            <div class="timeline-item">
-                                <div class="timeline-marker bg-info"></div>
-                                <div class="timeline-content">
-                                    <h6 class="timeline-title">Team Registered</h6>
-                                    <p class="timeline-text">
+                            <div class="school-timeline-item">
+                                <div class="school-timeline-marker school-timeline-marker-info"></div>
+                                <div class="school-timeline-content">
+                                    <h4 class="school-timeline-title">Team Registered</h4>
+                                    <p class="school-timeline-text">
                                         Team "<?= htmlspecialchars($team['name']) ?>" was registered for <?= htmlspecialchars($team['category_name'] ?? 'Unknown Category') ?>.
                                     </p>
-                                    <small class="timeline-date"><?= date('j F Y', strtotime($team['created_at'])) ?></small>
+                                    <time class="school-timeline-date"><?= date('j F Y', strtotime($team['created_at'])) ?></time>
                                 </div>
                             </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
 
                         <?php if (count($stats['document_requirements']) > 0): ?>
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-warning"></div>
-                            <div class="timeline-content">
-                                <h6 class="timeline-title">Document Requirements</h6>
-                                <p class="timeline-text">Missing required documents:</p>
-                                <ul class="mb-2">
-                                    <?php foreach ($stats['document_requirements'] as $requirement): ?>
-                                        <li><?= htmlspecialchars($requirement) ?></li>
-                                    <?php endforeach; ?>
-                                </ul>
-                                <small class="timeline-date">Current</small>
+                        <div class="school-timeline-item">
+                            <div class="school-timeline-marker school-timeline-marker-warning"></div>
+                            <div class="school-timeline-content">
+                                <h4 class="school-timeline-title">Document Requirements</h4>
+                                <div class="school-timeline-text">
+                                    <p>Missing required documents:</p>
+                                    <ul class="timeline-requirements-list">
+                                        <?php foreach ($stats['document_requirements'] as $requirement): ?>
+                                            <li><?= htmlspecialchars($requirement) ?></li>
+                                        <?php endforeach; ?>
+                                    </ul>
+                                </div>
+                                <time class="school-timeline-date">Current</time>
                             </div>
                         </div>
                         <?php endif; ?>
                     </div>
                 </div>
-            </div>
         </div>
     </div>
 </div>
 
 <script>
-// School management functions
+// School management functions with proper base URL
+const baseUrl = '<?= $baseUrl ?>';
+
+// Tab functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const tabLinks = document.querySelectorAll('.school-nav-link');
+    const tabContents = document.querySelectorAll('.school-tab-content');
+    
+    tabLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const targetTab = this.getAttribute('data-tab');
+            
+            // Remove active class from all tabs and contents
+            tabLinks.forEach(l => l.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked tab and corresponding content
+            this.classList.add('active');
+            document.getElementById(targetTab).classList.add('active');
+        });
+    });
+});
+
 function approveSchool(schoolId) {
     if (confirm('Are you sure you want to approve this school?')) {
-        fetch(`/admin/schools/${schoolId}/approve`, {
+        fetch(`${baseUrl}/admin/schools/${schoolId}/approve`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -589,7 +647,7 @@ function approveSchool(schoolId) {
 function rejectSchool(schoolId) {
     const reason = prompt('Please provide a reason for rejection:');
     if (reason) {
-        fetch(`/admin/schools/${schoolId}/reject`, {
+        fetch(`${baseUrl}/admin/schools/${schoolId}/reject`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -615,7 +673,7 @@ function rejectSchool(schoolId) {
 function suspendSchool(schoolId) {
     const reason = prompt('Please provide a reason for suspension:');
     if (reason) {
-        fetch(`/admin/schools/${schoolId}/suspend`, {
+        fetch(`${baseUrl}/admin/schools/${schoolId}/suspend`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -639,7 +697,7 @@ function suspendSchool(schoolId) {
 }
 
 function exportSchoolData(schoolId) {
-    window.open(`/admin/schools/${schoolId}/export`, '_blank');
+    window.open(`${baseUrl}/admin/schools/${schoolId}/export`, '_blank');
 }
 
 function printSchoolProfile(schoolId) {
@@ -652,7 +710,7 @@ function sendEmail(email) {
 
 function deleteContact(contactId) {
     if (confirm('Are you sure you want to delete this contact?')) {
-        fetch(`/admin/contacts/${contactId}`, {
+        fetch(`${baseUrl}/admin/contacts/${contactId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',
@@ -675,61 +733,6 @@ function deleteContact(contactId) {
 }
 </script>
 
-<style>
-.school-details-container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-}
-
-.badge-lg {
-    padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
-}
-
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
-
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 15px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #dee2e6;
-}
-
-.timeline-item {
-    position: relative;
-    margin-bottom: 30px;
-}
-
-.timeline-marker {
-    position: absolute;
-    left: -23px;
-    top: 0;
-    width: 16px;
-    height: 16px;
-    border-radius: 50%;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 3px #dee2e6;
-}
-
-.timeline-content {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 8px;
-    border-left: 3px solid #007bff;
-}
-
-.timeline-title {
-    margin-bottom: 5px;
-    font-weight: 600;
-    color: #495057;
-}
 
 .timeline-text {
     margin-bottom: 5px;

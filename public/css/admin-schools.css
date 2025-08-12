@@ -1,0 +1,897 @@
+/* ==========================================================================
+   Admin Schools Management Styles
+   ========================================================================== */
+
+/* Schools page container */
+.school-management-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-5);
+}
+
+/* Statistics cards grid */
+.schools-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.schools-stat-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    position: relative;
+}
+
+.schools-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.schools-stat-card.primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-600));
+    color: white;
+    border: none;
+}
+
+.schools-stat-card.success {
+    background: linear-gradient(135deg, var(--success-color), var(--success-600));
+    color: white;
+    border: none;
+}
+
+.schools-stat-card.warning {
+    background: linear-gradient(135deg, var(--warning-color), var(--warning-600));
+    color: white;
+    border: none;
+}
+
+.schools-stat-card.info {
+    background: linear-gradient(135deg, var(--info-color), var(--info-600));
+    color: white;
+    border: none;
+}
+
+.schools-stat-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schools-stat-info h3 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+    line-height: 1;
+}
+
+.schools-stat-info p {
+    margin: var(--space-2) 0 0 0;
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+}
+
+.schools-stat-icon {
+    opacity: 0.7;
+    font-size: var(--font-size-4xl);
+}
+
+/* Page header with actions */
+.schools-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.schools-title-section h1 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.schools-title-section h1 i {
+    color: var(--primary-color);
+    font-size: var(--font-size-2xl);
+}
+
+.schools-title-section p {
+    color: var(--text-muted);
+    font-size: var(--font-size-base);
+    margin: 0;
+}
+
+.schools-actions {
+    display: flex;
+    gap: var(--space-2);
+    align-items: center;
+}
+
+/* Enhanced filters section */
+.schools-filters {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.schools-filters .card-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--gray-200);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schools-filters .card-title {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.schools-filters .card-title i {
+    color: var(--primary-color);
+}
+
+.schools-filters .card-body {
+    padding: var(--space-5);
+}
+
+.schools-filter-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    align-items: end;
+    margin-bottom: var(--space-4);
+}
+
+.schools-filter-advanced {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    align-items: end;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--gray-200);
+}
+
+/* Alert for attention items */
+.schools-attention-alert {
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.3);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.schools-attention-alert h5 {
+    color: var(--primary-color);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-3);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.schools-attention-alert ul {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.schools-attention-alert li {
+    margin-bottom: var(--space-1);
+}
+
+/* Bulk actions bar */
+.schools-bulk-actions {
+    background: var(--bg-secondary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-sm);
+}
+
+.schools-bulk-info {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.schools-bulk-controls {
+    display: flex;
+    gap: var(--space-3);
+    align-items: center;
+}
+
+/* Schools table container */
+.schools-table-container {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.schools-table-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--gray-200);
+    padding: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.schools-table-title h5 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.schools-table-title .badge {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.schools-view-toggle {
+    display: flex;
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    overflow: hidden;
+}
+
+.schools-view-btn {
+    padding: var(--space-2) var(--space-3);
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-all);
+    font-size: var(--font-size-sm);
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+}
+
+.schools-view-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.schools-view-btn:not(.active):hover {
+    background: var(--gray-100);
+}
+
+/* Enhanced table styling */
+.schools-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.schools-table th {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.schools-table th a {
+    color: var(--text-primary);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    transition: var(--transition-all);
+}
+
+.schools-table th a:hover {
+    color: var(--primary-color);
+}
+
+.schools-table td {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+    font-size: var(--font-size-sm);
+}
+
+.schools-table tbody tr {
+    transition: var(--transition-all);
+}
+
+.schools-table tbody tr:hover {
+    background-color: var(--gray-50);
+}
+
+/* School information in table */
+.school-info {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.school-logo-thumb {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-base);
+    object-fit: cover;
+    border: 1px solid var(--gray-200);
+}
+
+.school-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.school-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: var(--transition-all);
+}
+
+.school-name:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.school-type {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    text-transform: capitalize;
+}
+
+/* District and contact information */
+.district-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.district-badge {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    cursor: pointer;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    transition: var(--transition-all);
+    display: inline-block;
+    width: fit-content;
+}
+
+.district-badge:hover {
+    background: rgba(59, 130, 246, 0.2);
+    color: #1e40af;
+}
+
+.province-info {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.coordinator-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.coordinator-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.coordinator-email {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-xs);
+    transition: var(--transition-all);
+}
+
+.coordinator-email:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.no-coordinator {
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: var(--font-size-xs);
+}
+
+/* Enhanced badges */
+.schools-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: capitalize;
+}
+
+.schools-status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+    border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.schools-status-badge.pending {
+    background: rgba(249, 115, 22, 0.1);
+    color: #c2410c;
+    border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.schools-status-badge.inactive {
+    background: rgba(107, 114, 128, 0.1);
+    color: #4b5563;
+    border: 1px solid rgba(107, 114, 128, 0.3);
+}
+
+.schools-status-badge.suspended {
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.schools-teams-badge {
+    background: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    display: inline-block;
+}
+
+.schools-participants-count {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+/* Action buttons */
+.schools-actions-group {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+    justify-content: center;
+}
+
+.schools-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-all);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+}
+
+.schools-action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+}
+
+.schools-action-btn.view {
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #1d4ed8;
+}
+
+.schools-action-btn.view:hover {
+    background: #1d4ed8;
+    color: white;
+    border-color: #1d4ed8;
+}
+
+.schools-action-btn.edit {
+    border-color: rgba(107, 114, 128, 0.3);
+    color: #4b5563;
+}
+
+.schools-action-btn.edit:hover {
+    background: #4b5563;
+    color: white;
+    border-color: #4b5563;
+}
+
+.schools-action-btn.more {
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #059669;
+}
+
+.schools-action-btn.more:hover {
+    background: #059669;
+    color: white;
+    border-color: #059669;
+}
+
+/* Cards view styling */
+.schools-cards-container {
+    padding: var(--space-4);
+}
+
+.schools-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--space-4);
+}
+
+.school-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    transition: var(--transition-all);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.school-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.school-card-header {
+    padding: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.school-card-body {
+    padding: 0 var(--space-4) var(--space-4);
+}
+
+.school-card-title {
+    margin: 0 0 var(--space-2) 0;
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.school-card-title a {
+    color: inherit;
+    text-decoration: none;
+    transition: var(--transition-all);
+}
+
+.school-card-title a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.school-card-info {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-3);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.school-card-contact {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--space-1);
+}
+
+.school-card-contact a {
+    color: inherit;
+    text-decoration: none;
+    transition: var(--transition-all);
+}
+
+.school-card-contact a:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.school-card-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--gray-200);
+}
+
+.school-card-stat {
+    text-align: center;
+}
+
+.school-card-stat-label {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.school-card-stat-value {
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    margin-top: var(--space-1);
+}
+
+.school-card-footer {
+    background: var(--bg-secondary);
+    padding: var(--space-3);
+    display: flex;
+    gap: var(--space-2);
+}
+
+.school-card-footer .btn {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-1);
+}
+
+/* Empty state */
+.schools-empty-state {
+    text-align: center;
+    padding: var(--space-16) var(--space-6);
+    color: var(--text-muted);
+}
+
+.schools-empty-icon {
+    font-size: var(--font-size-6xl);
+    color: var(--gray-400);
+    margin-bottom: var(--space-4);
+}
+
+.schools-empty-state h5 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-2);
+}
+
+.schools-empty-state p {
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
+}
+
+/* Pagination styling */
+.schools-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: var(--space-6);
+}
+
+.schools-pagination .pagination {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    gap: var(--space-1);
+}
+
+.schools-pagination .page-item {
+    display: flex;
+}
+
+.schools-pagination .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: var(--transition-all);
+}
+
+.schools-pagination .page-item.active .page-link {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.schools-pagination .page-item.disabled .page-link {
+    color: var(--text-muted);
+    background: var(--bg-secondary);
+    border-color: var(--gray-200);
+    cursor: not-allowed;
+}
+
+.schools-pagination .page-link:hover:not(.disabled) {
+    background: var(--gray-100);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Dropdown menu improvements */
+.dropdown-menu {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-base);
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    padding: var(--space-1) 0;
+}
+
+.dropdown-item {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: var(--transition-all);
+    text-decoration: none;
+}
+
+.dropdown-item:hover {
+    background: var(--gray-50);
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: var(--space-1) 0;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .school-management-container {
+        max-width: 100%;
+        padding: var(--space-4);
+    }
+    
+    .schools-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .school-management-container {
+        padding: var(--space-3);
+    }
+    
+    .schools-header {
+        flex-direction: column;
+        gap: var(--space-4);
+        align-items: flex-start;
+    }
+    
+    .schools-title-section h1 {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .schools-stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .schools-filter-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .schools-table {
+        font-size: var(--font-size-xs);
+    }
+    
+    .schools-table th,
+    .schools-table td {
+        padding: var(--space-2);
+    }
+    
+    .schools-actions-group {
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+    
+    .schools-action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: var(--font-size-xs);
+    }
+    
+    .schools-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .schools-bulk-actions {
+        flex-direction: column;
+        gap: var(--space-3);
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 480px) {
+    .school-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+    
+    .district-info,
+    .coordinator-info {
+        gap: var(--space-1);
+    }
+    
+    .schools-status-badge,
+    .schools-teams-badge {
+        font-size: var(--font-size-xs);
+        padding: var(--space-1) var(--space-2);
+    }
+}
+
+/* Print styles */
+@media print {
+    .schools-filters,
+    .schools-actions,
+    .schools-bulk-actions,
+    .schools-actions-group,
+    .schools-view-toggle {
+        display: none;
+    }
+    
+    .schools-table {
+        font-size: 12px;
+    }
+    
+    .schools-table th,
+    .schools-table td {
+        padding: var(--space-2);
+    }
+    
+    .school-card {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+        break-inside: avoid;
+    }
+}

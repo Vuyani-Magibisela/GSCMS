@@ -185,6 +185,9 @@ class SchoolManagementController extends BaseController
                 'attention' => $attention,
                 'currentFilters' => $criteria,
                 'title' => 'School Management - GSCMS Admin',
+                'pageTitle' => 'School Management',
+                'pageSubtitle' => 'Manage school registrations, approvals, and information across all districts',
+                'pageCSS' => ['/css/admin-schools.css'],
                 'breadcrumbs' => [
                     ['title' => 'Dashboard', 'url' => '/admin/dashboard'],
                     ['title' => 'School Management', 'url' => '']
@@ -515,6 +518,9 @@ class SchoolManagementController extends BaseController
                 'communicationHistory' => $communicationHistory,
                 'changeLog' => $changeLog,
                 'title' => 'School Details - ' . $schoolName,
+                'pageTitle' => $schoolName,
+                'pageSubtitle' => htmlspecialchars(ucfirst($school['school_type'])) . ' • ' . htmlspecialchars($school['district'] ?? 'Unknown District') . ' • ' . htmlspecialchars($school['province'] ?? ''),
+                'pageCSS' => ['/css/admin-schools.css', '/css/admin-school-details.css'],
                 'breadcrumbs' => [
                     ['title' => 'Dashboard', 'url' => '/admin/dashboard'],
                     ['title' => 'School Management', 'url' => '/admin/schools'],

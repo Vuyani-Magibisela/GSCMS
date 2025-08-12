@@ -1,0 +1,646 @@
+/* ==========================================================================
+   Admin Districts Management Styles
+   ========================================================================== */
+
+/* Districts page specific styles */
+.district-management-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--space-5);
+}
+
+/* Page header styling */
+.page-header {
+    margin-bottom: var(--space-6);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--gray-200);
+}
+
+.page-title {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.page-title i {
+    color: var(--primary-color);
+    font-size: var(--font-size-2xl);
+}
+
+.page-subtitle {
+    color: var(--text-muted);
+    font-size: var(--font-size-base);
+    margin: 0;
+}
+
+/* Statistics cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-6);
+}
+
+.stat-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    transition: var(--transition-all);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.stat-card.primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-600));
+    color: white;
+    border: none;
+}
+
+.stat-card.success {
+    background: linear-gradient(135deg, var(--success-color), var(--success-600));
+    color: white;
+    border: none;
+}
+
+.stat-card.info {
+    background: linear-gradient(135deg, var(--info-color), var(--info-600));
+    color: white;
+    border: none;
+}
+
+.stat-card.warning {
+    background: linear-gradient(135deg, var(--warning-color), var(--warning-600));
+    color: white;
+    border: none;
+}
+
+.stat-card-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-card-info h3 {
+    font-size: var(--font-size-3xl);
+    font-weight: var(--font-weight-bold);
+    margin: 0;
+    line-height: 1;
+}
+
+.stat-card-info p {
+    margin: var(--space-2) 0 0 0;
+    font-size: var(--font-size-sm);
+    opacity: 0.9;
+}
+
+.stat-card-icon {
+    opacity: 0.7;
+    font-size: var(--font-size-4xl);
+}
+
+/* Enhanced filter section */
+.admin-filters {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.admin-filters .card-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--gray-200);
+    padding: var(--space-4);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.admin-filters .card-title {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.admin-filters .card-title i {
+    color: var(--primary-color);
+}
+
+.admin-filters .card-body {
+    padding: var(--space-5);
+}
+
+.admin-form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    align-items: end;
+}
+
+.form-group {
+    margin-bottom: 0;
+}
+
+.form-label {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    margin-bottom: var(--space-2);
+    display: block;
+}
+
+.form-control {
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    padding: var(--space-3);
+    font-size: var(--font-size-base);
+    transition: var(--transition-all);
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    outline: none;
+}
+
+/* Province section styling */
+.province-section {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: var(--space-4);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.province-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--gray-200);
+    padding: var(--space-4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.province-title {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.province-title i {
+    color: var(--primary-color);
+}
+
+.province-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.toggle-btn {
+    background: none;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    padding: var(--space-2);
+    cursor: pointer;
+    transition: var(--transition-all);
+    color: var(--text-secondary);
+}
+
+.toggle-btn:hover {
+    background: var(--gray-100);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* Enhanced table styling */
+.data-table-container {
+    background: var(--bg-primary);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0;
+}
+
+.data-table th {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    padding: var(--space-4);
+    text-align: left;
+    border-bottom: 1px solid var(--gray-200);
+    font-size: var(--font-size-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.data-table td {
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--gray-100);
+    vertical-align: middle;
+    font-size: var(--font-size-sm);
+}
+
+.data-table tbody tr {
+    transition: var(--transition-all);
+}
+
+.data-table tbody tr:hover {
+    background-color: var(--gray-50);
+}
+
+/* District information styling */
+.district-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.district-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: var(--transition-all);
+}
+
+.district-name:hover {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.district-region {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.district-code {
+    background: var(--bg-secondary);
+    color: var(--primary-color);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-base);
+    font-size: var(--font-size-xs);
+    font-family: var(--font-family-mono);
+    font-weight: var(--font-weight-medium);
+    border: 1px solid var(--gray-200);
+}
+
+/* Coordinator information */
+.coordinator-info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.coordinator-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.coordinator-email {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: var(--font-size-xs);
+    transition: var(--transition-all);
+}
+
+.coordinator-email:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+.no-coordinator {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Enhanced badges */
+.count-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    min-width: 24px;
+    justify-content: center;
+}
+
+.count-badge.schools {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+}
+
+.count-badge.teams {
+    background: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+}
+
+.count-badge.participants {
+    background: rgba(249, 115, 22, 0.1);
+    color: #c2410c;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-3);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    text-transform: capitalize;
+}
+
+.status-badge.active {
+    background: rgba(34, 197, 94, 0.1);
+    color: #15803d;
+}
+
+.status-badge.inactive {
+    background: rgba(107, 114, 128, 0.1);
+    color: #4b5563;
+}
+
+/* Action buttons */
+.table-actions {
+    display: flex;
+    gap: var(--space-1);
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-base);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition-all);
+    text-decoration: none;
+    font-size: var(--font-size-sm);
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+}
+
+.action-btn.view {
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #1d4ed8;
+}
+
+.action-btn.view:hover {
+    background: #1d4ed8;
+    color: white;
+    border-color: #1d4ed8;
+}
+
+.action-btn.edit {
+    border-color: rgba(107, 114, 128, 0.3);
+    color: #4b5563;
+}
+
+.action-btn.edit:hover {
+    background: #4b5563;
+    color: white;
+    border-color: #4b5563;
+}
+
+.action-btn.more {
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #059669;
+}
+
+.action-btn.more:hover {
+    background: #059669;
+    color: white;
+    border-color: #059669;
+}
+
+/* Dropdown improvements */
+.dropdown-menu {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-base);
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+}
+
+.dropdown-item {
+    padding: var(--space-2) var(--space-3);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    transition: var(--transition-all);
+}
+
+.dropdown-item:hover {
+    background: var(--gray-50);
+    color: var(--primary-color);
+}
+
+.dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: var(--space-1) 0;
+}
+
+/* Empty state */
+.empty-state {
+    text-align: center;
+    padding: var(--space-16) var(--space-6);
+}
+
+.empty-state-icon {
+    font-size: var(--font-size-6xl);
+    color: var(--gray-400);
+    margin-bottom: var(--space-4);
+}
+
+.empty-state h5 {
+    color: var(--text-primary);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--space-2);
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: var(--space-4);
+}
+
+/* Statistics by province */
+.province-stats {
+    background: var(--bg-primary);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    margin-top: var(--space-6);
+    box-shadow: var(--shadow-sm);
+}
+
+.province-stat-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-3) 0;
+}
+
+.province-stat-name {
+    font-weight: var(--font-weight-semibold);
+    color: var(--text-primary);
+}
+
+.province-stat-badge {
+    background: var(--primary-color);
+    color: white;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-full);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+}
+
+.province-progress {
+    margin-top: var(--space-2);
+    height: 6px;
+    background: var(--gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.province-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--primary-600));
+    border-radius: var(--radius-full);
+    transition: width 0.8s ease;
+}
+
+/* Responsive design */
+@media (max-width: 1200px) {
+    .district-management-container {
+        max-width: 100%;
+        padding: var(--space-4);
+    }
+    
+    .stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .district-management-container {
+        padding: var(--space-3);
+    }
+    
+    .page-header .row {
+        flex-direction: column;
+        gap: var(--space-4);
+    }
+    
+    .page-title {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .admin-form-row {
+        grid-template-columns: 1fr;
+        gap: var(--space-3);
+    }
+    
+    .data-table {
+        font-size: var(--font-size-xs);
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: var(--space-2);
+    }
+    
+    .table-actions {
+        flex-direction: column;
+        gap: var(--space-1);
+    }
+    
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        font-size: var(--font-size-xs);
+    }
+}
+
+@media (max-width: 480px) {
+    .province-header {
+        flex-direction: column;
+        gap: var(--space-2);
+        align-items: flex-start;
+    }
+    
+    .district-info,
+    .coordinator-info {
+        gap: var(--space-1);
+    }
+    
+    .count-badge,
+    .status-badge {
+        font-size: var(--font-size-xs);
+        padding: var(--space-1) var(--space-2);
+    }
+}
+
+/* Print styles */
+@media print {
+    .admin-filters,
+    .table-actions,
+    .toggle-btn {
+        display: none;
+    }
+    
+    .province-section {
+        box-shadow: none;
+        border: 1px solid var(--gray-300);
+        break-inside: avoid;
+    }
+    
+    .data-table {
+        font-size: 12px;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: var(--space-2);
+    }
+}

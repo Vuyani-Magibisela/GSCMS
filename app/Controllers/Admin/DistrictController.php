@@ -138,6 +138,9 @@ class DistrictController extends BaseController
                 'stats' => $stats,
                 'currentFilters' => $criteria,
                 'title' => 'District Management - GSCMS Admin',
+                'pageTitle' => 'District Management',
+                'pageSubtitle' => 'Manage geographic districts and their coordinators across all provinces',
+                'pageCSS' => ['/css/admin-districts.css'],
                 'breadcrumbs' => [
                     ['title' => 'Dashboard', 'url' => '/admin/dashboard'],
                     ['title' => 'District Management', 'url' => '']
