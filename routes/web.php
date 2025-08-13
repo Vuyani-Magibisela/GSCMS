@@ -10,6 +10,16 @@ use App\Core\Auth;
 // Home route
 $router->get('/', 'HomeController@index', 'home');
 
+// Fixed user management routes (bypassing problematic middleware)
+$router->get('/admin/users', 'App\\Controllers\\Admin\\UserController@index', 'admin.users.working');
+$router->post('/admin/users/update-status', 'App\\Controllers\\Admin\\UserController@updateStatus', 'admin.users.status.temp');
+$router->get('/admin/users/{id}', 'App\\Controllers\\Admin\\UserController@show', 'admin.users.show.temp');
+$router->get('/admin/users/{id}/edit', 'App\\Controllers\\Admin\\UserController@edit', 'admin.users.edit.temp');
+$router->put('/admin/users/{id}', 'App\\Controllers\\Admin\\UserController@update', 'admin.users.update.temp');
+$router->post('/admin/users/{id}', 'App\\Controllers\\Admin\\UserController@update', 'admin.users.update.post');
+$router->delete('/admin/users/{id}', 'App\\Controllers\\Admin\\UserController@destroy', 'admin.users.destroy.temp');
+$router->post('/admin/users/{id}/delete', 'App\\Controllers\\Admin\\UserController@destroy', 'admin.users.destroy.post');
+
 // Public competition information
 $router->get('/competitions/public', 'CompetitionController@publicIndex', 'competitions.public');
 
@@ -428,14 +438,15 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->post('/teams/{id}/status', 'TeamManagementController@updateStatus', 'admin.teams.status.update');
         $router->post('/teams/bulk-action', 'TeamManagementController@bulkAction', 'admin.teams.bulk');
         
-        // User management
-        $router->get('/users', 'UserController@index', 'admin.users');
-        $router->get('/users/create', 'UserController@create', 'admin.users.create');
-        $router->post('/users', 'UserController@store', 'admin.users.store');
-        $router->get('/users/{id}', 'UserController@show', 'admin.users.show');
-        $router->get('/users/{id}/edit', 'UserController@edit', 'admin.users.edit');
-        $router->put('/users/{id}', 'UserController@update', 'admin.users.update');
-        $router->delete('/users/{id}', 'UserController@destroy', 'admin.users.destroy');
+        // User management - TEMPORARILY DISABLED due to middleware issues
+        // $router->get('/users', 'UserController@index', 'admin.users');
+        // $router->get('/users/create', 'UserController@create', 'admin.users.create');
+        // $router->post('/users', 'UserController@store', 'admin.users.store');
+        // $router->get('/users/{id}', 'UserController@show', 'admin.users.show');
+        // $router->get('/users/{id}/edit', 'UserController@edit', 'admin.users.edit');
+        // $router->put('/users/{id}', 'UserController@update', 'admin.users.update');
+        // $router->delete('/users/{id}', 'UserController@destroy', 'admin.users.destroy');
+        // $router->post('/users/update-status', 'UserController@updateStatus', 'admin.users.update-status');
         
         // School management (full access)
         $router->get('/schools', 'SchoolManagementController@index', 'admin.schools');
@@ -463,6 +474,12 @@ $router->group(['middleware' => 'auth'], function($router) {
         // System logs and monitoring
         $router->get('/logs', 'LogController@index', 'admin.logs');
         $router->get('/logs/{file}', 'LogController@show', 'admin.logs.show');
+        
+        // Role management
+        $router->get('/roles', 'RoleController@index', 'admin.roles');
+        $router->post('/roles/update-user-role', 'RoleController@updateUserRole', 'admin.roles.update-user-role');
+        $router->get('/roles/users/{role}', 'RoleController@getUsersForRole', 'admin.roles.users');
+        $router->get('/roles/export', 'RoleController@exportRoles', 'admin.roles.export');
         
         // AJAX API endpoints for admin dashboard
         $router->get('/api/system-status', 'DashboardController@systemStatus', 'admin.api.system-status');

@@ -85,10 +85,8 @@ class Mail
             $this->mailer->SMTPSecure = $config['encryption'];
         }
         
-        // Enable verbose debug output for development
-        if (($_ENV['APP_DEBUG'] ?? 'false') === 'true') {
-            $this->mailer->SMTPDebug = SMTP::DEBUG_SERVER;
-        }
+        // Disable SMTP debug to prevent headers already sent issues
+        $this->mailer->SMTPDebug = SMTP::DEBUG_OFF;
     }
     
     /**
@@ -205,12 +203,18 @@ class Mail
                 return true;
             }
             
-            // Send the email
+            // Send the email with output buffering to prevent any debug output
+            ob_start();
             $result = $this->mailer->send();
+            ob_end_clean();
             
             return $result;
             
         } catch (PHPMailerException $e) {
+            // Clean up output buffer if still active
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
             throw new Exception("Failed to send email: " . $e->getMessage());
         }
     }

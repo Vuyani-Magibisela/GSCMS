@@ -216,3 +216,199 @@ For shared hosting environments (cPanel, etc.):
    - Track user registrations and submissions
    - Monitor server resources and performance
    - Review security logs for suspicious activity
+
+## Frontend Development Guidelines
+
+### CSS Framework Priority
+1. **Primary**: Pure CSS - Use custom CSS for styling whenever possible
+2. **Secondary**: Tailwind CSS - Only when utility classes provide significant benefit
+3. **Avoid**: Bootstrap - Do not use Bootstrap classes or components
+
+### Animation Libraries
+- **Primary**: GSAP (GreenSock Animation Platform) - For all animations and transitions
+- **Secondary**: Pure JavaScript - For simple interactions without animation
+- **Avoid**: CSS animations for complex sequences, jQuery animations
+
+### JavaScript Guidelines
+- Use vanilla JavaScript as much as possible
+- GSAP for animations and timeline-based interactions
+- Minimize external dependencies
+
+## Common Issues & Solutions
+
+### Registration System Issues
+
+#### Email Sending "Headers Already Sent" Error
+**Problem**: Registration fails after email sending with "Cannot modify header information - headers already sent"
+**Root Cause**: PHPMailer debug output being sent to browser before redirect headers
+**Solution**:
+```php
+// In app/Core/Mail.php - Disable SMTP debug completely
+$this->mailer->SMTPDebug = SMTP::DEBUG_OFF;
+
+// Add output buffering around email sending
+ob_start();
+$result = $this->mailer->send();
+ob_end_clean();
+```
+
+#### Array to String Conversion Error
+**Problem**: "Array to string conversion" error when displaying validation errors
+**Root Cause**: Multi-dimensional validation error arrays being passed to `implode()`
+**Solution**:
+```php
+// In AuthController.php - Flatten validation errors properly
+if (!$validation['valid']) {
+    $errorMessages = [];
+    foreach ($validation['errors'] as $field => $fieldErrors) {
+        if (is_array($fieldErrors)) {
+            $errorMessages = array_merge($errorMessages, $fieldErrors);
+        } else {
+            $errorMessages[] = $fieldErrors;
+        }
+    }
+    throw new Exception('Validation failed: ' . implode(', ', $errorMessages));
+}
+```
+
+### AJAX Issues
+
+#### JSON Parse Error in User Management
+**Problem**: "JSON.parse: unexpected character at line 1 column 1" when updating user status
+**Root Causes**: 
+1. Route ordering conflict (parameterized routes matching before specific routes)
+2. AJAX requests not sending session cookies
+3. PHP not handling JSON request bodies properly
+
+**Solutions**:
+```php
+// 1. Route Ordering - In routes/web.php, place specific routes BEFORE parameterized ones:
+$router->get('/admin/users', 'Controller@index');
+$router->post('/admin/users/update-status', 'Controller@updateStatus'); // Specific route first
+$router->get('/admin/users/{id}', 'Controller@show'); // Parameterized route after
+
+// 2. AJAX Credentials - In JavaScript, add credentials to fetch requests:
+fetch('/admin/users/update-status', {
+    method: 'POST',
+    credentials: 'same-origin', // Important for session cookies
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+})
+
+// 3. JSON Input Handling - In controller methods, handle both form and JSON input:
+public function updateStatus() {
+    header('Content-Type: application/json');
+    
+    // Handle JSON input
+    $input = json_decode(file_get_contents('php://input'), true);
+    if ($input === null) {
+        // Fallback to form input
+        $userId = $this->input('user_id');
+        $status = $this->input('status');
+    } else {
+        $userId = $input['user_id'] ?? null;
+        $status = $input['status'] ?? null;
+    }
+    
+    // Always use direct json_encode and exit
+    echo json_encode(['success' => true]);
+    exit;
+}
+```
+
+### Session Management Issues
+
+#### Auth Class Infinite Loops
+**Problem**: `Auth::getInstance()` causing hanging or infinite loops
+**Solution**: Use manual session checks instead:
+```php
+// Instead of: Auth::getInstance()->check()
+// Use manual session validation:
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+    return $this->redirect('/auth/login');
+}
+```
+
+### Route Configuration Best Practices
+
+#### Route Ordering Rules
+1. **Specific routes first**: `/admin/users/update-status` 
+2. **Parameterized routes last**: `/admin/users/{id}`
+3. **Static routes before dynamic**: `/admin/dashboard` before `/admin/{section}`
+
+#### Middleware Bypass
+For problematic middleware, create temporary routes outside middleware groups:
+```php
+// Bypass middleware for specific functionality
+$router->get('/admin/users', 'UserController@index', 'temp.route.name');
+```
+
+### Error Handling Patterns
+
+#### Robust Redirect Method
+```php
+protected function redirect($url, $statusCode = 302) {
+    if (headers_sent($file, $line)) {
+        // JavaScript fallback for when headers already sent
+        echo "<script>window.location.href = '{$url}';</script>";
+        echo "<noscript><meta http-equiv='refresh' content='0; url={$url}'></noscript>";
+    } else {
+        header("Location: {$url}", true, $statusCode);
+    }
+    exit;
+}
+```
+
+### Development Debugging
+
+#### AJAX Response Debugging
+```javascript
+fetch(url, options)
+.then(response => {
+    console.log('Response status:', response.status);
+    return response.text().then(text => {
+        console.log('Response text:', text);
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            throw new Error('Server returned non-JSON: ' + text.substring(0, 100));
+        }
+    });
+})
+```
+
+#### Rate Limiting During Development
+Temporarily disable rate limiting for testing:
+```php
+// Comment out during development/testing
+// $this->rateLimit->enforceRegistration();
+```
+
+### Email System Configuration
+
+#### Production Email Setup
+- Always disable SMTP debug in production: `SMTPDebug = SMTP::DEBUG_OFF`
+- Use output buffering to prevent header conflicts
+- Test email functionality thoroughly before deployment
+
+## Testing Checklist
+
+### User Management System
+- [ ] User registration with email verification
+- [ ] User status updates (activate/deactivate) 
+- [ ] User editing and deletion
+- [ ] Session persistence across AJAX requests
+- [ ] Proper error message display
+- [ ] Route resolution for specific and parameterized URLs
+
+### Email System
+- [ ] Registration emails sent successfully
+- [ ] No header conflicts during redirect
+- [ ] Email verification links working
+- [ ] SMTP configuration working in production
+
+### AJAX Functionality  
+- [ ] Status updates working without page refresh
+- [ ] Proper JSON responses
+- [ ] Error handling for failed requests
+- [ ] Session authentication maintained

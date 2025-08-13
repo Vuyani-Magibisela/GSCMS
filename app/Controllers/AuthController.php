@@ -140,7 +140,15 @@ class AuthController extends BaseController
             $validation = User::validateUserData($data);
             
             if (!$validation['valid']) {
-                throw new Exception('Validation failed: ' . implode(', ', $validation['errors']));
+                $errorMessages = [];
+                foreach ($validation['errors'] as $field => $fieldErrors) {
+                    if (is_array($fieldErrors)) {
+                        $errorMessages = array_merge($errorMessages, $fieldErrors);
+                    } else {
+                        $errorMessages[] = $fieldErrors;
+                    }
+                }
+                throw new Exception('Validation failed: ' . implode(', ', $errorMessages));
             }
             
             // Set default role if not provided or not allowed

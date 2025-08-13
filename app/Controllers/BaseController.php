@@ -142,7 +142,15 @@ abstract class BaseController
      */
     protected function redirect($url, $statusCode = 302)
     {
-        header("Location: {$url}", true, $statusCode);
+        // Check if headers have already been sent
+        if (headers_sent($file, $line)) {
+            // If headers are already sent, use JavaScript redirect as fallback
+            echo "<script type='text/javascript'>window.location.href = '{$url}';</script>";
+            echo "<noscript><meta http-equiv='refresh' content='0; url={$url}'></noscript>";
+            echo "<p>If you are not redirected automatically, <a href='{$url}'>click here</a>.</p>";
+        } else {
+            header("Location: {$url}", true, $statusCode);
+        }
         exit;
     }
     
