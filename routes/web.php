@@ -481,6 +481,95 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/roles/users/{role}', 'RoleController@getUsersForRole', 'admin.roles.users');
         $router->get('/roles/export', 'RoleController@exportRoles', 'admin.roles.export');
         
+        // ====================================================================
+        // PHASE & CATEGORY MANAGEMENT (Phase & Category Management System)
+        // ====================================================================
+        
+        // Competition Setup Management
+        $router->get('/competition-setup', 'CompetitionSetupController@index', 'admin.competition.setup');
+        $router->get('/competition-setup/configure-pilot', 'CompetitionSetupController@configurePilotCompetition', 'admin.competition.setup.pilot');
+        $router->post('/competition-setup/configure-pilot', 'CompetitionSetupController@configurePilotCompetition', 'admin.competition.setup.pilot.save');
+        $router->get('/competition-setup/configure-full', 'CompetitionSetupController@configureFullCompetition', 'admin.competition.setup.full');
+        $router->post('/competition-setup/configure-full', 'CompetitionSetupController@configureFullCompetition', 'admin.competition.setup.full.save');
+        $router->post('/competition-setup/switch-mode', 'CompetitionSetupController@switchCompetitionMode', 'admin.competition.setup.switch');
+        
+        // Phase Management
+        $router->get('/phase-management', 'PhaseManagementController@index', 'admin.phase.management');
+        $router->get('/phase-management/create', 'PhaseManagementController@create', 'admin.phase.management.create');
+        $router->post('/phase-management', 'PhaseManagementController@create', 'admin.phase.management.store');
+        $router->get('/phase-management/{id}/edit', 'PhaseManagementController@edit', 'admin.phase.management.edit');
+        $router->post('/phase-management/{id}/edit', 'PhaseManagementController@edit', 'admin.phase.management.update');
+        $router->post('/phase-management/{id}/activate', 'PhaseManagementController@activatePhase', 'admin.phase.management.activate');
+        $router->get('/phase-management/monitor', 'PhaseManagementController@monitorPhaseProgress', 'admin.phase.management.monitor');
+        $router->get('/phase-management/monitor/{id}', 'PhaseManagementController@monitorPhaseProgress', 'admin.phase.management.monitor.phase');
+        $router->get('/phase-management/reports', 'PhaseManagementController@generatePhaseReports', 'admin.phase.management.reports');
+        $router->post('/phase-management/reports', 'PhaseManagementController@generatePhaseReports', 'admin.phase.management.reports.generate');
+        $router->get('/phase-management/export/{format}', 'PhaseManagementController@exportPhaseData', 'admin.phase.management.export');
+        $router->post('/phase-management/advance-pilot', 'PhaseManagementController@advancePilotTeams', 'admin.phase.management.pilot.advance');
+        $router->get('/phase-management/advance-pilot', 'PhaseManagementController@advancePilotTeams', 'admin.phase.management.pilot.advance.form');
+        
+        // Category Management
+        $router->get('/category-management', 'CategoryManagementController@index', 'admin.category.management');
+        $router->get('/category-management/create', 'CategoryManagementController@create', 'admin.category.management.create');
+        $router->post('/category-management', 'CategoryManagementController@create', 'admin.category.management.store');
+        $router->get('/category-management/{id}', 'CategoryManagementController@show', 'admin.category.management.show');
+        $router->get('/category-management/{id}/edit', 'CategoryManagementController@edit', 'admin.category.management.edit');
+        $router->post('/category-management/{id}/edit', 'CategoryManagementController@edit', 'admin.category.management.update');
+        $router->get('/category-management/setup-pilot', 'CategoryManagementController@setupPilotCategories', 'admin.category.management.pilot.setup');
+        $router->post('/category-management/setup-pilot', 'CategoryManagementController@setupPilotCategories', 'admin.category.management.pilot.save');
+        $router->post('/category-management/bulk-update', 'CategoryManagementController@bulkUpdateStatus', 'admin.category.management.bulk');
+        $router->get('/category-management/export/{format}', 'CategoryManagementController@export', 'admin.category.management.export');
+        $router->get('/category-management/validate-pilot', 'CategoryManagementController@validatePilotConfiguration', 'admin.category.management.pilot.validate');
+        
+        // Phase Progression Management
+        $router->get('/phase-progression', 'PhaseProgressionController@index', 'admin.phase.progression');
+        $router->get('/phase-progression/advance', 'PhaseProgressionController@advanceTeams', 'admin.phase.progression.advance');
+        $router->post('/phase-progression/advance', 'PhaseProgressionController@advanceTeams', 'admin.phase.progression.advance.process');
+        $router->get('/phase-progression/rankings', 'PhaseProgressionController@calculateRankings', 'admin.phase.progression.rankings');
+        $router->post('/phase-progression/rankings', 'PhaseProgressionController@calculateRankings', 'admin.phase.progression.rankings.calculate');
+        $router->get('/phase-progression/qualification-lists', 'PhaseProgressionController@generateQualificationLists', 'admin.phase.progression.qualification');
+        $router->post('/phase-progression/qualification-lists', 'PhaseProgressionController@generateQualificationLists', 'admin.phase.progression.qualification.generate');
+        $router->get('/phase-progression/phase-skipping', 'PhaseProgressionController@handlePhaseSkipping', 'admin.phase.progression.skip');
+        $router->post('/phase-progression/phase-skipping', 'PhaseProgressionController@handlePhaseSkipping', 'admin.phase.progression.skip.process');
+        $router->get('/phase-progression/team/{id}', 'PhaseProgressionController@viewTeamProgression', 'admin.phase.progression.team');
+        $router->get('/phase-progression/export/{format}', 'PhaseProgressionController@exportProgressionData', 'admin.phase.progression.export');
+        
+        // ====================================================================
+        // COMPETITION SETUP INTERFACE (New Advanced Setup System)
+        // ====================================================================
+        
+        // Competition Wizard (6-step competition creation)
+        $router->get('/competition-setup/wizard', 'CompetitionWizardController@index', 'admin.competition-setup.wizard');
+        $router->get('/competition-setup/wizard/start', 'CompetitionWizardController@startWizard', 'admin.competition-setup.wizard.start');
+        $router->get('/competition-setup/wizard/step/{step}', 'CompetitionWizardController@showStep', 'admin.competition-setup.wizard.step');
+        $router->post('/competition-setup/wizard/save-step', 'CompetitionWizardController@saveStep', 'admin.competition-setup.wizard.save-step');
+        $router->get('/competition-setup/wizard/review', 'CompetitionWizardController@reviewConfiguration', 'admin.competition-setup.wizard.review');
+        $router->post('/competition-setup/wizard/deploy', 'CompetitionWizardController@deployCompetition', 'admin.competition-setup.wizard.deploy');
+        $router->get('/competition-setup/view/{id}', 'CompetitionWizardController@viewCompetition', 'admin.competition-setup.view');
+        $router->post('/competition-setup/clone', 'CompetitionWizardController@cloneCompetition', 'admin.competition-setup.clone');
+        
+        // Phase Scheduler (Timeline management and scheduling)
+        $router->get('/phase-scheduler', 'PhaseSchedulerController@index', 'admin.phase-scheduler');
+        $router->get('/phase-scheduler/timeline/{competitionId}', 'PhaseSchedulerController@timeline', 'admin.phase-scheduler.timeline');
+        $router->post('/phase-scheduler/create-schedule', 'PhaseSchedulerController@createSchedule', 'admin.phase-scheduler.create-schedule');
+        $router->post('/phase-scheduler/update-schedule', 'PhaseSchedulerController@updateSchedule', 'admin.phase-scheduler.update-schedule');
+        $router->post('/phase-scheduler/validate-schedule', 'PhaseSchedulerController@validateSchedule', 'admin.phase-scheduler.validate-schedule');
+        $router->post('/phase-scheduler/activate-phase', 'PhaseSchedulerController@activatePhase', 'admin.phase-scheduler.activate-phase');
+        $router->post('/phase-scheduler/complete-phase', 'PhaseSchedulerController@completePhase', 'admin.phase-scheduler.complete-phase');
+        $router->get('/phase-scheduler/calendar-data', 'PhaseSchedulerController@getCalendarData', 'admin.phase-scheduler.calendar-data');
+        
+        // Category Manager (Rule configuration and management)
+        $router->get('/category-manager', 'CategoryManagerController@index', 'admin.category-manager');
+        $router->get('/category-manager/overview/{competitionId}', 'CategoryManagerController@overview', 'admin.category-manager.overview');
+        $router->get('/category-manager/configure/{categoryId}', 'CategoryManagerController@configureCategory', 'admin.category-manager.configure');
+        $router->post('/category-manager/update-category', 'CategoryManagerController@updateCategory', 'admin.category-manager.update-category');
+        $router->post('/category-manager/customize-rubric', 'CategoryManagerController@customizeRubric', 'admin.category-manager.customize-rubric');
+        $router->post('/category-manager/equipment-requirements', 'CategoryManagerController@setEquipmentRequirements', 'admin.category-manager.equipment-requirements');
+        $router->post('/category-manager/validate-rules', 'CategoryManagerController@validateCategoryRules', 'admin.category-manager.validate-rules');
+        $router->post('/category-manager/bulk-update', 'CategoryManagerController@bulkUpdate', 'admin.category-manager.bulk-update');
+        $router->get('/category-manager/export-configuration', 'CategoryManagerController@exportConfiguration', 'admin.category-manager.export-configuration');
+        $router->post('/category-manager/import-configuration', 'CategoryManagerController@importConfiguration', 'admin.category-manager.import-configuration');
+        
         // AJAX API endpoints for admin dashboard
         $router->get('/api/system-status', 'DashboardController@systemStatus', 'admin.api.system-status');
         $router->get('/api/dashboard-updates', 'DashboardController@dashboardUpdates', 'admin.api.dashboard-updates');
