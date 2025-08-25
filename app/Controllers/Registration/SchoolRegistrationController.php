@@ -3,85 +3,98 @@
 namespace App\Controllers\Registration;
 
 use App\Controllers\BaseController;
+use App\Models\SchoolRegistration;
 use App\Models\School;
 use App\Models\District;
+use App\Models\User;
+use App\Models\Category;
+use App\Core\DeadlineEnforcer;
 use App\Core\Request;
 use App\Core\Response;
 use App\Core\Session;
 
 class SchoolRegistrationController extends BaseController
 {
-    private $session;
+    protected $session;
+    private $deadlineEnforcer;
     
     public function __construct()
     {
         parent::__construct();
         $this->session = Session::getInstance();
+        $this->deadlineEnforcer = new DeadlineEnforcer();
     }
     
     /**
-     * Show multi-step school registration wizard
+     * Show registration landing page
      */
     public function index()
     {
-        // Clear any existing registration data
-        $this->session->forget('school_registration');
+        // Check if registration is still open
+        $deadlineStatus = $this->deadlineEnforcer->getDeadlineStatus();
         
-        return $this->render('registration/school/step1', [
-            'title' => 'School Registration - GDE SciBOTICS Competition 2025',
-            'step' => 1,
-            'totalSteps' => 5
+        if ($deadlineStatus['active_competition'] && 
+            $deadlineStatus['deadlines']['school_registration']['is_overdue']) {
+            return $this->renderView('registration/school/closed', [
+                'deadline_info' => $deadlineStatus['deadlines']['school_registration']
+            ]);
+        }
+        
+        return $this->renderView('registration/school/index', [
+            'deadline_info' => $deadlineStatus['deadlines']['school_registration'] ?? null,
+            'competition_info' => $deadlineStatus['active_competition'] ? [
+                'name' => $deadlineStatus['competition_name']
+            ] : null
         ]);
+    }
+    
+    /**
+     * Start new registration
+     */
+    public function create()
+    {
+        // Check registration deadline
+        $deadlineStatus = $this->deadlineEnforcer->getDeadlineStatus();
+        
+        if ($deadlineStatus['active_competition'] && 
+            $deadlineStatus['deadlines']['school_registration']['is_overdue']) {
+            return $this->redirect('/register/school')->with('error', 'School registration deadline has passed');
+        }
+        
+        // Start with step 1
+        return $this->showStep(1);
     }
     
     /**
      * Show specific registration step
      */
-    public function showStep($step)
+    public function showStep($step = 1)
     {
-        $step = (int) $step;
-        if ($step < 1 || $step > 5) {
-            return $this->redirect('/register/school');
+        $step = (int)$step;
+        
+        // Get or create registration from session
+        $registrationData = $this->getSessionRegistrationData();
+        $registration = null;
+        
+        if (!empty($registrationData['id'])) {
+            $registration = SchoolRegistration::find($registrationData['id']);
         }
         
-        $registrationData = $this->session->get('school_registration', []);
-        
-        // Validate that previous steps are completed
-        for ($i = 1; $i < $step; $i++) {
-            if (!isset($registrationData["step{$i}_completed"])) {
-                return $this->redirect("/register/school/step/{$i}");
-            }
+        // Validate step
+        if ($step < 1 || $step > 6) {
+            return $this->redirect('/register/school/step/1');
         }
         
-        $viewData = [
-            'title' => "School Registration - Step {$step} of 5",
+        // Get step data
+        $stepData = $this->getStepData($step, $registration);
+        
+        return $this->renderView("registration/school/step_{$step}", [
             'step' => $step,
-            'totalSteps' => 5,
-            'data' => $registrationData,
-            'errors' => $this->session->getFlash('errors', [])
-        ];
-        
-        switch ($step) {
-            case 1:
-                return $this->render('registration/school/step1', $viewData);
-                
-            case 2:
-                return $this->render('registration/school/step2', $viewData);
-                
-            case 3:
-                $viewData['districts'] = District::all();
-                return $this->render('registration/school/step3', $viewData);
-                
-            case 4:
-                $viewData['provinces'] = School::PROVINCES;
-                return $this->render('registration/school/step4', $viewData);
-                
-            case 5:
-                return $this->render('registration/school/step5', $viewData);
-                
-            default:
-                return $this->redirect('/register/school');
-        }
+            'registration' => $registration,
+            'step_data' => $stepData,
+            'progress' => $this->calculateProgress($step, $registration),
+            'validation_errors' => $this->getValidationErrors()
+        ]);
     }
     
     /**

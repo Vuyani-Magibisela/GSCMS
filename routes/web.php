@@ -32,14 +32,20 @@ $router->get('/announcements', 'PublicController@announcements', 'announcements'
 $router->get('/resources', 'PublicController@resources', 'resources');
 
 // ============================================================================
+// REGISTRATION SYSTEM ROUTES
+// ============================================================================
+
+// ============================================================================
 // SCHOOL SELF-REGISTRATION ROUTES (Public access)
 // ============================================================================
 
 $router->group(['prefix' => '/register/school'], function($router) {
     // School registration wizard
     $router->get('/', 'Registration\\SchoolRegistrationController@index', 'school.register');
+    $router->get('/create', 'Registration\\SchoolRegistrationController@create', 'school.register.create');
     $router->get('/step/{step}', 'Registration\\SchoolRegistrationController@showStep', 'school.register.step');
     $router->post('/step/{step}', 'Registration\\SchoolRegistrationController@processStep', 'school.register.step.process');
+    $router->post('/process-step/{step}', 'Registration\\SchoolRegistrationController@processStep', 'school.register.process.step');
     
     // Registration management
     $router->get('/resume', 'Registration\\SchoolRegistrationController@resume', 'school.register.resume');
@@ -47,6 +53,10 @@ $router->group(['prefix' => '/register/school'], function($router) {
     // Status checking
     $router->get('/status', 'Registration\\SchoolRegistrationController@showStatusForm', 'school.register.status');
     $router->post('/status', 'Registration\\SchoolRegistrationController@checkStatus', 'school.register.status.check');
+    
+    // Registration completion
+    $router->get('/success', 'Registration\\SchoolRegistrationController@success', 'school.register.success');
+    $router->get('/closed', 'Registration\\SchoolRegistrationController@closed', 'school.register.closed');
 });
 
 // School management redirect route
@@ -570,6 +580,105 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/category-manager/export-configuration', 'CategoryManagerController@exportConfiguration', 'admin.category-manager.export-configuration');
         $router->post('/category-manager/import-configuration', 'CategoryManagerController@importConfiguration', 'admin.category-manager.import-configuration');
         
+        // ====================================================================
+        // TEAM COMPOSITION MANAGEMENT SYSTEM
+        // ====================================================================
+        
+        // Team Composition Management (Main dashboard and overview)
+        $router->get('/team/composition', 'Team\\TeamCompositionController@index', 'admin.team.composition');
+        $router->get('/team/composition/{team_id}', 'Team\\TeamCompositionController@show', 'admin.team.composition.show');
+        $router->post('/team/composition/validate', 'Team\\TeamCompositionController@validateComposition', 'admin.team.composition.validate');
+        $router->post('/team/composition/bulk-validate', 'Team\\TeamCompositionController@bulkValidate', 'admin.team.composition.bulk-validate');
+        $router->get('/team/composition/statistics', 'Team\\TeamCompositionController@getStatistics', 'admin.team.composition.statistics');
+        
+        // Participant Management
+        $router->post('/team/composition/add-participant', 'Team\\TeamCompositionController@addParticipant', 'admin.team.composition.add-participant');
+        $router->post('/team/composition/remove-participant', 'Team\\TeamCompositionController@removeParticipant', 'admin.team.composition.remove-participant');
+        $router->post('/team/composition/update-participant-role', 'Team\\TeamCompositionController@updateParticipantRole', 'admin.team.composition.update-participant-role');
+        
+        // Team Composition Settings (Admin only)
+        $router->post('/team/composition/update-settings', 'Team\\TeamCompositionController@updateSettings', 'admin.team.composition.update-settings');
+        
+        // Coach Assignment System (would be implemented in separate controller)
+        $router->get('/team/coach', 'Team\\CoachAssignmentController@index', 'admin.team.coach');
+        $router->post('/team/coach/assign', 'Team\\CoachAssignmentController@assignCoach', 'admin.team.coach.assign');
+        $router->post('/team/coach/remove', 'Team\\CoachAssignmentController@removeCoach', 'admin.team.coach.remove');
+        $router->post('/team/coach/approve', 'Team\\CoachAssignmentController@approveCoach', 'admin.team.coach.approve');
+        $router->post('/team/coach/update-training', 'Team\\CoachAssignmentController@updateTrainingStatus', 'admin.team.coach.update-training');
+        $router->post('/team/coach/background-check', 'Team\\CoachAssignmentController@updateBackgroundCheck', 'admin.team.coach.background-check');
+        
+        // Demographic Data Management (POPIA-compliant)
+        $router->get('/team/demographics', 'Team\\DemographicsController@index', 'admin.team.demographics');
+        $router->post('/team/demographics/collect', 'Team\\DemographicsController@collectDemographics', 'admin.team.demographics.collect');
+        $router->post('/team/demographics/update-consent', 'Team\\DemographicsController@updateConsent', 'admin.team.demographics.consent');
+        $router->get('/team/demographics/report', 'Team\\DemographicsController@generateReport', 'admin.team.demographics.report');
+        $router->post('/team/demographics/anonymize', 'Team\\DemographicsController@anonymizeData', 'admin.team.demographics.anonymize');
+        $router->post('/team/demographics/delete-expired', 'Team\\DemographicsController@deleteExpiredData', 'admin.team.demographics.delete-expired');
+        
+        // Roster Modification Workflows
+        $router->get('/team/roster-modifications', 'Team\\RosterModificationController@index', 'admin.team.roster-modifications');
+        $router->post('/team/roster-modifications/request', 'Team\\RosterModificationController@createRequest', 'admin.team.roster-modifications.request');
+        $router->post('/team/roster-modifications/approve', 'Team\\RosterModificationController@approve', 'admin.team.roster-modifications.approve');
+        $router->post('/team/roster-modifications/reject', 'Team\\RosterModificationController@reject', 'admin.team.roster-modifications.reject');
+        $router->post('/team/roster-modifications/implement', 'Team\\RosterModificationController@implement', 'admin.team.roster-modifications.implement');
+        $router->get('/team/roster-modifications/pending', 'Team\\RosterModificationController@getPending', 'admin.team.roster-modifications.pending');
+        $router->get('/team/roster-modifications/overdue', 'Team\\RosterModificationController@getOverdue', 'admin.team.roster-modifications.overdue');
+        
+        // Modification Approval Workflows
+        $router->get('/team/modification-approvals', 'Team\\ModificationApprovalController@index', 'admin.team.modification-approvals');
+        $router->post('/team/modification-approvals/process', 'Team\\ModificationApprovalController@processApproval', 'admin.team.modification-approvals.process');
+        $router->get('/team/modification-approvals/pending', 'Team\\ModificationApprovalController@getPendingForUser', 'admin.team.modification-approvals.pending');
+        $router->post('/team/modification-approvals/bulk-process', 'Team\\ModificationApprovalController@bulkProcess', 'admin.team.modification-approvals.bulk-process');
+        
+        // ====================================================================
+        // REGISTRATION SYSTEM ADMINISTRATION
+        // ====================================================================
+        
+        // School Registration Management (Admin Review & Approval)
+        $router->group(['prefix' => 'registration'], function($router) {
+            // School registration management
+            $router->get('/schools', 'RegistrationAdmin\\SchoolRegistrationAdminController@index', 'admin.registration.schools');
+            $router->get('/schools/pending', 'RegistrationAdmin\\SchoolRegistrationAdminController@pending', 'admin.registration.schools.pending');
+            $router->get('/schools/{id}', 'RegistrationAdmin\\SchoolRegistrationAdminController@show', 'admin.registration.schools.show');
+            $router->get('/schools/{id}/review', 'RegistrationAdmin\\SchoolRegistrationAdminController@review', 'admin.registration.schools.review');
+            $router->post('/schools/{id}/approve', 'RegistrationAdmin\\SchoolRegistrationAdminController@approve', 'admin.registration.schools.approve');
+            $router->post('/schools/{id}/reject', 'RegistrationAdmin\\SchoolRegistrationAdminController@reject', 'admin.registration.schools.reject');
+            $router->post('/schools/bulk-action', 'RegistrationAdmin\\SchoolRegistrationAdminController@bulkAction', 'admin.registration.schools.bulk');
+            $router->get('/schools/export', 'RegistrationAdmin\\SchoolRegistrationAdminController@export', 'admin.registration.schools.export');
+            
+            // Team Registration Management
+            $router->get('/teams', 'RegistrationAdmin\\TeamRegistrationAdminController@index', 'admin.registration.teams');
+            $router->get('/teams/pending', 'RegistrationAdmin\\TeamRegistrationAdminController@pending', 'admin.registration.teams.pending');
+            $router->get('/teams/{id}', 'RegistrationAdmin\\TeamRegistrationAdminController@show', 'admin.registration.teams.show');
+            $router->get('/teams/{id}/review', 'RegistrationAdmin\\TeamRegistrationAdminController@review', 'admin.registration.teams.review');
+            $router->post('/teams/{id}/approve', 'RegistrationAdmin\\TeamRegistrationAdminController@approve', 'admin.registration.teams.approve');
+            $router->post('/teams/{id}/reject', 'RegistrationAdmin\\TeamRegistrationAdminController@reject', 'admin.registration.teams.reject');
+            $router->post('/teams/bulk-action', 'RegistrationAdmin\\TeamRegistrationAdminController@bulkAction', 'admin.registration.teams.bulk');
+            $router->get('/teams/export', 'RegistrationAdmin\\TeamRegistrationAdminController@export', 'admin.registration.teams.export');
+            
+            // Registration Analytics and Reports
+            $router->get('/analytics', 'RegistrationAdmin\\RegistrationAnalyticsController@index', 'admin.registration.analytics');
+            $router->get('/analytics/schools', 'RegistrationAdmin\\RegistrationAnalyticsController@schools', 'admin.registration.analytics.schools');
+            $router->get('/analytics/teams', 'RegistrationAdmin\\RegistrationAnalyticsController@teams', 'admin.registration.analytics.teams');
+            $router->get('/analytics/participants', 'RegistrationAdmin\\RegistrationAnalyticsController@participants', 'admin.registration.analytics.participants');
+            $router->get('/analytics/timeline', 'RegistrationAdmin\\RegistrationAnalyticsController@timeline', 'admin.registration.analytics.timeline');
+            $router->get('/analytics/export/{type}', 'RegistrationAdmin\\RegistrationAnalyticsController@export', 'admin.registration.analytics.export');
+            
+            // Bulk Import Management (Admin oversight)
+            $router->get('/bulk-imports', 'RegistrationAdmin\\BulkImportAdminController@index', 'admin.registration.bulk-imports');
+            $router->get('/bulk-imports/{id}', 'RegistrationAdmin\\BulkImportAdminController@show', 'admin.registration.bulk-imports.show');
+            $router->post('/bulk-imports/{id}/approve', 'RegistrationAdmin\\BulkImportAdminController@approve', 'admin.registration.bulk-imports.approve');
+            $router->post('/bulk-imports/{id}/reject', 'RegistrationAdmin\\BulkImportAdminController@reject', 'admin.registration.bulk-imports.reject');
+            $router->get('/bulk-imports/{id}/audit-log', 'RegistrationAdmin\\BulkImportAdminController@auditLog', 'admin.registration.bulk-imports.audit');
+            
+            // Registration Settings and Configuration
+            $router->get('/settings', 'RegistrationAdmin\\RegistrationSettingsController@index', 'admin.registration.settings');
+            $router->post('/settings/deadlines', 'RegistrationAdmin\\RegistrationSettingsController@updateDeadlines', 'admin.registration.settings.deadlines');
+            $router->post('/settings/limits', 'RegistrationAdmin\\RegistrationSettingsController@updateLimits', 'admin.registration.settings.limits');
+            $router->post('/settings/validation-rules', 'RegistrationAdmin\\RegistrationSettingsController@updateValidationRules', 'admin.registration.settings.validation');
+            $router->post('/settings/notifications', 'RegistrationAdmin\\RegistrationSettingsController@updateNotifications', 'admin.registration.settings.notifications');
+        });
+        
         // AJAX API endpoints for admin dashboard
         $router->get('/api/system-status', 'DashboardController@systemStatus', 'admin.api.system-status');
         $router->get('/api/dashboard-updates', 'DashboardController@dashboardUpdates', 'admin.api.dashboard-updates');
@@ -649,11 +758,53 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/submissions', 'SubmissionController@index', 'coordinator.submissions');
         $router->post('/submissions', 'SubmissionController@store', 'coordinator.submissions.store');
         
-        // Bulk student import
-        $router->get('/bulk-import', '\\App\\Controllers\\Registration\\BulkImportController@index', 'coordinator.bulk-import');
-        $router->get('/bulk-import/template/{categoryId?}', '\\App\\Controllers\\Registration\\BulkImportController@downloadTemplate', 'coordinator.bulk-import.template');
-        $router->post('/bulk-import', '\\App\\Controllers\\Registration\\BulkImportController@processImport', 'coordinator.bulk-import.process');
-        $router->get('/bulk-import/results', '\\App\\Controllers\\Registration\\BulkImportController@showResults', 'coordinator.bulk-import.results');
+        // ====================================================================
+        // REGISTRATION SYSTEM - TEAM REGISTRATION
+        // ====================================================================
+        
+        // Team registration dashboard and management
+        $router->get('/register/team', 'Registration\\TeamRegistrationController@index', 'coordinator.team.register');
+        $router->get('/register/team/select-category', 'Registration\\TeamRegistrationController@selectCategory', 'coordinator.team.register.category');
+        $router->get('/register/team/create', 'Registration\\TeamRegistrationController@create', 'coordinator.team.register.create');
+        $router->post('/register/team/store', 'Registration\\TeamRegistrationController@store', 'coordinator.team.register.store');
+        
+        // Team registration viewing and editing
+        $router->get('/register/team/{id}', 'Registration\\TeamRegistrationController@show', 'coordinator.team.register.show');
+        $router->get('/register/team/{id}/edit', 'Registration\\TeamRegistrationController@edit', 'coordinator.team.register.edit');
+        $router->post('/register/team/{id}/update', 'Registration\\TeamRegistrationController@update', 'coordinator.team.register.update');
+        
+        // Team participant management
+        $router->post('/register/team/add-participant', 'Registration\\TeamRegistrationController@addParticipant', 'coordinator.team.register.add-participant');
+        $router->post('/register/team/remove-participant', 'Registration\\TeamRegistrationController@removeParticipant', 'coordinator.team.register.remove-participant');
+        
+        // Team registration workflow
+        $router->post('/register/team/submit', 'Registration\\TeamRegistrationController@submit', 'coordinator.team.register.submit');
+        $router->post('/register/team/withdraw', 'Registration\\TeamRegistrationController@withdraw', 'coordinator.team.register.withdraw');
+        
+        // Team registration AJAX endpoints
+        $router->post('/register/team/check-eligibility', 'Registration\\TeamRegistrationController@checkParticipantEligibility', 'coordinator.team.register.check-eligibility');
+        $router->get('/register/team/closed', 'Registration\\TeamRegistrationController@closed', 'coordinator.team.register.closed');
+        
+        // ====================================================================
+        // REGISTRATION SYSTEM - BULK IMPORT
+        // ====================================================================
+        
+        // Bulk student import dashboard and wizard
+        $router->get('/bulk-import', 'Registration\\BulkImportController@index', 'coordinator.bulk-import');
+        $router->get('/bulk-import/wizard', 'Registration\\BulkImportController@wizard', 'coordinator.bulk-import.wizard');
+        
+        // Template downloads
+        $router->get('/bulk-import/download-template', 'Registration\\BulkImportController@downloadTemplate', 'coordinator.bulk-import.template');
+        
+        // Upload and validation workflow
+        $router->post('/bulk-import/upload', 'Registration\\BulkImportController@upload', 'coordinator.bulk-import.upload');
+        $router->get('/bulk-import/validation-status', 'Registration\\BulkImportController@validationStatus', 'coordinator.bulk-import.validation-status');
+        $router->get('/bulk-import/{id}/validation-results', 'Registration\\BulkImportController@validationResults', 'coordinator.bulk-import.validation-results');
+        
+        // Import execution and results
+        $router->post('/bulk-import/execute', 'Registration\\BulkImportController@executeImport', 'coordinator.bulk-import.execute');
+        $router->get('/bulk-import/{id}/results', 'Registration\\BulkImportController@results', 'coordinator.bulk-import.results');
+        $router->get('/bulk-import/{id}/download-errors', 'Registration\\BulkImportController@downloadErrorReport', 'coordinator.bulk-import.download-errors');
         
         // File uploads
         $router->post('/upload/consent-form', '\\App\\Controllers\\FileUploadController@uploadConsentForm', 'coordinator.upload.consent');
@@ -662,6 +813,22 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/files/{id}/download', '\\App\\Controllers\\FileUploadController@downloadFile', 'coordinator.files.download');
         $router->delete('/files/{id}', '\\App\\Controllers\\FileUploadController@deleteFile', 'coordinator.files.delete');
         $router->get('/files/{id}/info', '\\App\\Controllers\\FileUploadController@getFileInfo', 'coordinator.files.info');
+        
+        // Team Composition Management (School-specific access)
+        $router->get('/team-composition', '\\App\\Controllers\\Team\\TeamCompositionController@index', 'coordinator.team.composition');
+        $router->get('/team-composition/{team_id}', '\\App\\Controllers\\Team\\TeamCompositionController@show', 'coordinator.team.composition.show');
+        $router->post('/team-composition/validate', '\\App\\Controllers\\Team\\TeamCompositionController@validateComposition', 'coordinator.team.composition.validate');
+        $router->post('/team-composition/add-participant', '\\App\\Controllers\\Team\\TeamCompositionController@addParticipant', 'coordinator.team.composition.add-participant');
+        $router->post('/team-composition/remove-participant', '\\App\\Controllers\\Team\\TeamCompositionController@removeParticipant', 'coordinator.team.composition.remove-participant');
+        $router->post('/team-composition/update-participant-role', '\\App\\Controllers\\Team\\TeamCompositionController@updateParticipantRole', 'coordinator.team.composition.update-participant-role');
+        
+        // Coach Assignment for School Teams
+        $router->post('/team-coach/assign', '\\App\\Controllers\\Team\\CoachAssignmentController@assignCoach', 'coordinator.team.coach.assign');
+        $router->post('/team-coach/remove', '\\App\\Controllers\\Team\\CoachAssignmentController@removeCoach', 'coordinator.team.coach.remove');
+        
+        // Roster Modification Requests
+        $router->get('/roster-modifications', '\\App\\Controllers\\Team\\RosterModificationController@index', 'coordinator.roster-modifications');
+        $router->post('/roster-modifications/request', '\\App\\Controllers\\Team\\RosterModificationController@createRequest', 'coordinator.roster-modifications.request');
     });
     
     // ========================================================================
@@ -695,6 +862,34 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/files/{id}/download', '\\App\\Controllers\\FileUploadController@downloadFile', 'coach.files.download');
         $router->delete('/files/{id}', '\\App\\Controllers\\FileUploadController@deleteFile', 'coach.files.delete');
         $router->get('/files/{id}/info', '\\App\\Controllers\\FileUploadController@getFileInfo', 'coach.files.info');
+        
+        // Team Composition Management (Own teams only)
+        $router->get('/team-composition', '\\App\\Controllers\\Team\\TeamCompositionController@index', 'coach.team.composition');
+        $router->get('/team-composition/{team_id}', '\\App\\Controllers\\Team\\TeamCompositionController@show', 'coach.team.composition.show');
+        $router->post('/team-composition/validate', '\\App\\Controllers\\Team\\TeamCompositionController@validateComposition', 'coach.team.composition.validate');
+        
+        // Limited participant management for coaches
+        $router->post('/team-composition/update-participant-role', '\\App\\Controllers\\Team\\TeamCompositionController@updateParticipantRole', 'coach.team.composition.update-participant-role');
+        
+        // Request roster modifications (coaches can request, but not approve)
+        $router->post('/roster-modifications/request', '\\App\\Controllers\\Team\\RosterModificationController@createRequest', 'coach.roster-modifications.request');
+        
+        // ====================================================================
+        // REGISTRATION SYSTEM - TEAM REGISTRATION (Coach Access)
+        // ====================================================================
+        
+        // Team registration for coaches (own teams only)
+        $router->get('/register/team', 'Registration\\TeamRegistrationController@index', 'coach.team.register');
+        $router->get('/register/team/{id}', 'Registration\\TeamRegistrationController@show', 'coach.team.register.show');
+        $router->get('/register/team/{id}/edit', 'Registration\\TeamRegistrationController@edit', 'coach.team.register.edit');
+        $router->post('/register/team/{id}/update', 'Registration\\TeamRegistrationController@update', 'coach.team.register.update');
+        
+        // Team participant management (limited for coaches)
+        $router->post('/register/team/add-participant', 'Registration\\TeamRegistrationController@addParticipant', 'coach.team.register.add-participant');
+        $router->post('/register/team/remove-participant', 'Registration\\TeamRegistrationController@removeParticipant', 'coach.team.register.remove-participant');
+        
+        // Team submission workflow
+        $router->post('/register/team/submit', 'Registration\\TeamRegistrationController@submit', 'coach.team.register.submit');
     });
     
     // ========================================================================
@@ -802,5 +997,58 @@ $router->group(['prefix' => '/api', 'middleware' => 'auth'], function($router) {
     $router->group(['middleware' => 'permission:' . Auth::PERM_SCHOOL_VIEW], function($router) {
         $router->get('/schools', 'Api\\SchoolController@index', 'api.schools');
         $router->get('/schools/{id}', 'Api\\SchoolController@show', 'api.schools.show');
+    });
+    
+    // ========================================================================
+    // REGISTRATION SYSTEM API ROUTES
+    // ========================================================================
+    
+    // School Registration API (School coordinators and admins)
+    $router->group(['middleware' => 'role:school_coordinator,competition_admin,super_admin', 'prefix' => 'registration'], function($router) {
+        // School registration status and management
+        $router->get('/schools/status', 'Api\\Registration\\SchoolRegistrationApiController@getStatus', 'api.registration.schools.status');
+        $router->post('/schools/validate-step', 'Api\\Registration\\SchoolRegistrationApiController@validateStep', 'api.registration.schools.validate-step');
+        $router->post('/schools/save-progress', 'Api\\Registration\\SchoolRegistrationApiController@saveProgress', 'api.registration.schools.save-progress');
+        
+        // Team Registration API  
+        $router->get('/teams', 'Api\\Registration\\TeamRegistrationApiController@index', 'api.registration.teams');
+        $router->get('/teams/{id}', 'Api\\Registration\\TeamRegistrationApiController@show', 'api.registration.teams.show');
+        $router->post('/teams/validate-composition', 'Api\\Registration\\TeamRegistrationApiController@validateComposition', 'api.registration.teams.validate-composition');
+        $router->get('/teams/categories/available', 'Api\\Registration\\TeamRegistrationApiController@getAvailableCategories', 'api.registration.teams.categories.available');
+        
+        // Participant Eligibility API
+        $router->post('/participants/check-eligibility', 'Api\\Registration\\ParticipantEligibilityApiController@checkEligibility', 'api.registration.participants.check-eligibility');
+        $router->get('/participants/search', 'Api\\Registration\\ParticipantEligibilityApiController@searchParticipants', 'api.registration.participants.search');
+        $router->post('/participants/bulk-validate', 'Api\\Registration\\ParticipantEligibilityApiController@bulkValidate', 'api.registration.participants.bulk-validate');
+        
+        // Category Validation API
+        $router->get('/categories/{id}/limits', 'Api\\Registration\\CategoryValidationApiController@getCategoryLimits', 'api.registration.categories.limits');
+        $router->post('/categories/validate-registration', 'Api\\Registration\\CategoryValidationApiController@validateRegistration', 'api.registration.categories.validate-registration');
+        $router->get('/categories/school-status/{schoolId}', 'Api\\Registration\\CategoryValidationApiController@getSchoolCategoryStatus', 'api.registration.categories.school-status');
+        
+        // Bulk Import API
+        $router->get('/bulk-imports', 'Api\\Registration\\BulkImportApiController@index', 'api.registration.bulk-imports');
+        $router->get('/bulk-imports/{id}/status', 'Api\\Registration\\BulkImportApiController@getStatus', 'api.registration.bulk-imports.status');
+        $router->post('/bulk-imports/validate-file', 'Api\\Registration\\BulkImportApiController@validateFile', 'api.registration.bulk-imports.validate-file');
+        $router->get('/bulk-imports/{id}/progress', 'Api\\Registration\\BulkImportApiController@getProgress', 'api.registration.bulk-imports.progress');
+        $router->get('/bulk-imports/{id}/errors', 'Api\\Registration\\BulkImportApiController@getErrors', 'api.registration.bulk-imports.errors');
+    });
+    
+    // Registration Analytics API (Admin only)
+    $router->group(['middleware' => 'role:super_admin', 'prefix' => 'registration/analytics'], function($router) {
+        $router->get('/dashboard-stats', 'Api\\Registration\\RegistrationAnalyticsApiController@getDashboardStats', 'api.registration.analytics.dashboard');
+        $router->get('/registration-trends', 'Api\\Registration\\RegistrationAnalyticsApiController@getRegistrationTrends', 'api.registration.analytics.trends');
+        $router->get('/category-distribution', 'Api\\Registration\\RegistrationAnalyticsApiController@getCategoryDistribution', 'api.registration.analytics.category-distribution');
+        $router->get('/school-participation', 'Api\\Registration\\RegistrationAnalyticsApiController@getSchoolParticipation', 'api.registration.analytics.school-participation');
+        $router->get('/deadline-compliance', 'Api\\Registration\\RegistrationAnalyticsApiController@getDeadlineCompliance', 'api.registration.analytics.deadline-compliance');
+        $router->get('/geographic-distribution', 'Api\\Registration\\RegistrationAnalyticsApiController@getGeographicDistribution', 'api.registration.analytics.geographic');
+    });
+    
+    // Public Registration Status API (Public access for status checking)
+    $router->group(['prefix' => 'public/registration'], function($router) {
+        $router->post('/school/check-status', 'Api\\Registration\\PublicRegistrationApiController@checkSchoolStatus', 'api.public.registration.school.status');
+        $router->get('/deadlines', 'Api\\Registration\\PublicRegistrationApiController@getDeadlines', 'api.public.registration.deadlines');
+        $router->get('/categories/public-info', 'Api\\Registration\\PublicRegistrationApiController@getCategoriesPublicInfo', 'api.public.registration.categories');
+        $router->get('/competition/public-status', 'Api\\Registration\\PublicRegistrationApiController@getCompetitionStatus', 'api.public.registration.competition.status');
     });
 });
