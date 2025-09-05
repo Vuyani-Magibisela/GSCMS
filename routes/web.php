@@ -481,6 +481,21 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/districts/{id}/export', 'DistrictController@export', 'admin.districts.export.single');
         $router->delete('/districts/{id}', 'DistrictController@destroy', 'admin.districts.destroy');
         
+        // Contact management
+        $router->get('/contacts', 'ContactController@index', 'admin.contacts');
+        $router->get('/contacts/create', 'ContactController@create', 'admin.contacts.create');
+        $router->post('/contacts', 'ContactController@store', 'admin.contacts.store');
+        $router->get('/contacts/{id}', 'ContactController@show', 'admin.contacts.show');
+        $router->get('/contacts/{id}/edit', 'ContactController@edit', 'admin.contacts.edit');
+        $router->put('/contacts/{id}', 'ContactController@update', 'admin.contacts.update');
+        $router->post('/contacts/{id}', 'ContactController@update', 'admin.contacts.update.post');
+        $router->delete('/contacts/{id}', 'ContactController@destroy', 'admin.contacts.destroy');
+        $router->post('/contacts/{id}/delete', 'ContactController@destroy', 'admin.contacts.destroy.post');
+        
+        // Contact AJAX endpoints
+        $router->get('/contacts/school/{schoolId}', 'ContactController@getBySchool', 'admin.contacts.by-school');
+        $router->post('/contacts/update-status', 'ContactController@updateStatus', 'admin.contacts.status.update');
+        
         // System logs and monitoring
         $router->get('/logs', 'LogController@index', 'admin.logs');
         $router->get('/logs/{file}', 'LogController@show', 'admin.logs.show');

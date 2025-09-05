@@ -605,4 +605,21 @@ class User extends BaseModel
     {
         return $this->role === self::PARTICIPANT;
     }
+    
+    /**
+     * Get users by school
+     */
+    public function getBySchool($schoolId)
+    {
+        $results = $this->db->table($this->table)
+            ->where('school_id', $schoolId)
+            ->where('status', self::STATUS_ACTIVE)
+            ->whereNull('deleted_at')
+            ->orderBy('role')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+        
+        return $this->collection($results);
+    }
 }
