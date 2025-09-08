@@ -824,6 +824,52 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->post('/categories', 'CategoryController@store', 'admin.categories.store');
         $router->put('/categories/{id}', 'CategoryController@update', 'admin.categories.update');
         $router->delete('/categories/{id}', 'CategoryController@destroy', 'admin.categories.destroy');
+        
+        // ====================================================================
+        // SCHEDULING SYSTEM ROUTES
+        // ====================================================================
+        
+        // Scheduling dashboard and calendar
+        $router->get('/scheduling', 'SchedulingController@index', 'admin.scheduling.dashboard');
+        $router->get('/scheduling/calendar', 'SchedulingController@calendar', 'admin.scheduling.calendar');
+        $router->get('/scheduling/calendar-events', 'SchedulingController@getCalendarEvents', 'admin.scheduling.calendar.events');
+        
+        // Calendar event management
+        $router->post('/scheduling/create-event', 'SchedulingController@createEvent', 'admin.scheduling.events.create');
+        $router->post('/scheduling/update-event', 'SchedulingController@updateEvent', 'admin.scheduling.events.update');
+        $router->delete('/scheduling/events/{id}', 'SchedulingController@deleteEvent', 'admin.scheduling.events.delete');
+        
+        // Time slot management
+        $router->get('/scheduling/time-slots', 'SchedulingController@timeSlots', 'admin.scheduling.timeslots');
+        $router->get('/scheduling/time-slots-data', 'SchedulingController@getTimeSlotsData', 'admin.scheduling.timeslots.data');
+        $router->post('/scheduling/auto-allocate', 'SchedulingController@autoAllocateSlots', 'admin.scheduling.auto.allocate');
+        $router->post('/scheduling/bulk-assign', 'SchedulingController@bulkAssignTeams', 'admin.scheduling.bulk.assign');
+        $router->post('/scheduling/assign-team', 'SchedulingController@assignTeamToSlot', 'admin.scheduling.assign.team');
+        $router->post('/scheduling/release-slot', 'SchedulingController@releaseSlot', 'admin.scheduling.release.slot');
+        $router->post('/scheduling/check-assignment', 'SchedulingController@checkAssignment', 'admin.scheduling.check.assignment');
+        
+        // Conflict management
+        $router->get('/scheduling/conflicts', 'SchedulingController@conflicts', 'admin.scheduling.conflicts');
+        $router->post('/scheduling/detect-conflicts', 'SchedulingController@detectConflicts', 'admin.scheduling.conflicts.detect');
+        $router->post('/scheduling/resolve-conflict', 'SchedulingController@resolveConflict', 'admin.scheduling.conflicts.resolve');
+        $router->post('/scheduling/auto-resolve-conflicts', 'SchedulingController@autoResolveConflicts', 'admin.scheduling.conflicts.auto.resolve');
+        
+        // Training sessions
+        $router->get('/scheduling/training-sessions', 'SchedulingController@trainingSessions', 'admin.scheduling.training.sessions');
+        $router->post('/scheduling/generate-training-schedule', 'SchedulingController@generateTrainingSchedule', 'admin.scheduling.training.generate');
+        $router->post('/scheduling/training-sessions', 'SchedulingController@createTrainingSession', 'admin.scheduling.training.create');
+        $router->put('/scheduling/training-sessions/{id}', 'SchedulingController@updateTrainingSession', 'admin.scheduling.training.update');
+        $router->delete('/scheduling/training-sessions/{id}', 'SchedulingController@deleteTrainingSession', 'admin.scheduling.training.delete');
+        
+        // Notification scheduling
+        $router->post('/scheduling/schedule-notifications', 'SchedulingController@scheduleNotifications', 'admin.scheduling.notifications.schedule');
+        $router->post('/scheduling/process-notifications', 'SchedulingController@processNotifications', 'admin.scheduling.notifications.process');
+        $router->get('/scheduling/notification-stats', 'SchedulingController@getNotificationStats', 'admin.scheduling.notifications.stats');
+        
+        // Data export and reporting
+        $router->get('/scheduling/export', 'SchedulingController@exportSchedule', 'admin.scheduling.export');
+        $router->get('/scheduling/unassigned-teams', 'SchedulingController@getUnassignedTeams', 'admin.scheduling.unassigned.teams');
+        $router->get('/scheduling/statistics', 'SchedulingController@getSchedulingStatistics', 'admin.scheduling.statistics');
     });
     
     // ========================================================================
