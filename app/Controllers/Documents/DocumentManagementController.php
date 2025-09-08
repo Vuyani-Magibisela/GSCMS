@@ -300,6 +300,191 @@ class DocumentManagementController extends BaseController
         return $this->db->query($query)->fetchAll();
     }
     
+    /**
+     * Save digital signature
+     */
+    public function saveDigitalSignature()
+    {
+        try {
+            // Check authentication
+            if (!$this->auth->isLoggedIn()) {
+                return Response::json(['error' => 'Authentication required'], 401);
+            }
+            
+            // Get JSON input
+            $input = json_decode(file_get_contents('php://input'), true);
+            if (!$input) {
+                return Response::json(['error' => 'Invalid JSON data'], 400);
+            }
+            
+            // Validate required fields
+            $requiredFields = ['signature_data', 'signer_name', 'signer_role', 'document_id', 'document_type'];
+            foreach ($requiredFields as $field) {
+                if (empty($input[$field])) {
+                    return Response::json(['error' => "Missing required field: {$field}"], 400);
+                }
+            }
+            
+            // Create digital signature record
+            $signatureData = [
+                'document_id' => $input['document_id'],
+                'document_type' => $input['document_type'],
+                'signature_data' => $input['signature_data'],
+                'method' => $input['signature_method'] ?? 'web_capture',
+                'signer_name' => $input['signer_name'],
+                'signer_email' => $input['signer_email'] ?? null,
+                'signer_phone' => $input['signer_phone'] ?? null,
+                'signer_role' => $input['signer_role'],
+                'intent_statement' => $input['intent_statement'] ?? null,
+                'signature_features' => $input['signature_features'] ?? [],
+                'signature_bounds' => $input['signature_bounds'] ?? null,
+                'device_fingerprint' => json_encode($input['device_info'] ?? []),
+                'timestamp' => $input['timestamp'] ?? date('Y-m-d H:i:s'),
+                'session_id' => $input['session_id'] ?? null,
+                'geolocation' => $input['geolocation'] ?? null
+            ];
+            
+            $digitalSignature = DigitalSignature::createSignature($signatureData);
+            
+            if ($digitalSignature) {
+                // Log successful signature capture
+                $this->logger->info("Digital signature captured", [
+                    'signature_id' => $digitalSignature->id,
+                    'document_id' => $input['document_id'],
+                    'document_type' => $input['document_type'],
+                    'signer_name' => $input['signer_name'],
+                    'signer_role' => $input['signer_role']
+                ]);
+                
+                return Response::json([
+                    'success' => true,
+                    'message' => 'Digital signature saved successfully',
+                    'signature' => [
+                        'id' => $digitalSignature->id,
+                        'verification_hash' => $digitalSignature->verification_hash,
+                        'timestamp' => $digitalSignature->signature_timestamp,
+                        'status' => $digitalSignature->verification_status
+                    ]
+                ]);
+            } else {
+                return Response::json(['error' => 'Failed to save digital signature'], 500);
+            }
+            
+        } catch (Exception $e) {
+            $this->logger->error('Digital signature save error: ' . $e->getMessage());
+            return Response::json(['error' => 'Failed to save digital signature: ' . $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Show digital signature capture form
+     */
+    public function showDigitalSignature()
+    {
+        // Check authentication
+        if (!$this->auth->isLoggedIn()) {
+            return $this->redirect('/auth/login');
+        }
+        
+        $documentId = Request::input('document_id');
+        $documentType = Request::input('document_type');
+        
+        if (!$documentId || !$documentType) {
+            return $this->redirect('/admin/documents?error=missing_parameters');
+        }
+        
+        // Get document information
+        $document = $this->getDocumentInfo($documentId, $documentType);
+        if (!$document) {
+            return $this->redirect('/admin/documents?error=document_not_found');
+        }
+        
+        return $this->render('documents/digital-signature', [
+            'pageTitle' => 'Digital Signature Capture',
+            'pageCSS' => ['/css/digital-signature.css'],
+            'pageJS' => ['/js/digital-signature.js'],
+            'breadcrumbs' => [
+                ['title' => 'Dashboard', 'url' => '/admin/dashboard'],
+                ['title' => 'Document Management', 'url' => '/admin/documents'],
+                ['title' => 'Digital Signature', 'url' => '']
+            ],
+            'document' => $document
+        ]);
+    }
+    
+    /**
+     * Get document information for signature capture
+     */
+    private function getDocumentInfo($documentId, $documentType)
+    {
+        try {
+            switch ($documentType) {
+                case 'consent_form':
+                    $consentModel = new ConsentForm();
+                    $document = $consentModel->find($documentId);
+                    if ($document) {
+                        // Get participant and school info
+                        $participant = Participant::find($document->participant_id);
+                        $team = $participant ? Team::find($participant->team_id) : null;
+                        $school = $team ? School::find($team->school_id) : null;
+                        
+                        return [
+                            'id' => $document->id,
+                            'document_type' => 'consent_form',
+                            'participant_name' => $participant ? "{$participant->first_name} {$participant->last_name}" : 'N/A',
+                            'school_name' => $school ? $school->name : 'N/A',
+                            'signer_role' => 'parent' // Default for consent forms
+                        ];
+                    }
+                    break;
+                    
+                case 'medical_form':
+                    $medicalModel = new MedicalInformation();
+                    $document = $medicalModel->find($documentId);
+                    if ($document) {
+                        // Get participant and school info
+                        $participant = Participant::find($document->participant_id);
+                        $team = $participant ? Team::find($participant->team_id) : null;
+                        $school = $team ? School::find($team->school_id) : null;
+                        
+                        return [
+                            'id' => $document->id,
+                            'document_type' => 'medical_form',
+                            'participant_name' => $participant ? "{$participant->first_name} {$participant->last_name}" : 'N/A',
+                            'school_name' => $school ? $school->name : 'N/A',
+                            'signer_role' => 'parent' // Default for medical forms
+                        ];
+                    }
+                    break;
+                    
+                case 'student_document':
+                    $studentDocModel = new StudentDocument();
+                    $document = $studentDocModel->find($documentId);
+                    if ($document) {
+                        // Get participant and school info
+                        $participant = Participant::find($document->participant_id);
+                        $team = $participant ? Team::find($participant->team_id) : null;
+                        $school = $team ? School::find($team->school_id) : null;
+                        
+                        return [
+                            'id' => $document->id,
+                            'document_type' => 'student_document',
+                            'participant_name' => $participant ? "{$participant->first_name} {$participant->last_name}" : 'N/A',
+                            'school_name' => $school ? $school->name : 'N/A',
+                            'signer_role' => 'participant' // Default for student documents
+                        ];
+                    }
+                    break;
+            }
+            
+            return null;
+            
+        } catch (Exception $e) {
+            $this->logger->error('Error getting document info: ' . $e->getMessage());
+            return null;
+        }
+    }
+
     // Helper methods for statistics
     
     protected function getTotalDocumentCount()

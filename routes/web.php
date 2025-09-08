@@ -496,6 +496,96 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/contacts/school/{schoolId}', 'ContactController@getBySchool', 'admin.contacts.by-school');
         $router->post('/contacts/update-status', 'ContactController@updateStatus', 'admin.contacts.status.update');
         
+        // ====================================================================
+        // DOCUMENT MANAGEMENT SYSTEM (Comprehensive Document Management)
+        // ====================================================================
+        
+        // Document Management Dashboard
+        $router->get('/documents', '\\App\\Controllers\\Documents\\DocumentManagementController@index', 'admin.documents');
+        $router->get('/documents/dashboard', '\\App\\Controllers\\Documents\\DocumentManagementController@index', 'admin.documents.dashboard');
+        
+        // Document Verification Queue
+        $router->get('/documents/verification-queue', '\\App\\Controllers\\Documents\\DocumentManagementController@verificationQueue', 'admin.documents.verification.queue');
+        $router->post('/documents/verification-action', '\\App\\Controllers\\Documents\\DocumentManagementController@verificationAction', 'admin.documents.verification.action');
+        $router->post('/documents/bulk-approve', '\\App\\Controllers\\Documents\\DocumentManagementController@bulkApprove', 'admin.documents.bulk.approve');
+        $router->post('/documents/bulk-reject', '\\App\\Controllers\\Documents\\DocumentManagementController@bulkReject', 'admin.documents.bulk.reject');
+        
+        // Document Upload System
+        $router->post('/documents/upload', '\\App\\Controllers\\Documents\\DocumentManagementController@uploadDocument', 'admin.documents.upload');
+        $router->get('/documents/{type}/{id}/preview', '\\App\\Controllers\\Documents\\DocumentManagementController@previewDocument', 'admin.documents.preview');
+        $router->get('/documents/{type}/{id}/download', '\\App\\Controllers\\Documents\\DocumentManagementController@downloadDocument', 'admin.documents.download');
+        
+        // Digital Signature System
+        $router->get('/documents/digital-signature', '\\App\\Controllers\\Documents\\DocumentManagementController@showDigitalSignature', 'admin.documents.digital.signature');
+        $router->post('/documents/save-digital-signature', '\\App\\Controllers\\Documents\\DocumentManagementController@saveDigitalSignature', 'admin.documents.save.signature');
+        $router->get('/documents/signatures', '\\App\\Controllers\\Documents\\DocumentManagementController@listSignatures', 'admin.documents.signatures.list');
+        $router->get('/documents/signatures/{id}', '\\App\\Controllers\\Documents\\DocumentManagementController@showSignature', 'admin.documents.signatures.show');
+        $router->post('/documents/signatures/{id}/verify', '\\App\\Controllers\\Documents\\DocumentManagementController@verifySignature', 'admin.documents.signatures.verify');
+        
+        // Medical Form Management
+        $router->get('/documents/medical-forms', '\\App\\Controllers\\Documents\\MedicalFormController@index', 'admin.documents.medical.forms');
+        $router->get('/documents/medical-forms/create', '\\App\\Controllers\\Documents\\MedicalFormController@create', 'admin.documents.medical.forms.create');
+        $router->post('/documents/medical-forms', '\\App\\Controllers\\Documents\\MedicalFormController@store', 'admin.documents.medical.forms.store');
+        $router->get('/documents/medical-forms/{id}', '\\App\\Controllers\\Documents\\MedicalFormController@show', 'admin.documents.medical.forms.show');
+        $router->get('/documents/medical-forms/{id}/edit', '\\App\\Controllers\\Documents\\MedicalFormController@edit', 'admin.documents.medical.forms.edit');
+        $router->put('/documents/medical-forms/{id}', '\\App\\Controllers\\Documents\\MedicalFormController@update', 'admin.documents.medical.forms.update');
+        $router->post('/documents/collect-medical-info', '\\App\\Controllers\\Documents\\MedicalFormController@collectMedicalInfo', 'admin.documents.medical.collect');
+        $router->post('/documents/validate-medical', '\\App\\Controllers\\Documents\\MedicalFormController@validateMedicalData', 'admin.documents.medical.validate');
+        $router->post('/documents/emergency-protocols', '\\App\\Controllers\\Documents\\MedicalFormController@emergencyProtocols', 'admin.documents.emergency.protocols');
+        
+        // Student Document Management
+        $router->get('/documents/student-documents', '\\App\\Controllers\\Documents\\StudentDocumentController@index', 'admin.documents.student.docs');
+        $router->get('/documents/student-documents/create', '\\App\\Controllers\\Documents\\StudentDocumentController@create', 'admin.documents.student.docs.create');
+        $router->post('/documents/student-documents', '\\App\\Controllers\\Documents\\StudentDocumentController@store', 'admin.documents.student.docs.store');
+        $router->get('/documents/student-documents/{id}', '\\App\\Controllers\\Documents\\StudentDocumentController@show', 'admin.documents.student.docs.show');
+        $router->get('/documents/student-documents/{id}/edit', '\\App\\Controllers\\Documents\\StudentDocumentController@edit', 'admin.documents.student.docs.edit');
+        $router->put('/documents/student-documents/{id}', '\\App\\Controllers\\Documents\\StudentDocumentController@update', 'admin.documents.student.docs.update');
+        $router->post('/documents/student-documents/{id}/verify', '\\App\\Controllers\\Documents\\StudentDocumentController@verifyDocument', 'admin.documents.student.docs.verify');
+        $router->post('/documents/student-documents/{id}/ocr', '\\App\\Controllers\\Documents\\StudentDocumentController@performOCR', 'admin.documents.student.docs.ocr');
+        $router->post('/documents/student-documents/{id}/security-scan', '\\App\\Controllers\\Documents\\StudentDocumentController@securityScan', 'admin.documents.student.docs.scan');
+        
+        // Emergency Contact Management
+        $router->get('/documents/emergency-contacts', '\\App\\Controllers\\Documents\\EmergencyContactController@index', 'admin.documents.emergency.contacts');
+        $router->get('/documents/emergency-contacts/create', '\\App\\Controllers\\Documents\\EmergencyContactController@create', 'admin.documents.emergency.contacts.create');
+        $router->post('/documents/emergency-contacts', '\\App\\Controllers\\Documents\\EmergencyContactController@store', 'admin.documents.emergency.contacts.store');
+        $router->get('/documents/emergency-contacts/{id}', '\\App\\Controllers\\Documents\\EmergencyContactController@show', 'admin.documents.emergency.contacts.show');
+        $router->get('/documents/emergency-contacts/{id}/edit', '\\App\\Controllers\\Documents\\EmergencyContactController@edit', 'admin.documents.emergency.contacts.edit');
+        $router->put('/documents/emergency-contacts/{id}', '\\App\\Controllers\\Documents\\EmergencyContactController@update', 'admin.documents.emergency.contacts.update');
+        $router->post('/documents/emergency-contacts/{id}/verify', '\\App\\Controllers\\Documents\\EmergencyContactController@verifyContact', 'admin.documents.emergency.contacts.verify');
+        $router->post('/documents/emergency-contacts/{id}/test', '\\App\\Controllers\\Documents\\EmergencyContactController@testContact', 'admin.documents.emergency.contacts.test');
+        $router->get('/documents/emergency-contacts/participant/{id}', '\\App\\Controllers\\Documents\\EmergencyContactController@getForParticipant', 'admin.documents.emergency.contacts.participant');
+        
+        // Consent Form Management
+        $router->get('/documents/consent-forms', 'ConsentFormController@index', 'admin.documents.consent.forms');
+        $router->get('/documents/consent-forms/create', 'ConsentFormController@create', 'admin.documents.consent.forms.create');
+        $router->post('/documents/consent-forms', 'ConsentFormController@store', 'admin.documents.consent.forms.store');
+        $router->get('/documents/consent-forms/{id}', 'ConsentFormController@show', 'admin.documents.consent.forms.show');
+        $router->get('/documents/consent-forms/{id}/edit', 'ConsentFormController@edit', 'admin.documents.consent.forms.edit');
+        $router->put('/documents/consent-forms/{id}', 'ConsentFormController@update', 'admin.documents.consent.forms.update');
+        $router->post('/documents/consent-forms/{id}/approve', 'ConsentFormController@approve', 'admin.documents.consent.forms.approve');
+        $router->post('/documents/consent-forms/{id}/reject', 'ConsentFormController@reject', 'admin.documents.consent.forms.reject');
+        
+        // Security & Compliance
+        $router->get('/documents/security-audit', '\\App\\Controllers\\Documents\\DocumentManagementController@securityAudit', 'admin.documents.security.audit');
+        $router->get('/documents/popia-compliance', '\\App\\Controllers\\Documents\\DocumentManagementController@popiaCompliance', 'admin.documents.popia.compliance');
+        $router->post('/documents/generate-compliance-report', '\\App\\Controllers\\Documents\\DocumentManagementController@generateComplianceReport', 'admin.documents.compliance.report');
+        
+        // Document Analytics & Reports
+        $router->get('/documents/analytics', '\\App\\Controllers\\Documents\\DocumentManagementController@analytics', 'admin.documents.analytics');
+        $router->get('/documents/reports', '\\App\\Controllers\\Documents\\DocumentManagementController@reports', 'admin.documents.reports');
+        $router->post('/documents/reports/generate', '\\App\\Controllers\\Documents\\DocumentManagementController@generateReport', 'admin.documents.reports.generate');
+        $router->get('/documents/export/{format}', '\\App\\Controllers\\Documents\\DocumentManagementController@exportDocuments', 'admin.documents.export');
+        
+        // File Management API
+        $router->get('/documents/files/{id}/info', '\\App\\Controllers\\Documents\\DocumentManagementController@getFileInfo', 'admin.documents.files.info');
+        $router->post('/documents/files/{id}/move', '\\App\\Controllers\\Documents\\DocumentManagementController@moveFile', 'admin.documents.files.move');
+        $router->delete('/documents/files/{id}', '\\App\\Controllers\\Documents\\DocumentManagementController@deleteFile', 'admin.documents.files.delete');
+        
+        // AJAX API endpoints for documents
+        $router->get('/api/participants', '\\App\\Controllers\\Api\\ParticipantController@index', 'admin.api.participants');
+        $router->get('/api/schools/{id}/participants', '\\App\\Controllers\\Api\\ParticipantController@getBySchool', 'admin.api.participants.school');
+        $router->get('/api/documents/statistics', '\\App\\Controllers\\Documents\\DocumentManagementController@getStatistics', 'admin.api.documents.statistics');
+        
         // System logs and monitoring
         $router->get('/logs', 'LogController@index', 'admin.logs');
         $router->get('/logs/{file}', 'LogController@show', 'admin.logs.show');
