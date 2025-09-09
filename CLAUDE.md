@@ -6,6 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the GDE SciBOTICS Competition Management System (GSCMS), a PHP-based MVC web application for managing science competitions. The system handles user authentication, school management, team registration, participant management, judging, and competition logistics.
 
+## About Competition
+https://gdescibotics.co.za/ 
+
 ## Development Commands
 
 ### Database Management
