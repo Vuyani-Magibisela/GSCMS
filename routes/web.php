@@ -826,6 +826,34 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->delete('/categories/{id}', 'CategoryController@destroy', 'admin.categories.destroy');
         
         // ====================================================================
+        // TOURNAMENT BRACKET SYSTEM ROUTES
+        // ====================================================================
+        
+        // Tournament Management
+        $router->get('/tournaments', 'TournamentController@index', 'admin.tournaments');
+        $router->get('/tournaments/create', 'TournamentController@create', 'admin.tournaments.create');
+        $router->post('/tournaments', 'TournamentController@store', 'admin.tournaments.store');
+        $router->get('/tournaments/{id}', 'TournamentController@show', 'admin.tournaments.show');
+        $router->get('/tournaments/{id}/edit', 'TournamentController@edit', 'admin.tournaments.edit');
+        $router->put('/tournaments/{id}', 'TournamentController@update', 'admin.tournaments.update');
+        
+        // Tournament Seeding
+        $router->post('/tournaments/{id}/generate-seeding', 'TournamentController@generateSeeding', 'admin.tournaments.seeding.generate');
+        $router->get('/tournaments/{id}/seeding', 'TournamentController@seeding', 'admin.tournaments.seeding');
+        $router->post('/tournaments/{id}/seeding', 'TournamentController@updateSeeding', 'admin.tournaments.seeding.update');
+        
+        // Bracket Generation and Management
+        $router->post('/tournaments/{id}/generate-bracket', 'TournamentController@generateBracket', 'admin.tournaments.bracket.generate');
+        $router->get('/tournaments/{id}/bracket', 'TournamentController@bracket', 'admin.tournaments.bracket');
+        
+        // Match Management
+        $router->post('/tournaments/matches/{matchId}/score', 'TournamentController@updateMatch', 'admin.tournaments.matches.score');
+        
+        // Tournament Results
+        $router->get('/tournaments/{id}/results', 'TournamentController@results', 'admin.tournaments.results');
+        $router->post('/tournaments/{id}/publish-results', 'TournamentController@publishResults', 'admin.tournaments.results.publish');
+        
+        // ====================================================================
         // SCHEDULING SYSTEM ROUTES
         // ====================================================================
         
