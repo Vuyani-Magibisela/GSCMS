@@ -1072,6 +1072,51 @@ $router->group(['middleware' => 'auth'], function($router) {
     });
     
     // ========================================================================
+    // JUDGE AUTHENTICATION ROUTES (No authentication required)
+    // ========================================================================
+    
+    $router->group(['prefix' => 'judge/auth'], function($router) {
+        // Authentication pages
+        $router->get('/', 'JudgeAuthController@index', 'judge.auth.login');
+        $router->get('/login', 'JudgeAuthController@index', 'judge.auth.login.alt');
+        $router->post('/login', 'JudgeAuthController@login', 'judge.auth.login.post');
+        
+        // Logout (can be called from anywhere)
+        $router->post('/logout', 'JudgeAuthController@logout', 'judge.auth.logout');
+        $router->get('/logout', 'JudgeAuthController@logout', 'judge.auth.logout.get');
+        
+        // Password reset
+        $router->get('/reset-password', 'JudgeAuthController@resetPassword', 'judge.auth.reset');
+        $router->post('/reset-password', 'JudgeAuthController@resetPassword', 'judge.auth.reset.post');
+        
+        // Device management and verification (requires authentication)
+        $router->get('/devices', 'JudgeAuthController@deviceManagement', 'judge.auth.devices');
+        $router->post('/trust-device', 'JudgeAuthController@trustDevice', 'judge.auth.trust.device');
+        $router->post('/block-device', 'JudgeAuthController@blockDevice', 'judge.auth.block.device');
+        
+        // 2FA Setup (requires authentication)
+        $router->get('/setup-2fa', 'JudgeAuthController@setup2FA', 'judge.auth.2fa.setup');
+        $router->post('/setup-2fa', 'JudgeAuthController@setup2FA', 'judge.auth.2fa.setup.post');
+        
+        // PIN Setup (requires authentication)
+        $router->get('/setup-pin', 'JudgeAuthController@setupPIN', 'judge.auth.pin.setup');
+        $router->post('/setup-pin', 'JudgeAuthController@setupPIN', 'judge.auth.pin.setup.post');
+        
+        // Access verification API
+        $router->post('/verify-access', 'JudgeAuthController@verifyAccess', 'judge.auth.verify.access');
+    });
+
+    // Judge Registration Routes (Public)
+    $router->group(['prefix' => 'judge/register'], function($router) {
+        $router->get('/', 'JudgeRegistrationController@index', 'judge.register');
+        $router->post('/', 'JudgeRegistrationController@register', 'judge.register.post');
+        $router->get('/success/{judgeCode}', 'JudgeRegistrationController@success', 'judge.register.success');
+        $router->get('/onboarding/{judgeCode?}', 'JudgeRegistrationController@onboarding', 'judge.onboarding');
+        $router->post('/onboarding/update', 'JudgeRegistrationController@updateOnboardingItem', 'judge.onboarding.update');
+        $router->post('/upload-documents', 'JudgeRegistrationController@uploadDocuments', 'judge.documents.upload');
+    });
+
+    // ========================================================================
     // JUDGE ROUTES (+ higher roles)
     // ========================================================================
     
