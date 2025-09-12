@@ -96,20 +96,20 @@ class ParticipantManagementController extends BaseController
             // Get filter options
             error_log('ParticipantController: Fetching filter options - schools');
             $schools = $this->db->query("
-                SELECT DISTINCT s.id, s.name as school_name 
+                SELECT DISTINCT s.id, s.school_name 
                 FROM schools s 
                 INNER JOIN teams t ON s.id = t.school_id 
                 INNER JOIN participants p ON t.id = p.team_id 
-                ORDER BY s.name
+                ORDER BY s.school_name
             ");
 
             error_log('ParticipantController: Fetching filter options - teams');
             $teams = $this->db->query("
-                SELECT DISTINCT t.id, t.name as team_name, s.name as school_name
+                SELECT DISTINCT t.id, t.name as team_name, s.school_name
                 FROM teams t 
                 INNER JOIN participants p ON t.id = p.team_id 
                 INNER JOIN schools s ON t.school_id = s.id
-                ORDER BY s.name, t.name
+                ORDER BY s.school_name, t.name
             ");
 
             error_log('ParticipantController: Getting statistics');
@@ -151,7 +151,7 @@ class ParticipantManagementController extends BaseController
     public function show($id)
     {
         $participant = $this->db->query("
-            SELECT p.*, t.name as team_name, t.id as team_id, s.name as school_name, s.id as school_id,
+            SELECT p.*, t.name as team_name, t.id as team_id, s.school_name, s.id as school_id,
                    CASE 
                        WHEN p.date_of_birth IS NOT NULL THEN 
                            TIMESTAMPDIFF(YEAR, p.date_of_birth, CURDATE())
@@ -196,7 +196,7 @@ class ParticipantManagementController extends BaseController
     public function edit($id)
     {
         $participant = $this->db->query("
-            SELECT p.*, t.id as team_id, t.name as team_name, s.id as school_id, s.name as school_name
+            SELECT p.*, t.id as team_id, t.name as team_name, s.id as school_id, s.school_name
             FROM participants p
             LEFT JOIN teams t ON p.team_id = t.id
             LEFT JOIN schools s ON t.school_id = s.id
@@ -212,7 +212,7 @@ class ParticipantManagementController extends BaseController
 
         // Get available teams for reassignment
         $teams = $this->db->query("
-            SELECT t.id, t.name as team_name, s.name as school_name,
+            SELECT t.id, t.name as team_name, s.school_name,
                    COUNT(p.id) as current_participants,
                    t.team_size as max_participants
             FROM teams t

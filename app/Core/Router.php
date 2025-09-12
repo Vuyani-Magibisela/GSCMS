@@ -309,7 +309,13 @@ class Router
             $middlewareParams = isset($middlewareParts[1]) ? $middlewareParts[1] : null;
             
             // Try Core middleware first, then Http middleware
-            $middlewareClass = "App\\Core\\Middleware\\{$middlewareName}Middleware";
+            // Handle case sensitivity for role middleware
+            if (strtolower($middlewareName) === 'role') {
+                $middlewareClass = "App\\Core\\Middleware\\RoleMiddleware";
+            } else {
+                $middlewareClass = "App\\Core\\Middleware\\{$middlewareName}Middleware";
+            }
+            
             if (!class_exists($middlewareClass)) {
                 $middlewareClass = "App\\Http\\Middleware\\{$middlewareName}Middleware";
             }

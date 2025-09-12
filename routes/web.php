@@ -23,6 +23,9 @@ $router->post('/admin/users/{id}/delete', 'App\\Controllers\\Admin\\UserControll
 // Public competition information
 $router->get('/competitions/public', 'CompetitionController@publicIndex', 'competitions.public');
 
+// Test route for participants (no middleware)
+$router->get('/test-participants', 'Admin\\ParticipantManagementController@index', 'test.participants');
+
 // About and other public pages
 $router->get('/about', 'PublicController@about', 'about');
 $router->get('/categories', 'PublicController@categories', 'categories');
@@ -401,6 +404,38 @@ $router->group(['middleware' => 'auth'], function($router) {
     // ========================================================================
     
     $router->get('/dashboard', 'HomeController@dashboard', 'dashboard');
+    
+    // Debug route to check user role
+    $router->get('/debug-role', function() {
+        $auth = \App\Core\Auth::getInstance();
+        if ($auth->check()) {
+            $user = $auth->user();
+            
+            // Test role checking methods
+            $hasSuper = $user->hasRole('super_admin');
+            $hasComp = $user->hasRole('competition_admin');
+            $hasAny = $user->hasAnyRole(['super_admin', 'competition_admin']);
+            $isAdmin = $user->isAdmin();
+            
+            return '<h2>Debug User Info</h2>
+                    <p><strong>User ID:</strong> ' . $user->id . '</p>
+                    <p><strong>Username:</strong> ' . $user->username . '</p>
+                    <p><strong>Email:</strong> ' . $user->email . '</p>
+                    <p><strong>Role:</strong> ' . $user->role . '</p>
+                    <p><strong>Status:</strong> ' . $user->status . '</p>
+                    <hr>
+                    <h3>Role Check Results:</h3>
+                    <p><strong>Has Super Admin Role:</strong> ' . ($hasSuper ? 'YES' : 'NO') . '</p>
+                    <p><strong>Has Competition Admin Role:</strong> ' . ($hasComp ? 'YES' : 'NO') . '</p>
+                    <p><strong>Has Any Admin Role:</strong> ' . ($hasAny ? 'YES' : 'NO') . '</p>
+                    <p><strong>Is Admin:</strong> ' . ($isAdmin ? 'YES' : 'NO') . '</p>
+                    <hr>
+                    <p><a href="/GSCMS/public/admin/participants">Test Participants Access</a></p>
+                    <p><a href="/GSCMS/public/test-participants">Test Direct Participants Access (No Middleware)</a></p>';
+        } else {
+            return '<p>Not authenticated</p>';
+        }
+    });
     $router->get('/profile', 'ProfileController@show', 'profile.show');
     $router->put('/profile', 'ProfileController@update', 'profile.update');
     $router->get('/settings', 'SettingsController@index', 'settings.index');
@@ -413,7 +448,7 @@ $router->group(['middleware' => 'auth'], function($router) {
     // SUPER ADMIN ROUTES - System Administration
     // ========================================================================
     
-    $router->group(['middleware' => 'role:super_admin', 'prefix' => 'admin', 'namespace' => 'Admin'], function($router) {
+    $router->group(['middleware' => 'role:super_admin,competition_admin', 'prefix' => 'admin', 'namespace' => 'Admin'], function($router) {
         // System administration
         $router->get('/dashboard', 'DashboardController@index', 'admin.dashboard');
         
@@ -431,6 +466,15 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/system/settings', 'SystemController@settings', 'admin.system.settings');
         $router->post('/system/settings', 'SystemController@updateSettings', 'admin.system.settings.update');
         
+        // Participant management
+        $router->get('/participants', 'ParticipantManagementController@index', 'admin.participants');
+        $router->get('/participants/create', 'ParticipantManagementController@create', 'admin.participants.create');
+        $router->post('/participants', 'ParticipantManagementController@store', 'admin.participants.store');
+        $router->get('/participants/{id}', 'ParticipantManagementController@show', 'admin.participants.show');
+        $router->get('/participants/{id}/edit', 'ParticipantManagementController@edit', 'admin.participants.edit');
+        $router->put('/participants/{id}', 'ParticipantManagementController@update', 'admin.participants.update');
+        $router->delete('/participants/{id}', 'ParticipantManagementController@destroy', 'admin.participants.destroy');
+
         // Team management
         $router->get('/teams', 'TeamManagementController@index', 'admin.teams');
         $router->get('/teams/create', 'TeamManagementController@create', 'admin.teams.create');

@@ -415,3 +415,306 @@ Temporarily disable rate limiting for testing:
 - [ ] Proper JSON responses
 - [ ] Error handling for failed requests
 - [ ] Session authentication maintained
+
+## Routing System & Admin Page Development
+
+### Overview
+
+The GSCMS uses a custom routing system with middleware support, route groups, and role-based access control. Understanding this system is critical for creating new admin pages and avoiding common development issues.
+
+### Routing Architecture
+
+#### Core Components
+- **Router Class**: `app/Core/Router.php` - Custom router with middleware and grouping support
+- **Route Definitions**: `routes/web.php` - All application routes defined here  
+- **Middleware System**: Role-based access control with session validation
+- **View System**: Layout-based templates with consistent admin interface
+
+#### Route Definition Patterns
+
+**Individual Routes:**
+```php
+$router->get('/path', 'Controller@method', 'route.name');
+$router->post('/path', 'Controller@method', 'route.name');
+$router->put('/path/{id}', 'Controller@method', 'route.name');
+$router->delete('/path/{id}', 'Controller@method', 'route.name');
+```
+
+**Route Groups (Recommended for Admin):**
+```php
+$router->group([
+    'middleware' => 'role:super_admin,competition_admin', 
+    'prefix' => 'admin', 
+    'namespace' => 'Admin'
+], function($router) {
+    $router->get('/participants', 'ParticipantManagementController@index', 'admin.participants');
+    $router->get('/participants/create', 'ParticipantManagementController@create', 'admin.participants.create');
+    $router->post('/participants', 'ParticipantManagementController@store', 'admin.participants.store');
+    $router->get('/participants/{id}', 'ParticipantManagementController@show', 'admin.participants.show');
+    $router->get('/participants/{id}/edit', 'ParticipantManagementController@edit', 'admin.participants.edit');
+    $router->put('/participants/{id}', 'ParticipantManagementController@update', 'admin.participants.update');
+    $router->delete('/participants/{id}', 'ParticipantManagementController@destroy', 'admin.participants.destroy');
+});
+```
+
+### Admin Route Group Structure
+
+#### Group Configuration
+- **Middleware**: `role:super_admin,competition_admin` - Restricts access to admin roles
+- **Prefix**: `admin` - All URLs become `/admin/...`  
+- **Namespace**: `Admin` - Maps to `App\Controllers\Admin\` directory
+
+#### Controller Resolution
+Inside the admin group:
+- `'DashboardController@index'` → `App\Controllers\Admin\DashboardController@index`
+- `'ParticipantManagementController@index'` → `App\Controllers\Admin\ParticipantManagementController@index`
+- `'SchoolManagementController@index'` → `App\Controllers\Admin\SchoolManagementController@index`
+
+#### URL Generation
+With `prefix => 'admin'`:
+- `/participants` becomes `/admin/participants`
+- `/schools/create` becomes `/admin/schools/create`
+- `/teams/{id}/edit` becomes `/admin/teams/{id}/edit`
+
+### View Layout System
+
+#### Critical Layout Configuration
+
+**ALL admin views must use the correct layout path:**
+```php
+<?php 
+$layout = 'layouts/admin';  // ✅ CORRECT
+ob_start(); 
+?>
+<!-- View content -->
+<?php 
+$content = ob_get_clean(); 
+include VIEW_PATH . '/' . $layout . '.php'; 
+?>
+```
+
+**Common Mistake (Causes File Not Found Error):**
+```php
+<?php 
+$layout = 'admin';  // ❌ WRONG - Looks for /app/Views/admin.php
+?>
+```
+
+#### Layout File Location
+- **Correct Layout**: `/app/Views/layouts/admin.php` 
+- **Working Examples**: Dashboard, Schools, Teams all use `layouts/admin`
+- **View Files**: Located in `/app/Views/admin/[feature]/` directories
+
+### Best Practices for Creating New Admin Pages
+
+#### 1. Route Definition Checklist
+
+**Add routes inside the admin group:**
+```php
+$router->group(['middleware' => 'role:super_admin,competition_admin', 'prefix' => 'admin', 'namespace' => 'Admin'], function($router) {
+    // Your new routes here
+    $router->get('/newfeature', 'NewFeatureController@index', 'admin.newfeature');
+    $router->get('/newfeature/create', 'NewFeatureController@create', 'admin.newfeature.create');
+    $router->post('/newfeature', 'NewFeatureController@store', 'admin.newfeature.store');
+    $router->get('/newfeature/{id}', 'NewFeatureController@show', 'admin.newfeature.show');
+    $router->get('/newfeature/{id}/edit', 'NewFeatureController@edit', 'admin.newfeature.edit');
+    $router->put('/newfeature/{id}', 'NewFeatureController@update', 'admin.newfeature.update');
+    $router->delete('/newfeature/{id}', 'NewFeatureController@destroy', 'admin.newfeature.destroy');
+});
+```
+
+#### 2. Controller Creation
+
+**Controller Location:** `/app/Controllers/Admin/NewFeatureController.php`
+
+**Controller Template:**
+```php
+<?php
+namespace App\Controllers\Admin;
+
+use App\Controllers\BaseController;
+
+class NewFeatureController extends BaseController
+{
+    public function index()
+    {
+        // Verify database column names match your queries
+        $data = $this->db->query("SELECT * FROM table_name");
+        
+        return $this->view('admin/newfeature/index', [
+            'data' => $data,
+            'title' => 'New Feature Management',
+            'pageTitle' => 'New Feature',
+            'pageSubtitle' => 'Manage new features'
+        ]);
+    }
+}
+```
+
+#### 3. View Creation
+
+**View Location:** `/app/Views/admin/newfeature/index.php`
+
+**View Template:**
+```php
+<?php 
+$layout = 'layouts/admin';  // ✅ CRITICAL - Use correct layout path
+ob_start(); 
+?>
+
+<div class="admin-newfeature">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1"><?= htmlspecialchars($pageTitle ?? 'New Feature') ?></h1>
+            <p class="text-muted"><?= htmlspecialchars($pageSubtitle ?? '') ?></p>
+        </div>
+    </div>
+    
+    <!-- Your content here -->
+</div>
+
+<?php 
+$content = ob_get_clean(); 
+include VIEW_PATH . '/' . $layout . '.php'; 
+?>
+```
+
+#### 4. Database Query Best Practices
+
+**Always verify column names:**
+```php
+// ❌ WRONG - Assuming column names
+$query = "SELECT s.school_name FROM schools s";
+
+// ✅ CORRECT - Check actual schema first
+$query = "SELECT s.name as school_name FROM schools s";  // schools.name is the actual column
+```
+
+**Check table existence:**
+```php
+try {
+    $data = $this->db->query("SELECT * FROM new_table WHERE status = ?", ['active']);
+} catch (\Exception $e) {
+    error_log("Table not found: " . $e->getMessage());
+    $data = []; // Graceful fallback
+}
+```
+
+### Route Ordering Best Practices
+
+#### Specific Routes Before Parameterized
+
+```php
+// ✅ CORRECT ORDER
+$router->get('/admin/users', 'UserController@index');
+$router->get('/admin/users/create', 'UserController@create');         // Specific
+$router->post('/admin/users/update-status', 'UserController@updateStatus'); // Specific  
+$router->get('/admin/users/{id}', 'UserController@show');             // Parameterized
+$router->get('/admin/users/{id}/edit', 'UserController@edit');         // Parameterized
+
+// ❌ WRONG ORDER - Parameterized routes will catch everything
+$router->get('/admin/users/{id}', 'UserController@show');             // This catches /users/create!
+$router->get('/admin/users/create', 'UserController@create');         // Never reached
+```
+
+#### HTTP Method Conventions
+
+- **GET**: Display/list pages (`index`, `show`, `edit` forms)
+- **POST**: Create new resources (`store`), form submissions
+- **PUT**: Update existing resources (`update`)  
+- **DELETE**: Remove resources (`destroy`)
+
+### Common Issues & Solutions
+
+#### Issue 1: File Not Found - Layout Missing
+
+**Error:** `include(/app/Views/admin.php): Failed to open stream: No such file or directory`
+
+**Root Cause:** View using wrong layout path
+```php
+$layout = 'admin';  // ❌ Looks for /app/Views/admin.php
+```
+
+**Solution:** Use correct layout path
+```php
+$layout = 'layouts/admin';  // ✅ Looks for /app/Views/layouts/admin.php
+```
+
+#### Issue 2: Database Column Not Found
+
+**Error:** `Unknown column 's.school_name' in 'field list'`
+
+**Root Cause:** Database schema mismatch - assuming wrong column name
+
+**Solution:** Verify actual column names
+```bash
+mysql> DESCRIBE schools;
+# Check actual column names in database
+```
+
+```php
+// Update queries to use correct column names
+$query = "SELECT s.name as school_name FROM schools s";  // Use actual column 's.name'
+```
+
+#### Issue 3: Route Not Found/404 Error
+
+**Possible Causes:**
+1. Route not defined in correct group
+2. Controller namespace mismatch  
+3. Route ordering issue (parameterized route catching specific route)
+
+**Solutions:**
+1. Verify route is in admin group with correct middleware
+2. Check controller is in `App\Controllers\Admin\` namespace
+3. Move specific routes before parameterized routes
+
+### Middleware Bypass for Debugging
+
+**For testing routes without authentication:**
+```php
+// Temporary bypass route outside middleware groups
+$router->get('/test-newfeature', 'Admin\\NewFeatureController@index', 'test.newfeature');
+```
+
+**Full namespace bypass:**
+```php
+$router->get('/debug/users', 'App\\Controllers\\Admin\\UserController@index', 'debug.users');
+```
+
+### Route Naming Conventions
+
+**Standard Pattern:**
+- Index: `admin.feature`  
+- Create: `admin.feature.create`
+- Store: `admin.feature.store`
+- Show: `admin.feature.show` 
+- Edit: `admin.feature.edit`
+- Update: `admin.feature.update`
+- Destroy: `admin.feature.destroy`
+
+**Examples:**
+- `admin.participants`, `admin.participants.create`, `admin.participants.show`
+- `admin.schools`, `admin.schools.create`, `admin.schools.edit`
+- `admin.teams`, `admin.teams.show`, `admin.teams.update`
+
+### Creating New Admin Pages - Quick Checklist
+
+- [ ] **Route**: Added to admin group in `routes/web.php`
+- [ ] **Controller**: Created in `app/Controllers/Admin/` with correct namespace
+- [ ] **View**: Created with `$layout = 'layouts/admin';` 
+- [ ] **Database**: Verified actual column names match queries
+- [ ] **Testing**: Tested route resolution and page loading
+- [ ] **Layout**: Confirmed consistent styling with other admin pages
+- [ ] **Route Names**: Follow `admin.feature.action` convention
+- [ ] **HTTP Methods**: Use appropriate methods (GET/POST/PUT/DELETE)
+
+### Working Examples to Reference
+
+**Confirmed Working Admin Pages:**
+- **Dashboard**: `/admin/dashboard` → `DashboardController@index` → `admin/dashboard.php` → `layouts/admin`
+- **Schools**: `/admin/schools` → `SchoolManagementController@index` → `admin/schools/index.php` → `layouts/admin`  
+- **Teams**: `/admin/teams` → `TeamManagementController@index` → `admin/teams/index.php` → `layouts/admin`
+- **Participants**: `/admin/participants` → `ParticipantManagementController@index` → `admin/participants/index.php` → `layouts/admin`
+
+**Use these as templates when creating new admin functionality.**

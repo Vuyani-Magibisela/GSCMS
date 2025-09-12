@@ -89,7 +89,13 @@ class DashboardController extends BaseController
             // Pending items requiring attention
             $stats['pending_approvals'] = $this->getCount('teams', ['status' => 'pending']);
             $stats['pending_consent_forms'] = $this->getCount('consent_forms', ['status' => 'pending']);
-            $stats['pending_submissions'] = $this->getCount('team_submissions', ['status' => 'pending']);
+            // Check if team_submissions table exists before querying
+            try {
+                $stats['pending_submissions'] = $this->getCount('team_submissions', ['status' => 'pending']);
+            } catch (\Exception $e) {
+                error_log("Team submissions table not found: " . $e->getMessage());
+                $stats['pending_submissions'] = 0;
+            }
             
             // Registration trends (last 30 days)
             $stats['recent_registrations'] = $this->getRecentRegistrationCount();
@@ -97,7 +103,13 @@ class DashboardController extends BaseController
             
             // Document completion rates
             $stats['consent_completion_rate'] = $this->getConsentCompletionRate();
-            $stats['submission_completion_rate'] = $this->getSubmissionCompletionRate();
+            // Check if team_submissions table exists for completion rate
+            try {
+                $stats['submission_completion_rate'] = $this->getSubmissionCompletionRate();
+            } catch (\Exception $e) {
+                error_log("Team submissions table not found for completion rate: " . $e->getMessage());
+                $stats['submission_completion_rate'] = 0;
+            }
             
             // Category breakdown
             $stats['teams_by_category'] = $this->getTeamsByCategory();
@@ -190,18 +202,24 @@ class DashboardController extends BaseController
                 LIMIT 5
             ");
             
-            // Recent announcements
-            $recentAnnouncements = $this->db->query("
-                SELECT 'announcement_posted' as type,
-                       CONCAT('Announcement: ', title) as description,
-                       created_at as timestamp,
-                       'fas fa-bullhorn' as icon,
-                       'text-info' as color
-                FROM announcements 
-                WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAYS)
-                ORDER BY created_at DESC 
-                LIMIT 3
-            ");
+            // Recent announcements - check if table exists
+            $recentAnnouncements = [];
+            try {
+                $recentAnnouncements = $this->db->query("
+                    SELECT 'announcement_posted' as type,
+                           CONCAT('Announcement: ', title) as description,
+                           created_at as timestamp,
+                           'fas fa-bullhorn' as icon,
+                           'text-info' as color
+                    FROM announcements 
+                    WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAYS)
+                    ORDER BY created_at DESC 
+                    LIMIT 3
+                ");
+            } catch (\Exception $e) {
+                error_log("Announcements table not found: " . $e->getMessage());
+                $recentAnnouncements = [];
+            }
             
             // Merge and sort activities
             $activities = array_merge($recentUsers, $recentTeams, $recentAnnouncements);
@@ -268,7 +286,7 @@ class DashboardController extends BaseController
         try {
             return $this->db->query("
                 SELECT 
-                    title as name,
+                    name as name,
                     registration_deadline as deadline,
                     'Registration Deadline' as type,
                     'fas fa-calendar-alt' as icon,
@@ -281,14 +299,14 @@ class DashboardController extends BaseController
                 UNION ALL
                 
                 SELECT 
-                    title as name,
-                    competition_date as deadline,
+                    name as name,
+                    date as deadline,
                     'Competition Date' as type,
                     'fas fa-trophy' as icon,
-                    DATEDIFF(competition_date, NOW()) as days_remaining
+                    DATEDIFF(date, NOW()) as days_remaining
                 FROM competitions 
-                WHERE competition_date > NOW() 
-                  AND competition_date <= DATE_ADD(NOW(), INTERVAL 30 DAY)
+                WHERE date > NOW() 
+                  AND date <= DATE_ADD(NOW(), INTERVAL 30 DAY)
                   AND status = 'active'
                 
                 ORDER BY deadline ASC 
@@ -304,11 +322,18 @@ class DashboardController extends BaseController
     private function getPendingApprovals()
     {
         try {
+            $submissions = 0;
+            try {
+                $submissions = $this->getCount('team_submissions', ['status' => 'pending']);
+            } catch (\Exception $e) {
+                error_log("Team submissions table not found in getPendingApprovals: " . $e->getMessage());
+            }
+            
             return [
                 'teams' => $this->getCount('teams', ['status' => 'pending']),
                 'participants' => $this->getCount('participants', ['status' => 'pending']),
                 'consent_forms' => $this->getCount('consent_forms', ['status' => 'pending']),
-                'submissions' => $this->getCount('team_submissions', ['status' => 'pending']),
+                'submissions' => $submissions,
                 'schools' => $this->getCount('schools', ['status' => 'pending'])
             ];
             
@@ -369,7 +394,14 @@ class DashboardController extends BaseController
     {
         try {
             $total = $this->getCount('teams', ['status' => 'approved']);
-            $completed = $this->getCount('team_submissions', ['status' => 'submitted']);
+            
+            // Check if team_submissions table exists
+            try {
+                $completed = $this->getCount('team_submissions', ['status' => 'submitted']);
+            } catch (\Exception $e) {
+                error_log("Team submissions table not found in getSubmissionCompletionRate: " . $e->getMessage());
+                return 0; // Return 0% completion if table doesn't exist
+            }
             
             return $total > 0 ? round(($completed / $total) * 100, 1) : 0;
             
