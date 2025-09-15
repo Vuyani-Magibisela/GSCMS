@@ -1,0 +1,58 @@
+# GSCMS WebSocket Server systemd service
+# 
+# Installation Instructions:
+# 1. Copy this file to /etc/systemd/system/gscms-websocket.service
+# 2. Update the paths below to match your installation
+# 3. Run: sudo systemctl daemon-reload
+# 4. Run: sudo systemctl enable gscms-websocket
+# 5. Run: sudo systemctl start gscms-websocket
+#
+# Usage:
+# sudo systemctl start gscms-websocket     # Start service
+# sudo systemctl stop gscms-websocket      # Stop service
+# sudo systemctl restart gscms-websocket   # Restart service
+# sudo systemctl status gscms-websocket    # Check status
+# sudo journalctl -u gscms-websocket -f    # Follow logs
+
+[Unit]
+Description=GSCMS WebSocket Server for Real-Time Scoring
+After=network.target mysql.service
+Wants=network.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+
+# Update these paths to match your installation
+WorkingDirectory=/var/www/html/GSCMS
+ExecStart=/usr/bin/php /var/www/html/GSCMS/websocket-server.php
+ExecReload=/bin/kill -USR1 $MAINPID
+
+# Restart policy
+Restart=always
+RestartSec=5
+StartLimitInterval=60s
+StartLimitBurst=3
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+# Security settings
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+ReadWritePaths=/var/www/html/GSCMS/storage
+
+# Environment
+Environment=PHP_INI_SCAN_DIR=/etc/php/8.1/cli/conf.d
+Environment=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gscms-websocket
+
+[Install]
+WantedBy=multi-user.target

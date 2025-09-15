@@ -122,6 +122,39 @@ function isActiveAdminNav($path, $currentPath) {
         </a>
     </li>
     
+    <!-- Real-Time Scoring -->
+    <li class="nav-section-title">
+        <span>Live Scoring</span>
+    </li>
+    
+    <li class="nav-item">
+        <a href="<?= url('/admin/live-scoring') ?>" class="nav-link <?= isActiveAdminNav('/admin/live-scoring', $currentPath) ?>">
+            <i class="nav-icon fas fa-broadcast-tower"></i>
+            <span class="nav-text">Live Sessions</span>
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a href="<?= url('/admin/live-scoring/websocket') ?>" class="nav-link <?= isActiveAdminNav('/admin/live-scoring/websocket', $currentPath) ?>">
+            <i class="nav-icon fas fa-server"></i>
+            <span class="nav-text">WebSocket Server</span>
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a href="<?= url('/admin/live-scoring/conflicts') ?>" class="nav-link <?= isActiveAdminNav('/admin/live-scoring/conflicts', $currentPath) ?>">
+            <i class="nav-icon fas fa-exclamation-triangle"></i>
+            <span class="nav-text">Conflicts</span>
+        </a>
+    </li>
+    
+    <li class="nav-item">
+        <a href="<?= url('/admin/live-scoring/analytics') ?>" class="nav-link <?= isActiveAdminNav('/admin/live-scoring/analytics', $currentPath) ?>">
+            <i class="nav-icon fas fa-chart-line"></i>
+            <span class="nav-text">Analytics</span>
+        </a>
+    </li>
+    
     <!-- Resources & Communication -->
     <li class="nav-section-title">
         <span>Resources</span>

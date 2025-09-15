@@ -55,7 +55,7 @@ ob_start();
                                 <div class="alert alert-warning">
                                     <h5><i class="fas fa-gavel me-2"></i>Judge Dashboard</h5>
                                     <p>As a Judge, you can score competitions and view judging assignments.</p>
-                                    <a href="<?= $baseUrl ?? '' ?>/judging/dashboard" class="btn btn-outline-warning">
+                                    <a href="<?= $baseUrl ?? '' ?>/judge/dashboard" class="btn btn-outline-warning">
                                         <i class="fas fa-clipboard-list me-2"></i>Judging Panel
                                     </a>
                                 </div>

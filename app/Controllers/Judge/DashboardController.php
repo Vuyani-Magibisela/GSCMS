@@ -2,11 +2,11 @@
 
 namespace App\Controllers\Judge;
 
-use App\Core\Controller;
+use App\Controllers\BaseController;
 use App\Models\EnhancedJudgeProfile;
 use App\Models\User;
 
-class DashboardController extends Controller
+class DashboardController extends BaseController
 {
     public function __construct()
     {
@@ -19,18 +19,28 @@ class DashboardController extends Controller
         
         if (!$judge) {
             $this->session->setFlash('error', 'Judge profile not found. Please contact support.');
-            return $this->redirect('/judge/auth');
+            return $this->redirect('/auth/login');
         }
         
         $data = [
             'judge' => $judge,
-            'assignments' => $this->getTodaysAssignments($judge['id']),
-            'upcoming_competitions' => $this->getUpcomingCompetitions($judge['id']),
-            'scoring_queue' => $this->getScoringQueue($judge['id']),
-            'recent_activity' => $this->getRecentActivity($judge['id']),
-            'performance_summary' => $this->getPerformanceSummary($judge['id']),
-            'notifications' => $this->getNotifications($judge['id']),
-            'quick_stats' => $this->getQuickStats($judge['id'])
+            'assignments' => [], // Temporarily disabled: $this->getTodaysAssignments($judge['id']),
+            'upcoming_competitions' => [], // Temporarily disabled: $this->getUpcomingCompetitions($judge['id']),
+            'scoring_queue' => [], // Temporarily disabled: $this->getScoringQueue($judge['id']),
+            'recent_activity' => [], // Temporarily disabled: $this->getRecentActivity($judge['id']),
+            'performance_summary' => [
+                'competitions_judged' => 0,
+                'completion_rate' => 0,
+                'on_time_rate' => 0,
+                'avg_performance_rating' => 0
+            ], // Temporarily disabled: $this->getPerformanceSummary($judge['id']),
+            'notifications' => [], // Temporarily disabled: $this->getNotifications($judge['id']),
+            'quick_stats' => [
+                'today_assignments' => 0,
+                'pending_scores' => 0,
+                'unread_notifications' => 0,
+                'current_streak' => 0
+            ] // Temporarily disabled: $this->getQuickStats($judge['id'])
         ];
         
         return $this->view('judge/dashboard/index', $data);
@@ -65,7 +75,7 @@ class DashboardController extends Controller
         
         $notifications = $this->getAllNotifications($judge['id']);
         
-        if ($this->request->isAjax()) {
+        if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && $_SERVER['HTTP_X_REQUESTED_WITH'] === 'XMLHttpRequest') {
             return $this->json([
                 'success' => true,
                 'notifications' => $notifications
@@ -82,11 +92,11 @@ class DashboardController extends Controller
     
     public function markNotificationRead()
     {
-        if ($this->request->getMethod() !== 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return $this->json(['success' => false, 'message' => 'Invalid request method'], 405);
         }
         
-        $notificationId = $this->request->input('notification_id');
+        $notificationId = $this->input('notification_id');
         $judge = $this->getCurrentJudge();
         
         if (!$judge || !$notificationId) {
@@ -115,22 +125,46 @@ class DashboardController extends Controller
     
     private function getCurrentJudge()
     {
-        $judgeId = $_SESSION['judge_id'] ?? null;
-        
-        if (!$judgeId) {
-            return null;
+        // First try to get judge by judge_id from session (for dedicated judge login)
+        $judgeId = $this->session->get('judge_id');
+
+        if ($judgeId) {
+            $judge = $this->db->query("
+                SELECT jp.*, u.first_name, u.last_name, u.email, u.email_verified,
+                       o.organization_name, o.organization_type
+                FROM judge_profiles jp
+                INNER JOIN users u ON jp.user_id = u.id
+                LEFT JOIN organizations o ON jp.organization_id = o.id
+                WHERE jp.id = ? AND jp.status = 'active'
+            ", [$judgeId]);
+
+            if (!empty($judge)) {
+                return $judge[0];
+            }
         }
-        
-        $judge = $this->db->query("
-            SELECT jp.*, u.first_name, u.last_name, u.email, u.email_verified,
-                   o.organization_name, o.organization_type
-            FROM judge_profiles jp
-            INNER JOIN users u ON jp.user_id = u.id
-            LEFT JOIN organizations o ON jp.organization_id = o.id
-            WHERE jp.id = ? AND jp.status = 'active'
-        ", [$judgeId]);
-        
-        return !empty($judge) ? $judge[0] : null;
+
+        // Fallback: get judge by user_id for regular user login with judge role
+        $userId = $this->session->get('user_id');
+        $userRole = $this->session->get('user_role');
+
+        if ($userId && $userRole === 'judge') {
+            $judge = $this->db->query("
+                SELECT jp.*, u.first_name, u.last_name, u.email, u.email_verified,
+                       o.organization_name, o.organization_type
+                FROM judge_profiles jp
+                INNER JOIN users u ON jp.user_id = u.id
+                LEFT JOIN organizations o ON jp.organization_id = o.id
+                WHERE jp.user_id = ? AND jp.status = 'active'
+            ", [$userId]);
+
+            if (!empty($judge)) {
+                // Set judge_id in session for future requests
+                $this->session->set('judge_id', $judge[0]['id']);
+                return $judge[0];
+            }
+        }
+
+        return null;
     }
     
     private function getTodaysAssignments($judgeId)

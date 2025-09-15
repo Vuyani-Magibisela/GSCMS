@@ -592,7 +592,12 @@ abstract class BaseController
         }
         
         $baseUrl = $protocol . $host . $scriptPath;
-        
+
+        // Ensure baseUrl always includes /public for route resolution
+        if (!empty($scriptPath) && substr($scriptPath, -7) !== '/public') {
+            $baseUrl .= '/public';
+        }
+
         return $path ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $baseUrl;
     }
     
@@ -602,6 +607,30 @@ abstract class BaseController
     protected function url($path = '')
     {
         return $this->baseUrl($path);
+    }
+
+    /**
+     * Check if current route matches given route name
+     */
+    protected function isCurrentRoute($routeName)
+    {
+        // Simple route matching - can be enhanced later
+        $currentUri = $_SERVER['REQUEST_URI'] ?? '';
+
+        // Map route names to URI patterns
+        $routeMap = [
+            'judge.dashboard' => '/judging/dashboard',
+            'judge.assignments' => '/judge/assignments',
+            'judge.scoring' => '/judge/scoring',
+            'judge.live-scoring' => '/judge/live-scoring',
+            'judge.schedule' => '/judge/schedule'
+        ];
+
+        if (isset($routeMap[$routeName])) {
+            return strpos($currentUri, $routeMap[$routeName]) !== false;
+        }
+
+        return false;
     }
     
     /**

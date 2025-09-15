@@ -10,7 +10,10 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
+    <!-- Judge Dashboard CSS -->
+    <link rel="stylesheet" href="/GSCMS/public/css/judge-dashboard.css?v=<?= filemtime(__DIR__ . '/../../../public/css/judge-dashboard.css') ?>">
+
     <!-- Custom CSS -->
     <style>
         :root {
@@ -146,9 +149,30 @@
             .judge-navbar .navbar-nav {
                 padding-top: 1rem;
             }
-            
+
             .main-content {
                 padding-top: 1rem;
+            }
+
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+        }
+
+        /* Mobile-first improvements */
+        @media (max-width: 576px) {
+            .judge-navbar {
+                padding: 0.5rem 0;
+            }
+
+            .navbar-brand {
+                font-size: 1rem !important;
+            }
+
+            .nav-link {
+                padding: 0.75rem 1rem !important;
+                margin: 0.125rem 0 !important;
             }
         }
     </style>
@@ -182,11 +206,24 @@
                             Assignments
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $this->isCurrentRoute('judge.scoring') ? 'active' : '' ?>" href="/judge/scoring">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle <?= $this->isCurrentRoute('judge.scoring') || $this->isCurrentRoute('judge.live-scoring') ? 'active' : '' ?>" 
+                           href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="fas fa-clipboard-list me-1"></i>
                             Scoring
                         </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="/judge/scoring">
+                                <i class="fas fa-clipboard me-2"></i>Traditional Scoring
+                            </a></li>
+                            <li><a class="dropdown-item" href="/judge/live-scoring">
+                                <i class="fas fa-broadcast-tower me-2"></i>Live Sessions
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="/judge/scoring-history">
+                                <i class="fas fa-history me-2"></i>Scoring History
+                            </a></li>
+                        </ul>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link <?= $this->isCurrentRoute('judge.schedule') ? 'active' : '' ?>" href="/judge/schedule">
@@ -197,6 +234,14 @@
                 </ul>
                 
                 <ul class="navbar-nav">
+                    <!-- WebSocket Connection Status -->
+                    <li class="nav-item">
+                        <div class="nav-link websocket-status" id="websocket-status" title="WebSocket Connection Status">
+                            <i class="fas fa-circle text-muted" id="websocket-indicator"></i>
+                            <span class="d-none d-md-inline ms-1" id="websocket-text">Connecting...</span>
+                        </div>
+                    </li>
+                    
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle notification-indicator" href="#" role="button" data-bs-toggle="dropdown">
                             <i class="fas fa-bell"></i>
@@ -285,6 +330,10 @@
             // Initialize session management
             const sessionManager = new JudgeSessionManager();
             sessionManager.init();
+            
+            // Initialize WebSocket connection manager
+            const websocketManager = new JudgeWebSocketManager();
+            websocketManager.init();
         });
 
         class JudgeNotificationSystem {
@@ -528,6 +577,231 @@
                 return classes[type] || 'info';
             }
         }
+        
+        class JudgeWebSocketManager {
+            constructor() {
+                this.ws = null;
+                this.reconnectAttempts = 0;
+                this.maxReconnectAttempts = 5;
+                this.reconnectDelay = 1000;
+                this.heartbeatInterval = null;
+                this.isConnected = false;
+            }
+            
+            init() {
+                this.connect();
+                this.setupStatusIndicator();
+            }
+            
+            connect() {
+                const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+                const host = window.location.hostname;
+                const port = 8080;
+                const judgeId = <?= $_SESSION['judge_id'] ?? 'null' ?>;
+                
+                if (!judgeId) {
+                    this.updateStatus('error', 'No judge session');
+                    return;
+                }
+                
+                try {
+                    this.ws = new WebSocket(`${protocol}//${host}:${port}?judge=${judgeId}`);
+                    this.setupWebSocketHandlers();
+                    this.updateStatus('connecting', 'Connecting...');
+                } catch (error) {
+                    console.error('WebSocket connection failed:', error);
+                    this.updateStatus('error', 'Connection failed');
+                    this.scheduleReconnect();
+                }
+            }
+            
+            setupWebSocketHandlers() {
+                this.ws.onopen = () => {
+                    this.isConnected = true;
+                    this.reconnectAttempts = 0;
+                    this.updateStatus('connected', 'Connected');
+                    this.startHeartbeat();
+                };
+                
+                this.ws.onmessage = (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        this.handleMessage(data);
+                    } catch (error) {
+                        console.error('Failed to parse WebSocket message:', error);
+                    }
+                };
+                
+                this.ws.onclose = () => {
+                    this.isConnected = false;
+                    this.stopHeartbeat();
+                    this.updateStatus('disconnected', 'Disconnected');
+                    this.scheduleReconnect();
+                };
+                
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateStatus('error', 'Connection error');
+                };
+            }
+            
+            handleMessage(data) {
+                switch (data.type) {
+                    case 'session_started':
+                        this.showNotification('Live session started', 'info');
+                        break;
+                    case 'session_ended':
+                        this.showNotification('Live session ended', 'warning');
+                        break;
+                    case 'conflict_detected':
+                        this.showNotification('Scoring conflict detected', 'error');
+                        break;
+                    case 'score_update':
+                        this.handleScoreUpdate(data);
+                        break;
+                    case 'judge_notification':
+                        this.showNotification(data.message, data.level || 'info');
+                        break;
+                }
+            }
+            
+            handleScoreUpdate(data) {
+                // Broadcast score update to any listening components
+                window.dispatchEvent(new CustomEvent('liveScoreUpdate', { detail: data }));
+            }
+            
+            sendMessage(type, data) {
+                if (this.isConnected && this.ws.readyState === WebSocket.OPEN) {
+                    const message = {
+                        type: type,
+                        data: data,
+                        timestamp: Date.now(),
+                        judge_id: <?= $_SESSION['judge_id'] ?? 'null' ?>
+                    };
+                    
+                    this.ws.send(JSON.stringify(message));
+                    return true;
+                }
+                return false;
+            }
+            
+            startHeartbeat() {
+                this.heartbeatInterval = setInterval(() => {
+                    if (this.isConnected) {
+                        this.sendMessage('heartbeat', {});
+                    }
+                }, 30000); // 30 seconds
+            }
+            
+            stopHeartbeat() {
+                if (this.heartbeatInterval) {
+                    clearInterval(this.heartbeatInterval);
+                    this.heartbeatInterval = null;
+                }
+            }
+            
+            scheduleReconnect() {
+                if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                    this.reconnectAttempts++;
+                    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+                    
+                    setTimeout(() => {
+                        this.updateStatus('connecting', `Reconnecting (${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
+                        this.connect();
+                    }, delay);
+                } else {
+                    this.updateStatus('error', 'Connection failed');
+                }
+            }
+            
+            updateStatus(status, text) {
+                const indicator = document.getElementById('websocket-indicator');
+                const statusText = document.getElementById('websocket-text');
+                
+                if (indicator) {
+                    indicator.className = 'fas fa-circle';
+                    switch (status) {
+                        case 'connected':
+                            indicator.classList.add('text-success');
+                            break;
+                        case 'connecting':
+                            indicator.classList.add('text-warning');
+                            break;
+                        case 'disconnected':
+                            indicator.classList.add('text-muted');
+                            break;
+                        case 'error':
+                            indicator.classList.add('text-danger');
+                            break;
+                    }
+                }
+                
+                if (statusText) {
+                    statusText.textContent = text;
+                }
+            }
+            
+            setupStatusIndicator() {
+                const statusElement = document.getElementById('websocket-status');
+                if (statusElement) {
+                    statusElement.addEventListener('click', () => {
+                        if (!this.isConnected) {
+                            this.reconnectAttempts = 0;
+                            this.connect();
+                        }
+                    });
+                }
+            }
+            
+            showNotification(message, type) {
+                // Use the existing toast system
+                if (window.showToast) {
+                    const toast = this.createToast(message, type);
+                    window.showToast(toast);
+                } else {
+                    // Fallback to browser notification
+                    console.log(`${type.toUpperCase()}: ${message}`);
+                }
+            }
+            
+            createToast(message, type) {
+                // Use the same toast creation from session manager
+                const toast = document.createElement('div');
+                toast.className = `toast align-items-center text-white bg-${this.getBootstrapClass(type)} border-0`;
+                toast.setAttribute('role', 'alert');
+                toast.setAttribute('aria-live', 'assertive');
+                toast.setAttribute('aria-atomic', 'true');
+                
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body flex-grow-1">${message}</div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+                
+                return toast;
+            }
+            
+            getBootstrapClass(type) {
+                const classes = {
+                    success: 'success',
+                    error: 'danger',
+                    warning: 'warning',
+                    info: 'info'
+                };
+                return classes[type] || 'info';
+            }
+            
+            disconnect() {
+                if (this.ws) {
+                    this.ws.close();
+                }
+                this.stopHeartbeat();
+            }
+        }
+        
+        // Global WebSocket manager instance
+        window.judgeWebSocket = null;
         
         // Helper function to check current route (would be implemented server-side)
         <?php if (isset($this)): ?>

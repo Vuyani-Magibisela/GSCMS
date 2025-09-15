@@ -34,6 +34,14 @@ function isActivePublicNav($path) {
             </li>
             
             <li class="nav-item">
+                <a href="<?= url('/scoreboard') ?>" class="nav-link <?= isActivePublicNav('/scoreboard') ?> live-scores-link">
+                    <i class="fas fa-chart-line nav-icon"></i>
+                    <span class="nav-text">Live Scores</span>
+                    <span class="live-indicator" id="live-indicator" title="Live sessions active"></span>
+                </a>
+            </li>
+            
+            <li class="nav-item">
                 <a href="<?= url('/about') ?>" class="nav-link <?= isActivePublicNav('/about') ?>">
                     <span class="nav-text">About</span>
                 </a>
@@ -121,6 +129,47 @@ function isActivePublicNav($path) {
 .public-nav .nav-link.active {
     background-color: rgba(102, 126, 234, 0.1);
     color: var(--primary-color);
+}
+
+/* Live scores navigation styling */
+.public-nav .live-scores-link {
+    position: relative;
+}
+
+.public-nav .nav-icon {
+    margin-right: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+.live-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    width: 8px;
+    height: 8px;
+    background-color: var(--error-color);
+    border-radius: 50%;
+    display: none;
+    animation: pulse 2s infinite;
+}
+
+.live-indicator.active {
+    display: block;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .nav-actions {

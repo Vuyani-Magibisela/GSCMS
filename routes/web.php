@@ -35,6 +35,19 @@ $router->get('/announcements', 'PublicController@announcements', 'announcements'
 $router->get('/resources', 'PublicController@resources', 'resources');
 
 // ============================================================================
+// PUBLIC SCOREBOARD ROUTES
+// ============================================================================
+
+// Public scoreboards
+$router->get('/scoreboard', 'ScoreboardController@index', 'scoreboard.index');
+$router->get('/scoreboard/{sessionId}', 'ScoreboardController@show', 'scoreboard.show');
+$router->get('/scoreboard/{sessionId}/api', 'ScoreboardController@api', 'scoreboard.api');
+$router->get('/scoreboard/{sessionId}/embed', 'ScoreboardController@embed', 'scoreboard.embed');
+$router->get('/scoreboard/{sessionId}/qr', 'ScoreboardController@qr', 'scoreboard.qr');
+$router->get('/scoreboard/{sessionId}/social', 'ScoreboardController@social', 'scoreboard.social');
+$router->get('/scoreboard/{sessionId}/metrics', 'ScoreboardController@metrics', 'scoreboard.metrics');
+
+// ============================================================================
 // REGISTRATION SYSTEM ROUTES
 // ============================================================================
 
@@ -863,6 +876,24 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->post('/judge-assignments', 'JudgeAssignmentController@store', 'admin.judge.assignments.store');
         $router->delete('/judge-assignments/{id}', 'JudgeAssignmentController@destroy', 'admin.judge.assignments.destroy');
         
+        // Live Scoring Management
+        $router->get('/live-scoring', 'LiveScoringController@index', 'admin.live-scoring');
+        $router->get('/live-scoring/create', 'LiveScoringController@create', 'admin.live-scoring.create');
+        $router->post('/live-scoring', 'LiveScoringController@store', 'admin.live-scoring.store');
+        $router->get('/live-scoring/sessions/{id}', 'LiveScoringController@show', 'admin.live-scoring.show');
+        $router->post('/live-scoring/sessions/{id}/start', 'LiveScoringController@startSession', 'admin.live-scoring.start');
+        $router->post('/live-scoring/sessions/{id}/stop', 'LiveScoringController@stopSession', 'admin.live-scoring.stop');
+        
+        // WebSocket Server Management
+        $router->get('/live-scoring/websocket', 'LiveScoringController@websocket', 'admin.live-scoring.websocket');
+        $router->post('/live-scoring/websocket/control', 'LiveScoringController@serverControl', 'admin.live-scoring.server-control');
+        
+        // Conflict Resolution
+        $router->get('/live-scoring/conflicts', 'LiveScoringController@conflicts', 'admin.live-scoring.conflicts');
+        
+        // Analytics
+        $router->get('/live-scoring/analytics', 'LiveScoringController@analytics', 'admin.live-scoring.analytics');
+        
         // Competition categories
         $router->get('/categories', 'CategoryController@index', 'admin.categories');
         $router->post('/categories', 'CategoryController@store', 'admin.categories.store');
@@ -1178,6 +1209,14 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->post('/scoring', 'ScoringController@store', 'judge.scoring.store');
         $router->put('/scoring/{id}', 'ScoringController@update', 'judge.scoring.update');
         
+        // Live Scoring Sessions
+        $router->get('/live-scoring', 'LiveScoringController@index', 'judge.live-scoring');
+        $router->get('/live-scoring/{sessionId}', 'LiveScoringController@session', 'judge.live-scoring.session');
+        $router->post('/live-scoring/{sessionId}/score', 'LiveScoringController@submitScore', 'judge.live-scoring.submit');
+        
+        // Scoring History
+        $router->get('/scoring-history', 'ScoringController@history', 'judge.scoring.history');
+        
         // Evaluation criteria
         $router->get('/criteria/{competitionId}', 'CriteriaController@show', 'judge.criteria.show');
         
@@ -1318,5 +1357,62 @@ $router->group(['prefix' => '/api', 'middleware' => 'auth'], function($router) {
         $router->get('/deadlines', 'Api\\Registration\\PublicRegistrationApiController@getDeadlines', 'api.public.registration.deadlines');
         $router->get('/categories/public-info', 'Api\\Registration\\PublicRegistrationApiController@getCategoriesPublicInfo', 'api.public.registration.categories');
         $router->get('/competition/public-status', 'Api\\Registration\\PublicRegistrationApiController@getCompetitionStatus', 'api.public.registration.competition.status');
+    });
+});
+
+// ============================================================================
+// ADDITIONAL MISSING ROUTES (Based on navigation and errors)
+// ============================================================================
+
+// Public Routes
+$router->group(['middleware' => 'guest'], function($router) {
+    // Public scoreboard access
+    $router->get('/scoreboard', 'ScoreboardController@index', 'public.scoreboard');
+    $router->get('/scoreboard/{id}', 'ScoreboardController@show', 'public.scoreboard.show');
+    $router->get('/scoreboard/{id}/api', 'ScoreboardController@api', 'public.scoreboard.api');
+    $router->get('/scoreboard/{id}/embed', 'ScoreboardController@embed', 'public.scoreboard.embed');
+    $router->get('/scoreboard/{id}/qr', 'ScoreboardController@qr', 'public.scoreboard.qr');
+    $router->get('/scoreboard/{id}/social', 'ScoreboardController@social', 'public.scoreboard.social');
+});
+
+// Authenticated Routes
+$router->group(['middleware' => 'auth'], function($router) {
+    
+    // Admin Routes - Additional missing routes
+    $router->group(['middleware' => 'role:super_admin,competition_admin', 'prefix' => 'admin', 'namespace' => 'Admin'], function($router) {
+        // Rubric Management (redirect to competition judging for now)
+        $router->get('/rubrics', 'CompetitionJudgingController@index', 'admin.rubrics');
+        
+        // Team Management - redirect to existing team management controller
+        $router->get('/team-management', 'TeamManagementController@index', 'admin.team-management');
+        $router->get('/team-management/{id}', 'TeamManagementController@show', 'admin.team-management.show');
+        $router->post('/team-management', 'TeamManagementController@store', 'admin.team-management.store');
+        $router->put('/team-management/{id}', 'TeamManagementController@update', 'admin.team-management.update');
+        $router->delete('/team-management/{id}', 'TeamManagementController@destroy', 'admin.team-management.destroy');
+        
+        // School Management - redirect to existing school management controller
+        $router->get('/school-management', 'SchoolManagementController@index', 'admin.school-management');
+        $router->get('/school-management/{id}', 'SchoolManagementController@show', 'admin.school-management.show');
+        $router->post('/school-management', 'SchoolManagementController@store', 'admin.school-management.store');
+        $router->put('/school-management/{id}', 'SchoolManagementController@update', 'admin.school-management.update');
+        $router->delete('/school-management/{id}', 'SchoolManagementController@destroy', 'admin.school-management.destroy');
+    });
+    
+    // Judge Routes - Additional missing routes (alternative paths)
+    $router->group(['middleware' => 'role:judge,competition_admin,super_admin'], function($router) {
+        // Alternative judge dashboard paths
+        $router->get('/judging', 'Judge\\DashboardController@index', 'judging.index');
+        $router->get('/judging/dashboard', 'Judge\\DashboardController@index', 'judging.dashboard');
+    });
+    
+    // Scorecard management - broader access for public/authenticated users
+    $router->get('/scorecards', 'Judge\\ScoringController@index', 'scorecards.index');
+    $router->get('/scorecards/{id}', 'Judge\\ScoringController@show', 'scorecards.show');
+    
+    // Team Management Routes (alternative paths)
+    $router->group(['middleware' => 'role:school_coordinator,team_coach,competition_admin,super_admin'], function($router) {
+        $router->get('/teams/manage', 'Admin\\TeamManagementController@index', 'teams.manage');
+        $router->get('/team-management', 'Admin\\TeamManagementController@index', 'team-management.index');
+        $router->get('/school-management', 'Admin\\SchoolManagementController@index', 'school-management.index');
     });
 });
