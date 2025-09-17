@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Assign Judge Button</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-xOolHFLEh07PJGoPkLv1IbcEPTNtaed2xpHsD9ESMhqIYd0nLMwNLD69Npy4HI+N" crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Debug: Judge Assignment Button Issue</h1>
+
+        <div class="alert alert-info">
+            <strong>Testing Steps:</strong>
+            <ol>
+                <li>Open browser developer tools (F12)</li>
+                <li>Go to Console tab</li>
+                <li>Click the "Assign Judge" button below</li>
+                <li>Check console for any messages or errors</li>
+            </ol>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5>Judge Assignment Test</h5>
+            </div>
+            <div class="card-body">
+                <!-- This is the exact same button structure from the admin page -->
+                <div class="header-actions">
+                    <button class="btn btn-primary btn-sm" id="assign-judge-btn">
+                        <i class="fas fa-plus"></i> Assign Judge
+                    </button>
+                </div>
+
+                <hr>
+
+                <p>Additional test buttons:</p>
+                <button class="btn btn-success" id="test-btn-1">Test Button 1 (Basic Click)</button>
+                <button class="btn btn-warning" id="test-btn-2">Test Button 2 (With Modal)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Judge Assignment Modal (simplified version) -->
+    <div class="modal fade" id="judgeAssignmentModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Judge to Session (Debug)</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>This is a test modal. If you can see this, the modal system is working.</p>
+                    <div class="alert alert-success">
+                        <strong>Success!</strong> Modal opened correctly.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Test Assign</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+    <script>
+    // Debug logging
+    console.log('=== DEBUG PAGE LOADED ===');
+    console.log('jQuery version:', typeof $ !== 'undefined' ? $.fn.jquery : 'jQuery NOT LOADED');
+    console.log('Bootstrap available:', typeof $.fn.modal !== 'undefined' ? 'YES' : 'NO');
+
+    // Test 1: Basic JavaScript execution
+    console.log('Basic JavaScript is working');
+
+    // Test 2: Window load event
+    window.addEventListener('load', function() {
+        console.log('Window load event fired');
+
+        // Check if elements exist
+        console.log('assign-judge-btn exists:', document.getElementById('assign-judge-btn') ? 'YES' : 'NO');
+        console.log('judgeAssignmentModal exists:', document.getElementById('judgeAssignmentModal') ? 'YES' : 'NO');
+
+        // Add basic click handlers
+        const assignBtn = document.getElementById('assign-judge-btn');
+        if (assignBtn) {
+            assignBtn.addEventListener('click', function() {
+                console.log('🎯 ASSIGN JUDGE BUTTON CLICKED (native JS handler)');
+                alert('Assign Judge button was clicked! (Native JS)');
+            });
+        }
+    });
+
+    // Test 3: Document ready with jQuery
+    $(document).ready(function() {
+        console.log('jQuery document ready fired');
+
+        // Original jQuery handler (like in admin page)
+        $('#assign-judge-btn').click(function() {
+            console.log('🎯 ASSIGN JUDGE BUTTON CLICKED (jQuery handler)');
+
+            // Check if jQuery and Bootstrap are loaded
+            if (typeof $ === 'undefined') {
+                console.error('jQuery is not loaded');
+                alert('Error: jQuery is required but not loaded.');
+                return;
+            }
+
+            if (typeof $.fn.modal === 'undefined') {
+                console.error('Bootstrap modal is not loaded');
+                alert('Error: Bootstrap is required but not loaded.');
+                return;
+            }
+
+            // Check if modal exists
+            if ($('#judgeAssignmentModal').length === 0) {
+                console.error('Judge assignment modal element not found');
+                alert('Error: Modal element not found.');
+                return;
+            }
+
+            console.log('Opening judge assignment modal...');
+            $('#judgeAssignmentModal').modal('show');
+        });
+
+        // Test buttons
+        $('#test-btn-1').click(function() {
+            console.log('Test button 1 clicked');
+            alert('Test button 1 works!');
+        });
+
+        $('#test-btn-2').click(function() {
+            console.log('Test button 2 clicked - opening modal');
+            $('#judgeAssignmentModal').modal('show');
+        });
+
+        console.log('All jQuery event handlers attached');
+    });
+    </script>
+</body>
+</html>

@@ -3,7 +3,6 @@
 
 namespace App\Models;
 
-use App\Core\BaseModel;
 use App\Core\Database;
 
 class LiveScoringSession extends BaseModel
@@ -388,9 +387,34 @@ class LiveScoringSession extends BaseModel
         } else {
             $params = [];
         }
-        
+
         $sql .= ' ORDER BY lss.start_time ASC';
-        
+
         return $db->query($sql, $params);
+    }
+
+    /**
+     * Get all active scoring sessions (for admin use)
+     */
+    public static function getActiveSessions()
+    {
+        $db = Database::getInstance();
+
+        $sql = '
+            SELECT lss.*, c.name as competition_name, cat.name as category_name, v.name as venue_name
+            FROM live_scoring_sessions lss
+            JOIN competitions c ON lss.competition_id = c.id
+            LEFT JOIN categories cat ON lss.category_id = cat.id
+            LEFT JOIN venues v ON lss.venue_id = v.id
+            WHERE lss.status IN ("scheduled", "active", "paused")
+            ORDER BY lss.start_time ASC
+        ';
+
+        try {
+            return $db->query($sql);
+        } catch (\Exception $e) {
+            error_log("Error getting active sessions: " . $e->getMessage());
+            return [];
+        }
     }
 }

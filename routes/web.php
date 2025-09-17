@@ -315,6 +315,48 @@ $router->get('/test-admin-direct', function() {
     }
 }, 'test-admin-direct');
 
+// Development only - Test judge assignment without auth
+$router->get('/test-judge-assignment', function() {
+    if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
+        return 'Access denied';
+    }
+
+    try {
+        // Mock data for testing
+        $mockData = [
+            'available_judges' => [
+                ['id' => 1, 'first_name' => 'John', 'last_name' => 'Smith', 'email' => 'john@test.com', 'judge_code' => 'J001', 'current_assignments' => 0],
+                ['id' => 2, 'first_name' => 'Jane', 'last_name' => 'Doe', 'email' => 'jane@test.com', 'judge_code' => 'J002', 'current_assignments' => 2],
+            ],
+            'competitions' => [
+                ['id' => 1, 'name' => 'Test Competition 1'],
+                ['id' => 2, 'name' => 'Test Competition 2']
+            ],
+            'judge_assignments' => [],
+            'unassigned_sessions' => [],
+            'teams' => [],
+            'active_sessions' => [],
+            'pending_scores' => [],
+            'recent_activity' => [],
+            'scoring_stats' => ['completed_scores' => 0],
+            'total_teams' => 0,
+            'title' => 'Test Judge Assignment',
+            'pageTitle' => 'Test Judge Assignment Modal',
+            'pageSubtitle' => 'Testing modal functionality without authentication'
+        ];
+
+        // Extract variables for the view
+        extract($mockData);
+
+        // Include the view directly
+        ob_start();
+        include APP_ROOT . '/app/Views/admin/scoring/index.php';
+        return ob_get_clean();
+    } catch (Exception $e) {
+        return '<h1>Error</h1><p>' . htmlspecialchars($e->getMessage()) . '</p>';
+    }
+}, 'test-judge-assignment');
+
 // Development only - Debug session and role
 $router->get('/debug-session', function() {
     if (($_ENV['APP_ENV'] ?? 'development') !== 'development') {
@@ -841,6 +883,18 @@ $router->group(['middleware' => 'auth'], function($router) {
             $router->post('/settings/notifications', 'RegistrationAdmin\\RegistrationSettingsController@updateNotifications', 'admin.registration.settings.notifications');
         });
         
+        // Competition scoring interface for admins
+        $router->get('/scoring', 'ScoringController@index', 'admin.scoring');
+        $router->get('/scoring/{competitionId}/{teamId}', 'ScoringController@show', 'admin.scoring.show');
+        $router->post('/scoring', 'ScoringController@store', 'admin.scoring.store');
+        $router->put('/scoring/{id}', 'ScoringController@update', 'admin.scoring.update');
+
+        // Judge assignment API endpoints
+        $router->post('/scoring/assign-judge', 'ScoringController@assignJudgeToSession', 'admin.scoring.assign-judge');
+        $router->delete('/scoring/assignments/{id}', 'ScoringController@removeJudgeAssignment', 'admin.scoring.remove-assignment');
+        $router->get('/scoring/judges/{id}/availability', 'ScoringController@getJudgeAvailability', 'admin.scoring.judge-availability');
+        $router->get('/scoring/competitions/{id}/categories', 'ScoringController@getCompetitionCategories', 'admin.scoring.competition-categories');
+
         // AJAX API endpoints for admin dashboard
         $router->get('/api/system-status', 'DashboardController@systemStatus', 'admin.api.system-status');
         $router->get('/api/dashboard-updates', 'DashboardController@dashboardUpdates', 'admin.api.dashboard-updates');

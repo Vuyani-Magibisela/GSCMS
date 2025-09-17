@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSP Test - jQuery/Bootstrap Loading</title>
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>CSP Test Page</h1>
+        <div id="test-results">
+            <p>Testing CDN resource loading...</p>
+        </div>
+        <button id="test-btn" class="btn btn-primary">Test Button</button>
+    </div>
+
+    <!-- Test jQuery loading -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <!-- Test Bootstrap loading -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-Fy6S3B9q64WdZWQUiU+q4/2Lc9npb8tCaSX9FK7E8HnRr0Jz8D6OP9dO5Vg3Q9ct" crossorigin="anonymous"></script>
+
+    <script>
+    console.log('=== CSP TEST PAGE ===');
+    console.log('Script tag is executing');
+
+    // Test if jQuery is available
+    if (typeof jQuery !== 'undefined') {
+        console.log('✅ jQuery loaded successfully:', jQuery.fn.jquery);
+        document.getElementById('test-results').innerHTML += '<p>✅ jQuery loaded: ' + jQuery.fn.jquery + '</p>';
+    } else {
+        console.log('❌ jQuery failed to load');
+        document.getElementById('test-results').innerHTML += '<p>❌ jQuery failed to load</p>';
+    }
+
+    // Test if Bootstrap is available
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.modal !== 'undefined') {
+        console.log('✅ Bootstrap loaded successfully');
+        document.getElementById('test-results').innerHTML += '<p>✅ Bootstrap loaded successfully</p>';
+    } else {
+        console.log('❌ Bootstrap failed to load');
+        document.getElementById('test-results').innerHTML += '<p>❌ Bootstrap failed to load</p>';
+    }
+
+    // Test button functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('test-btn');
+        if (btn) {
+            btn.addEventListener('click', function() {
+                console.log('🎯 Test button clicked!');
+                alert('Test button works!');
+            });
+        }
+    });
+
+    // Test jQuery ready
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).ready(function($) {
+            console.log('✅ jQuery document ready fired');
+            $('#test-btn').click(function() {
+                console.log('🎯 jQuery click handler fired');
+            });
+        });
+    }
+    </script>
+</body>
+</html>

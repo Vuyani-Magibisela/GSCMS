@@ -11,7 +11,10 @@
     
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
+
+    <!-- Bootstrap CSS (required for modals and components) -->
+    <link href="<?= $baseUrl ?>/css/vendor/bootstrap.min.css" rel="stylesheet">
+
     <!-- Main CSS Framework -->
     <link rel="stylesheet" href="<?= $baseUrl ?>/css/style.css?v=<?= file_exists(APP_ROOT . '/public/css/style.css') ? filemtime(APP_ROOT . '/public/css/style.css') : time() ?>">
     
@@ -165,9 +168,23 @@
         </div>
     </div>
     
+    <!-- jQuery (required for Bootstrap and custom functionality) -->
+    <script src="<?= $baseUrl ?? '' ?>/js/vendor/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap JavaScript (required for modals and components) -->
+    <script src="<?= $baseUrl ?? '' ?>/js/vendor/bootstrap.bundle.min.js"></script>
+
+    <!-- Debug script loading -->
+    <script>
+    console.log('=== ADMIN LAYOUT DEBUG ===');
+    console.log('BaseURL:', '<?= $baseUrl ?? "undefined" ?>');
+    console.log('jQuery script src:', '<?= $baseUrl ?? "" ?>/js/vendor/jquery-3.6.0.min.js');
+    console.log('Bootstrap script src:', '<?= $baseUrl ?? "" ?>/js/vendor/bootstrap.bundle.min.js');
+    </script>
+
     <!-- Core JavaScript -->
     <script src="<?= $baseUrl ?>/js/main.js?v=<?= file_exists(APP_ROOT . '/public/js/main.js') ? filemtime(APP_ROOT . '/public/js/main.js') : time() ?>"></script>
-    
+
     <!-- Admin-specific JavaScript -->
     <script src="<?= $baseUrl ?>/js/admin.js?v=<?= file_exists(APP_ROOT . '/public/js/admin.js') ? filemtime(APP_ROOT . '/public/js/admin.js') : time() ?>"></script>
     

@@ -315,8 +315,8 @@ class Security
     {
         $defaults = [
             'default-src' => "'self'",
-            'script-src' => "'self' 'unsafe-inline'",
-            'style-src' => "'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+            'script-src' => "'self' 'unsafe-inline' https://code.jquery.com https://cdn.jsdelivr.net",
+            'style-src' => "'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net",
             'img-src' => "'self' data: https:",
             'font-src' => "'self' https://cdnjs.cloudflare.com",
             'connect-src' => "'self'",

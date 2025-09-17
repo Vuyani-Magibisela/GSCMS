@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Local jQuery/Bootstrap</title>
+    <!-- Local Bootstrap CSS -->
+    <link href="/GSCMS/public/css/vendor/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Local jQuery/Bootstrap Test</h1>
+        <div class="alert alert-info">
+            <strong>Test:</strong> This page uses locally hosted jQuery and Bootstrap files.
+        </div>
+
+        <button class="btn btn-primary" id="test-btn">
+            <i class="fas fa-plus"></i> Test Button
+        </button>
+
+        <!-- Test Modal -->
+        <button class="btn btn-success" data-toggle="modal" data-target="#testModal">
+            Open Test Modal
+        </button>
+
+        <div id="results" class="mt-3"></div>
+    </div>
+
+    <!-- Test Modal -->
+    <div class="modal fade" id="testModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Test Modal</h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>✅ Local Bootstrap modal is working!</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Local jQuery -->
+    <script src="/GSCMS/public/js/vendor/jquery-3.6.0.min.js"></script>
+    <!-- Local Bootstrap -->
+    <script src="/GSCMS/public/js/vendor/bootstrap.bundle.min.js"></script>
+
+    <script>
+    console.log('=== LOCAL JQUERY/BOOTSTRAP TEST ===');
+    console.log('Script tag executing...');
+
+    // Test jQuery immediately
+    if (typeof jQuery !== 'undefined') {
+        console.log('✅ jQuery loaded:', jQuery.fn.jquery);
+        document.getElementById('results').innerHTML += '<p class="alert alert-success">✅ jQuery loaded: ' + jQuery.fn.jquery + '</p>';
+    } else {
+        console.log('❌ jQuery not loaded');
+        document.getElementById('results').innerHTML += '<p class="alert alert-danger">❌ jQuery not loaded</p>';
+    }
+
+    // Test Bootstrap
+    if (typeof jQuery !== 'undefined' && typeof jQuery.fn.modal !== 'undefined') {
+        console.log('✅ Bootstrap loaded');
+        document.getElementById('results').innerHTML += '<p class="alert alert-success">✅ Bootstrap loaded</p>';
+    } else {
+        console.log('❌ Bootstrap not loaded');
+        document.getElementById('results').innerHTML += '<p class="alert alert-danger">❌ Bootstrap not loaded</p>';
+    }
+
+    // Test jQuery document ready
+    jQuery(document).ready(function($) {
+        console.log('✅ jQuery document ready fired');
+
+        $('#test-btn').click(function() {
+            console.log('🎯 Local jQuery click handler works!');
+            alert('Local jQuery button click works!');
+        });
+
+        document.getElementById('results').innerHTML += '<p class="alert alert-info">✅ jQuery document ready fired</p>';
+    });
+    </script>
+</body>
+</html>
