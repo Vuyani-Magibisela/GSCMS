@@ -74,7 +74,14 @@ function isActiveAdminNav($path, $currentPath) {
             <span class="nav-text">Competitions</span>
         </a>
     </li>
-    
+
+    <li class="nav-item">
+        <a href="<?= url('/admin/competition-setup') ?>" class="nav-link <?= isActiveAdminNav('/admin/competition-setup', $currentPath) ?>">
+            <i class="nav-icon fas fa-cog"></i>
+            <span class="nav-text">Competition Setup</span>
+        </a>
+    </li>
+
     <li class="nav-item">
         <a href="<?= url('/admin/categories') ?>" class="nav-link <?= isActiveAdminNav('/admin/categories', $currentPath) ?>">
             <i class="nav-icon fas fa-list"></i>
