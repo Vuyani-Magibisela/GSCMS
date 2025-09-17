@@ -73,6 +73,9 @@ class ScoringController extends BaseController
                 'scoring_stats' => ['today_scores' => 0, 'pending_scores' => 0, 'completed_scores' => 0],
                 'total_teams' => 0,
                 'pending_scores' => [],
+                'judge_assignments' => [],
+                'available_judges' => [],
+                'unassigned_sessions' => [],
                 'title' => 'Competition Scoring System',
                 'pageTitle' => 'Scoring Management',
                 'pageSubtitle' => 'Admin access to competition scoring system',
@@ -487,7 +490,7 @@ class ScoringController extends BaseController
             $query = "SELECT u.id, u.first_name, u.last_name, u.email,
                              u.phone, u.status,
                              COUNT(ja.id) as current_assignments,
-                             jp.judge_code, jp.specializations, jp.certification_level
+                             jp.judge_code, jp.expertise_areas, jp.experience_level
                       FROM users u
                       LEFT JOIN judge_assignments ja ON (
                           u.id = ja.judge_id AND
@@ -495,7 +498,7 @@ class ScoringController extends BaseController
                       )
                       LEFT JOIN judge_profiles jp ON u.id = jp.user_id
                       WHERE u.role = 'judge' AND u.status = 'active'
-                      GROUP BY u.id
+                      GROUP BY u.id, u.first_name, u.last_name, u.email, u.phone, u.status, jp.judge_code, jp.expertise_areas, jp.experience_level
                       ORDER BY current_assignments ASC, u.first_name ASC";
 
             return $this->db->query($query);
