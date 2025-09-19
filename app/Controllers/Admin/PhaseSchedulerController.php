@@ -95,7 +95,7 @@ class PhaseSchedulerController extends BaseController
         try {
             $competition = $this->competitionSetup->find($competitionId);
             if (!$competition) {
-                $this->setFlashMessage('error', 'Competition not found.');
+                $this->flashMessage('error', 'Competition not found.');
                 return $this->redirect('/admin/phase-scheduler');
             }
             

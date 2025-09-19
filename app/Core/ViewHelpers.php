@@ -363,22 +363,27 @@ class ViewHelpers
     /**
      * Generate URL with proper base path for both standalone and subfolder setups
      */
-    public static function url($path = '/')
+    public static function url($path = '')
     {
-        // Ensure path starts with /
-        if (empty($path) || $path[0] !== '/') {
-            $path = '/' . $path;
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME'] ?? ''));
+        $scriptPath = $scriptPath === '/' ? '' : $scriptPath;
+
+        // Handle both direct public access and root access
+        // If accessed via /public/, remove the /public part for consistent URLs
+        if (substr($scriptPath, -7) === '/public') {
+            $scriptPath = substr($scriptPath, 0, -7); // Remove '/public'
         }
-        
-        // Get the script directory path
-        $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-        
-        // If we're in a subfolder (not at root), prepend the subfolder path
-        if ($scriptPath !== '/' && $scriptPath !== '') {
-            return $scriptPath . $path;
+
+        $baseUrl = $protocol . $host . $scriptPath;
+
+        // Ensure baseUrl always includes /public for route resolution
+        if (!empty($scriptPath) && substr($scriptPath, -7) !== '/public') {
+            $baseUrl .= '/public';
         }
-        
-        return $path;
+
+        return $path ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $baseUrl;
     }
     
     /**

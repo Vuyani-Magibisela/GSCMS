@@ -73,7 +73,7 @@ class CompetitionWizardController extends BaseController
         try {
             // Check admin permissions
             if (!$this->hasAdminAccess()) {
-                $this->setFlashMessage('error', 'Access denied. Admin privileges required.');
+                $this->flashMessage('error', 'Access denied. Admin privileges required.');
                 return $this->redirect('/admin/dashboard');
             }
             
@@ -100,7 +100,7 @@ class CompetitionWizardController extends BaseController
             // Validate step number
             $step = (int) $step;
             if ($step < 1 || $step > 6) {
-                $this->setFlashMessage('error', 'Invalid wizard step.');
+                $this->flashMessage('error', 'Invalid wizard step.');
                 return $this->redirect('/admin/competition-setup');
             }
             
@@ -205,7 +205,7 @@ class CompetitionWizardController extends BaseController
         try {
             // Check if wizard is complete
             if (!$this->getSessionData('competition_wizard_id')) {
-                $this->setFlashMessage('error', 'Wizard session expired.');
+                $this->flashMessage('error', 'Wizard session expired.');
                 return $this->redirect('/admin/competition-setup');
             }
             
@@ -214,7 +214,7 @@ class CompetitionWizardController extends BaseController
             // Validate all steps are complete
             for ($i = 1; $i <= 5; $i++) {
                 if (!isset($wizardData["step_{$i}"])) {
-                    $this->setFlashMessage('error', "Step {$i} is incomplete. Please complete all steps.");
+                    $this->flashMessage('error', "Step {$i} is incomplete. Please complete all steps.");
                     return $this->redirect("/admin/competition-setup/wizard/step/{$i}");
                 }
             }
@@ -295,7 +295,7 @@ class CompetitionWizardController extends BaseController
         try {
             $competition = $this->competitionSetup->find($id);
             if (!$competition) {
-                $this->setFlashMessage('error', 'Competition not found.');
+                $this->flashMessage('error', 'Competition not found.');
                 return $this->redirect('/admin/competition-setup');
             }
             

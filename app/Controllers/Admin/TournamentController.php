@@ -69,7 +69,7 @@ class TournamentController extends BaseController
             ]);
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error loading tournaments: ' . $e->getMessage());
+            $this->flash('error', 'Error loading tournaments: ' . $e->getMessage());
             $this->redirect('/admin/dashboard');
         }
     }
@@ -110,7 +110,7 @@ class TournamentController extends BaseController
             ]);
             
             if (!$validation['valid']) {
-                $this->setFlash('error', 'Validation failed: ' . implode(', ', $validation['errors']));
+                $this->flash('error', 'Validation failed: ' . implode(', ', $validation['errors']));
                 $this->redirect('/admin/tournaments/create');
             }
             
@@ -132,11 +132,11 @@ class TournamentController extends BaseController
                 'updated_at' => date('Y-m-d H:i:s')
             ]);
             
-            $this->setFlash('success', 'Tournament created successfully. Now set up seeding and generate bracket.');
+            $this->flash('success', 'Tournament created successfully. Now set up seeding and generate bracket.');
             $this->redirect('/admin/tournaments/' . $tournamentId);
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error creating tournament: ' . $e->getMessage());
+            $this->flash('error', 'Error creating tournament: ' . $e->getMessage());
             $this->redirect('/admin/tournaments/create');
         }
     }
@@ -150,7 +150,7 @@ class TournamentController extends BaseController
             $tournament = $this->getTournamentWithDetails($id);
             
             if (!$tournament) {
-                $this->setFlash('error', 'Tournament not found');
+                $this->flash('error', 'Tournament not found');
                 $this->redirect('/admin/tournaments');
             }
             
@@ -182,7 +182,7 @@ class TournamentController extends BaseController
             ]);
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error loading tournament: ' . $e->getMessage());
+            $this->flash('error', 'Error loading tournament: ' . $e->getMessage());
             $this->redirect('/admin/tournaments');
         }
     }
@@ -196,7 +196,7 @@ class TournamentController extends BaseController
             $tournament = $this->getTournament($id);
             
             if (!$tournament || $tournament['status'] !== 'setup') {
-                $this->setFlash('error', 'Tournament not found or not in setup status');
+                $this->flash('error', 'Tournament not found or not in setup status');
                 $this->redirect('/admin/tournaments/' . $id);
             }
             
@@ -210,11 +210,11 @@ class TournamentController extends BaseController
                     'updated_at' => date('Y-m-d H:i:s')
                 ]);
             
-            $this->setFlash('success', 'Seeding generated for ' . count($seeding) . ' teams');
+            $this->flash('success', 'Seeding generated for ' . count($seeding) . ' teams');
             $this->redirect('/admin/tournaments/' . $id . '/seeding');
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error generating seeding: ' . $e->getMessage());
+            $this->flash('error', 'Error generating seeding: ' . $e->getMessage());
             $this->redirect('/admin/tournaments/' . $id);
         }
     }
@@ -245,7 +245,7 @@ class TournamentController extends BaseController
             ]);
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error loading seeding: ' . $e->getMessage());
+            $this->flash('error', 'Error loading seeding: ' . $e->getMessage());
             $this->redirect('/admin/tournaments/' . $id);
         }
     }
@@ -259,17 +259,17 @@ class TournamentController extends BaseController
             $adjustments = $this->input('adjustments', []);
             
             if (empty($adjustments)) {
-                $this->setFlash('error', 'No seeding adjustments provided');
+                $this->flash('error', 'No seeding adjustments provided');
                 $this->redirect('/admin/tournaments/' . $id . '/seeding');
             }
             
             $this->seedingService->applyManualSeeding($id, $adjustments);
             
-            $this->setFlash('success', 'Seeding updated successfully');
+            $this->flash('success', 'Seeding updated successfully');
             $this->redirect('/admin/tournaments/' . $id . '/seeding');
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error updating seeding: ' . $e->getMessage());
+            $this->flash('error', 'Error updating seeding: ' . $e->getMessage());
             $this->redirect('/admin/tournaments/' . $id . '/seeding');
         }
     }
@@ -283,22 +283,22 @@ class TournamentController extends BaseController
             $tournament = $this->getTournament($id);
             
             if (!$tournament || $tournament['status'] !== 'seeding') {
-                $this->setFlash('error', 'Tournament must be in seeding status to generate bracket');
+                $this->flash('error', 'Tournament must be in seeding status to generate bracket');
                 $this->redirect('/admin/tournaments/' . $id);
             }
             
             if ($tournament['tournament_type'] === 'round_robin') {
                 $result = $this->roundRobinGenerator->generateRoundRobin($id);
-                $this->setFlash('success', 'Round-robin schedule generated: ' . $result['total_matches'] . ' matches');
+                $this->flash('success', 'Round-robin schedule generated: ' . $result['total_matches'] . ' matches');
             } else {
                 $result = $this->bracketGenerator->generateEliminationBracket($id);
-                $this->setFlash('success', 'Elimination bracket generated');
+                $this->flash('success', 'Elimination bracket generated');
             }
             
             $this->redirect('/admin/tournaments/' . $id . '/bracket');
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error generating bracket: ' . $e->getMessage());
+            $this->flash('error', 'Error generating bracket: ' . $e->getMessage());
             $this->redirect('/admin/tournaments/' . $id);
         }
     }
@@ -319,7 +319,7 @@ class TournamentController extends BaseController
             ]);
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error loading bracket: ' . $e->getMessage());
+            $this->flash('error', 'Error loading bracket: ' . $e->getMessage());
             $this->redirect('/admin/tournaments/' . $id);
         }
     }
@@ -421,7 +421,7 @@ class TournamentController extends BaseController
             ]);
             
         } catch (Exception $e) {
-            $this->setFlash('error', 'Error loading results: ' . $e->getMessage());
+            $this->flash('error', 'Error loading results: ' . $e->getMessage());
             $this->redirect('/admin/tournaments/' . $id);
         }
     }

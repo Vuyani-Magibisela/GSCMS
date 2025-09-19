@@ -14,13 +14,13 @@ try {
     
     // Load routes
     require_once __DIR__ . '/../routes/web.php';
-    
+
     // Get current request
     $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-    
+
     // Strip the subfolder prefix if present (e.g., /GSCMS/public/ or /GSCMS/)
     $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-    
+
     // Check for different patterns:
     // 1. /GSCMS/public/path -> /path (direct public access)
     // 2. /GSCMS/path -> /path (htaccess redirected)
@@ -46,9 +46,14 @@ try {
     if (empty($uri) || $uri[0] !== '/') {
         $uri = '/' . $uri;
     }
-    
+
     $method = $_SERVER['REQUEST_METHOD'];
-    
+
+    // Handle method override for forms (e.g., _method=PUT, _method=DELETE)
+    if ($method === 'POST' && isset($_POST['_method'])) {
+        $method = strtoupper($_POST['_method']);
+    }
+
     // Dispatch route
     $response = $router->dispatch($uri, $method);
     

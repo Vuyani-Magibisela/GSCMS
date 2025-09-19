@@ -142,6 +142,11 @@ abstract class BaseController
      */
     protected function redirect($url, $statusCode = 302)
     {
+        // Generate full URL if it's a relative path
+        if (strpos($url, 'http') !== 0) {
+            $url = $this->baseUrl($url);
+        }
+
         // Check if headers have already been sent
         if (headers_sent($file, $line)) {
             // If headers are already sent, use JavaScript redirect as fallback
@@ -303,6 +308,14 @@ abstract class BaseController
         }
     }
     
+    /**
+     * Require admin access (super_admin or competition_admin)
+     */
+    protected function requireAdmin()
+    {
+        $this->requireAnyRole(['super_admin', 'competition_admin']);
+    }
+
     /**
      * Require specific role
      */
@@ -583,20 +596,9 @@ abstract class BaseController
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https://' : 'http://';
         $host = $_SERVER['HTTP_HOST'];
         $scriptPath = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
-        $scriptPath = $scriptPath === '/' ? '' : $scriptPath;
-        
-        // Handle both direct public access and root access
-        // If accessed via /public/, remove the /public part for consistent URLs
-        if (substr($scriptPath, -7) === '/public') {
-            $scriptPath = substr($scriptPath, 0, -7); // Remove '/public'
-        }
-        
-        $baseUrl = $protocol . $host . $scriptPath;
 
-        // Ensure baseUrl always includes /public for route resolution
-        if (!empty($scriptPath) && substr($scriptPath, -7) !== '/public') {
-            $baseUrl .= '/public';
-        }
+        // scriptPath is /GSCMS/public for our setup - use it directly
+        $baseUrl = $protocol . $host . $scriptPath;
 
         return $path ? rtrim($baseUrl, '/') . '/' . ltrim($path, '/') : $baseUrl;
     }

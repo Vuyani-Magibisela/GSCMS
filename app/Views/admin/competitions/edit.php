@@ -36,32 +36,8 @@ ob_start();
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="type">Competition Type</label>
-                                    <select class="form-control" id="type" name="type">
-                                        <option value="standard" <?= $competition['type'] === 'standard' ? 'selected' : '' ?>>Standard</option>
-                                        <option value="pilot" <?= $competition['type'] === 'pilot' ? 'selected' : '' ?>>Pilot Programme</option>
-                                        <option value="championship" <?= $competition['type'] === 'championship' ? 'selected' : '' ?>>Championship</option>
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="description">Description</label>
-                            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe the competition objectives and format"><?= htmlspecialchars($competition['description'] ?? '') ?></textarea>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="start_date">Start Date <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" id="start_date" name="start_date" value="<?= $competition['start_date'] ?>" required>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="end_date">End Date <span class="text-danger">*</span></label>
-                                    <input type="date" class="form-control" id="end_date" name="end_date" value="<?= $competition['end_date'] ?>" required>
+                                    <label for="year">Competition Year</label>
+                                    <input type="number" class="form-control" id="year" name="year" value="<?= htmlspecialchars($competition['year'] ?? date('Y')) ?>" min="2020" max="2030">
                                 </div>
                             </div>
                         </div>
@@ -69,14 +45,14 @@ ob_start();
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="registration_start">Registration Start</label>
-                                    <input type="date" class="form-control" id="registration_start" name="registration_start" value="<?= $competition['registration_start'] ?>">
+                                    <label for="date">Competition Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="date" name="date" value="<?= $competition['date'] ?>" required>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="registration_end">Registration End</label>
-                                    <input type="date" class="form-control" id="registration_end" name="registration_end" value="<?= $competition['registration_end'] ?>">
+                                    <label for="registration_deadline">Registration Deadline</label>
+                                    <input type="datetime-local" class="form-control" id="registration_deadline" name="registration_deadline" value="<?= $competition['registration_deadline'] ? date('Y-m-d\TH:i', strtotime($competition['registration_deadline'])) : '' ?>">
                                 </div>
                             </div>
                         </div>
@@ -84,14 +60,14 @@ ob_start();
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="location">Location</label>
-                                    <input type="text" class="form-control" id="location" name="location" value="<?= htmlspecialchars($competition['location'] ?? '') ?>" placeholder="Competition venue or location">
+                                    <label for="venue_name">Venue Name</label>
+                                    <input type="text" class="form-control" id="venue_name" name="venue_name" value="<?= htmlspecialchars($competition['venue_name'] ?? '') ?>" placeholder="Competition venue or location">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
-                                    <label for="max_teams">Maximum Teams</label>
-                                    <input type="number" class="form-control" id="max_teams" name="max_teams" value="<?= $competition['max_teams'] ?>" min="1" placeholder="Leave blank for unlimited">
+                                    <label for="max_participants">Maximum Participants</label>
+                                    <input type="number" class="form-control" id="max_participants" name="max_participants" value="<?= $competition['max_participants'] ?>" min="1" placeholder="Leave blank for unlimited">
                                 </div>
                             </div>
                         </div>
@@ -107,8 +83,10 @@ ob_start();
                                 <div class="form-group">
                                     <label for="status">Status</label>
                                     <select class="form-control" id="status" name="status">
-                                        <option value="draft" <?= $competition['status'] === 'draft' ? 'selected' : '' ?>>Draft</option>
-                                        <option value="active" <?= $competition['status'] === 'active' ? 'selected' : '' ?>>Active</option>
+                                        <option value="planned" <?= $competition['status'] === 'planned' ? 'selected' : '' ?>>Planned</option>
+                                        <option value="open_registration" <?= $competition['status'] === 'open_registration' ? 'selected' : '' ?>>Open Registration</option>
+                                        <option value="registration_closed" <?= $competition['status'] === 'registration_closed' ? 'selected' : '' ?>>Registration Closed</option>
+                                        <option value="in_progress" <?= $competition['status'] === 'in_progress' ? 'selected' : '' ?>>In Progress</option>
                                         <option value="completed" <?= $competition['status'] === 'completed' ? 'selected' : '' ?>>Completed</option>
                                         <option value="cancelled" <?= $competition['status'] === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
                                     </select>
@@ -117,8 +95,8 @@ ob_start();
                         </div>
 
                         <div class="form-group">
-                            <label for="rules">Competition Rules</label>
-                            <textarea class="form-control" id="rules" name="rules" rows="4" placeholder="Enter detailed competition rules and regulations"><?= htmlspecialchars($competition['rules'] ?? '') ?></textarea>
+                            <label for="competition_rules">Competition Rules</label>
+                            <textarea class="form-control" id="competition_rules" name="competition_rules" rows="4" placeholder="Enter detailed competition rules and regulations"><?= htmlspecialchars($competition['competition_rules'] ?? '') ?></textarea>
                         </div>
 
                         <div class="form-group">

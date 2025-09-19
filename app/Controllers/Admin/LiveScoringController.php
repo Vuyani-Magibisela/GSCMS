@@ -139,7 +139,7 @@ class LiveScoringController extends BaseController
         $session = $this->getSessionWithDetails($sessionId);
         
         if (!$session) {
-            $this->session->setFlash('error', 'Live scoring session not found');
+            $this->flash('error', 'Live scoring session not found');
             return $this->redirect('/admin/live-scoring');
         }
         

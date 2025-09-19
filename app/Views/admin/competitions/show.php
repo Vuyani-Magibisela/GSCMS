@@ -13,7 +13,7 @@ ob_start();
             <a href="<?= url('/admin/competitions') ?>" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Back to Competitions
             </a>
-            <a href="<?= url('/admin/competitions/' . $competition['id'] . '/edit') ?>" class="btn btn-primary">
+            <a href="<?= url('/admin/competitions/' . $competition['id'] . '/edit') ?>" class="btn btn-primary" onclick="console.log('Edit URL:', this.href); alert('Edit button clicked! URL: ' + this.href);">
                 <i class="fas fa-edit"></i> Edit Competition
             </a>
         </div>
@@ -139,38 +139,38 @@ ob_start();
                                 <tr>
                                     <td><strong>Type:</strong></td>
                                     <td>
-                                        <span class="badge badge-<?= $competition['type'] === 'pilot' ? 'info' : 'secondary' ?>">
+                                        <span class="badge badge-<?= ($competition['type'] ?? 'standard') === 'pilot' ? 'info' : 'secondary' ?>">
                                             <?= htmlspecialchars(ucfirst($competition['type'] ?? 'standard')) ?>
                                         </span>
                                     </td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Start Date:</strong></td>
-                                    <td><?= $competition['start_date'] ? date('F d, Y', strtotime($competition['start_date'])) : 'Not set' ?></td>
+                                    <td><strong>Competition Date:</strong></td>
+                                    <td><?= $competition['date'] ? date('F d, Y', strtotime($competition['date'])) : 'Not set' ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>End Date:</strong></td>
-                                    <td><?= $competition['end_date'] ? date('F d, Y', strtotime($competition['end_date'])) : 'Not set' ?></td>
+                                    <td><strong>Year:</strong></td>
+                                    <td><?= htmlspecialchars($competition['year'] ?? 'Not set') ?></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Location:</strong></td>
-                                    <td><?= htmlspecialchars($competition['location'] ?? 'Not specified') ?></td>
+                                    <td><?= htmlspecialchars($competition['venue_name'] ?? 'Not specified') ?></td>
                                 </tr>
                             </table>
                         </div>
                         <div class="col-md-6">
                             <table class="table table-borderless">
                                 <tr>
-                                    <td><strong>Registration Start:</strong></td>
-                                    <td><?= $competition['registration_start'] ? date('F d, Y', strtotime($competition['registration_start'])) : 'Not set' ?></td>
+                                    <td><strong>Registration Deadline:</strong></td>
+                                    <td><?= $competition['registration_deadline'] ? date('F d, Y g:i A', strtotime($competition['registration_deadline'])) : 'Not set' ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Registration End:</strong></td>
-                                    <td><?= $competition['registration_end'] ? date('F d, Y', strtotime($competition['registration_end'])) : 'Not set' ?></td>
+                                    <td><strong>Max Participants:</strong></td>
+                                    <td><?= $competition['max_participants'] ? htmlspecialchars($competition['max_participants']) : 'Unlimited' ?></td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Max Teams:</strong></td>
-                                    <td><?= $competition['max_teams'] ? htmlspecialchars($competition['max_teams']) : 'Unlimited' ?></td>
+                                    <td><strong>Phase:</strong></td>
+                                    <td><?= htmlspecialchars($competition['phase_name'] ?? 'Not specified') ?></td>
                                 </tr>
                                 <tr>
                                     <td><strong>Contact Email:</strong></td>
@@ -184,17 +184,10 @@ ob_start();
                         </div>
                     </div>
 
-                    <?php if (!empty($competition['description'])): ?>
+                    <?php if (!empty($competition['competition_rules'])): ?>
                     <div class="mt-3">
-                        <h6>Description</h6>
-                        <p><?= nl2br(htmlspecialchars($competition['description'])) ?></p>
-                    </div>
-                    <?php endif; ?>
-
-                    <?php if (!empty($competition['rules'])): ?>
-                    <div class="mt-3">
-                        <h6>Rules</h6>
-                        <p><?= nl2br(htmlspecialchars($competition['rules'])) ?></p>
+                        <h6>Competition Rules</h6>
+                        <p><?= nl2br(htmlspecialchars($competition['competition_rules'])) ?></p>
                     </div>
                     <?php endif; ?>
                 </div>

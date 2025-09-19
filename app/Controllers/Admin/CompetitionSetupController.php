@@ -31,22 +31,93 @@ class CompetitionSetupController extends BaseController
      */
     public function index()
     {
-        $currentCompetitionType = $this->getCompetitionType();
-        $activePhases = $this->phaseManager->getActivePhases();
-        $categories = (new Category())->where('status', 'active')->get();
-        
-        $statistics = [
-            'pilot' => $this->pilotProgression->getPilotStatistics(),
-            'full' => $this->fullProgression->getFullSystemStatistics()
-        ];
-        
-        return $this->render('admin/competition-setup/index', [
-            'current_type' => $currentCompetitionType,
-            'active_phases' => $activePhases,
-            'categories' => $categories,
-            'statistics' => $statistics,
-            'pilot_timeline' => $this->phaseManager->getPilotTimeline()
-        ]);
+        try {
+            // Log access attempt
+            error_log("CompetitionSetupController::index() - Starting execution");
+
+            // Get competition type with error handling
+            $currentCompetitionType = 'pilot'; // Default fallback
+            try {
+                $currentCompetitionType = $this->getCompetitionType();
+                error_log("Competition type retrieved: " . $currentCompetitionType);
+            } catch (\Exception $e) {
+                error_log("Error getting competition type: " . $e->getMessage());
+            }
+
+            // Get active phases with error handling
+            $activePhases = [];
+            try {
+                $activePhases = $this->phaseManager->getActivePhases();
+                error_log("Active phases retrieved: " . count($activePhases));
+            } catch (\Exception $e) {
+                error_log("Error getting active phases: " . $e->getMessage());
+            }
+
+            // Get categories with error handling
+            $categories = [];
+            try {
+                $categoryModel = new Category();
+                $categories = $categoryModel->where('status', 'active')->get();
+                error_log("Categories retrieved: " . count($categories));
+            } catch (\Exception $e) {
+                error_log("Error getting categories: " . $e->getMessage());
+                // Fallback: try to get all categories
+                try {
+                    $categories = $categoryModel->all();
+                } catch (\Exception $e2) {
+                    error_log("Error getting all categories: " . $e2->getMessage());
+                }
+            }
+
+            // Get statistics with error handling
+            $statistics = ['pilot' => [], 'full' => []];
+            try {
+                $statistics['pilot'] = $this->pilotProgression->getPilotStatistics();
+                error_log("Pilot statistics retrieved successfully");
+            } catch (\Exception $e) {
+                error_log("Error getting pilot statistics: " . $e->getMessage());
+            }
+
+            try {
+                $statistics['full'] = $this->fullProgression->getFullSystemStatistics();
+                error_log("Full system statistics retrieved successfully");
+            } catch (\Exception $e) {
+                error_log("Error getting full system statistics: " . $e->getMessage());
+            }
+
+            // Get pilot timeline with error handling
+            $pilotTimeline = [];
+            try {
+                $pilotTimeline = $this->phaseManager->getPilotTimeline();
+                error_log("Pilot timeline retrieved successfully");
+            } catch (\Exception $e) {
+                error_log("Error getting pilot timeline: " . $e->getMessage());
+            }
+
+            error_log("CompetitionSetupController::index() - All data retrieved, rendering view");
+
+            return $this->view('admin/competition-setup/index', [
+                'current_type' => $currentCompetitionType,
+                'active_phases' => $activePhases,
+                'categories' => $categories,
+                'statistics' => $statistics,
+                'pilot_timeline' => $pilotTimeline
+            ]);
+
+        } catch (\Exception $e) {
+            error_log("Critical error in CompetitionSetupController::index(): " . $e->getMessage());
+            error_log("Stack trace: " . $e->getTraceAsString());
+
+            // Graceful fallback - show minimal page
+            return $this->view('admin/competition-setup/index', [
+                'current_type' => 'pilot',
+                'active_phases' => [],
+                'categories' => [],
+                'statistics' => ['pilot' => [], 'full' => []],
+                'pilot_timeline' => [],
+                'error_message' => 'Unable to load competition setup data. Please check system logs.'
+            ]);
+        }
     }
     
     /**
@@ -54,7 +125,7 @@ class CompetitionSetupController extends BaseController
      */
     public function configurePilotCompetition()
     {
-        if ($this->request->getMethod() === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Set competition type to pilot
                 $this->setCompetitionType('pilot');
@@ -76,7 +147,7 @@ class CompetitionSetupController extends BaseController
             }
         }
         
-        return $this->render('admin/competition-setup/configure-pilot', [
+        return $this->view('admin/competition-setup/configure-pilot', [
             'pilot_categories' => $this->getPilotCategoriesConfig(),
             'pilot_phases' => $this->getPilotPhasesConfig(),
             'pilot_timeline' => $this->phaseManager->getPilotTimeline()
@@ -88,7 +159,7 @@ class CompetitionSetupController extends BaseController
      */
     public function configureFullCompetition()
     {
-        if ($this->request->getMethod() === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 // Set competition type to full
                 $this->setCompetitionType('full');
@@ -107,7 +178,7 @@ class CompetitionSetupController extends BaseController
             }
         }
         
-        return $this->render('admin/competition-setup/configure-full', [
+        return $this->view('admin/competition-setup/configure-full', [
             'full_phases' => $this->getFullSystemPhasesConfig(),
             'standard_categories' => $this->getStandardCategoriesConfig()
         ]);
@@ -118,7 +189,7 @@ class CompetitionSetupController extends BaseController
      */
     public function switchCompetitionMode()
     {
-        if ($this->request->getMethod() === 'POST') {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mode = $this->input('mode'); // 'pilot' or 'full'
             
             if (!in_array($mode, ['pilot', 'full'])) {
@@ -383,10 +454,10 @@ class CompetitionSetupController extends BaseController
         return [
             'total_categories' => 9,
             'team_size' => 4,
-            'total_capacity_phase_1' => 270, // 30 teams × 9 categories
-            'total_capacity_phase_3' => 54,  // 6 teams × 9 categories
-            'expected_participants_finals' => 216, // 54 teams × 4 members
-            'medal_count' => 108, // 3 teams × 9 categories × 4 members
+            'total_capacity_phase_1' => 270, // 30 teams ï¿½ 9 categories
+            'total_capacity_phase_3' => 54,  // 6 teams ï¿½ 9 categories
+            'expected_participants_finals' => 216, // 54 teams ï¿½ 4 members
+            'medal_count' => 108, // 3 teams ï¿½ 9 categories ï¿½ 4 members
             'trophy_count' => 9   // 1 per category
         ];
     }
@@ -399,7 +470,7 @@ class CompetitionSetupController extends BaseController
         return [
             'active_phases' => [1, 3],
             'skipped_phases' => [2],
-            'progression' => '1 ’ 3 (skip 2)',
+            'progression' => '1 ï¿½ 3 (skip 2)',
             'venue_phase_1' => 'School-based',
             'venue_phase_3' => 'Sci-Bono Discovery Centre'
         ];
@@ -420,7 +491,7 @@ class CompetitionSetupController extends BaseController
     {
         return [
             'active_phases' => [1, 2, 3],
-            'progression' => '1 ’ 2 ’ 3',
+            'progression' => '1 ï¿½ 2 ï¿½ 3',
             'capacity' => [
                 'phase_1' => 'Unlimited',
                 'phase_2' => '15 teams per category',

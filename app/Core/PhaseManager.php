@@ -16,7 +16,7 @@ class PhaseManager
     
     public function __construct($competitionId = null, $competitionType = 'pilot')
     {
-        $this->db = new Database();
+        $this->db = Database::getInstance();
         $this->competitionId = $competitionId;
         $this->competitionType = $competitionType;
     }

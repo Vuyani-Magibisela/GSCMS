@@ -130,7 +130,7 @@ ob_start();
                                     <?php endif; ?>
                                 </td>
                                 <td>
-                                    <span class="badge badge-<?= $competition['type'] === 'pilot' ? 'info' : 'secondary' ?>">
+                                    <span class="badge badge-<?= ($competition['type'] ?? 'standard') === 'pilot' ? 'info' : 'secondary' ?>">
                                         <?= htmlspecialchars(ucfirst($competition['type'] ?? 'standard')) ?>
                                     </span>
                                 </td>
@@ -149,9 +149,9 @@ ob_start();
                                     </span>
                                 </td>
                                 <td>
-                                    <?= $competition['start_date'] ? date('M d, Y', strtotime($competition['start_date'])) : 'Not set' ?>
-                                    <?php if ($competition['end_date']): ?>
-                                        <br><small class="text-muted">to <?= date('M d, Y', strtotime($competition['end_date'])) ?></small>
+                                    <?= $competition['date'] ? date('M d, Y', strtotime($competition['date'])) : 'Not set' ?>
+                                    <?php if ($competition['year']): ?>
+                                        <br><small class="text-muted">Year: <?= htmlspecialchars($competition['year']) ?></small>
                                     <?php endif; ?>
                                 </td>
                                 <td>
@@ -165,7 +165,7 @@ ob_start();
                                         <a href="<?= url('/admin/competitions/' . $competition['id']) ?>" class="btn btn-sm btn-outline-primary" title="View">
                                             <i class="fas fa-eye"></i>
                                         </a>
-                                        <a href="<?= url('/admin/competitions/' . $competition['id'] . '/edit') ?>" class="btn btn-sm btn-outline-secondary" title="Edit">
+                                        <a href="<?= url('/admin/competitions/' . $competition['id'] . '/edit') ?>" class="btn btn-sm btn-outline-secondary" title="Edit" onclick="console.log('Edit URL:', this.href); alert('Edit button clicked! URL: ' + this.href);">
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         <?php if ($competition['team_count'] == 0): ?>

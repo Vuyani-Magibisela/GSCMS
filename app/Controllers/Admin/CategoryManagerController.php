@@ -75,7 +75,7 @@ class CategoryManagerController extends BaseController
         try {
             $competition = $this->competitionSetup->find($competitionId);
             if (!$competition) {
-                $this->setFlashMessage('error', 'Competition not found.');
+                $this->flashMessage('error', 'Competition not found.');
                 return $this->redirect('/admin/category-manager');
             }
             
@@ -122,7 +122,7 @@ class CategoryManagerController extends BaseController
         try {
             $competitionCategory = $this->competitionCategory->find($categoryId);
             if (!$competitionCategory) {
-                $this->setFlashMessage('error', 'Competition category not found.');
+                $this->flashMessage('error', 'Competition category not found.');
                 return $this->redirect('/admin/category-manager');
             }
             

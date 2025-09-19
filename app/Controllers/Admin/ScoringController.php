@@ -86,54 +86,107 @@ class ScoringController extends BaseController
         }
     }
 
-    public function show($competitionId, $teamId)
+    public function show($competitionId, $teamId, $judgingMode = null)
     {
         // Admin can access any team/competition without assignment checks
 
         // Get team details
         $team = $this->getTeamDetails($teamId);
         if (!$team) {
-            $this->session->setFlash('error', 'Team not found');
+            $this->flash('error', 'Team not found');
             return $this->redirect('/admin/scoring');
         }
 
         // Get competition details
         $competition = Competition::find($competitionId);
         if (!$competition) {
-            $this->session->setFlash('error', 'Competition not found');
+            $this->flash('error', 'Competition not found');
             return $this->redirect('/admin/scoring');
         }
 
-        // Get or create active scoring session
-        $scoringSession = $this->getOrCreateScoringSession($competitionId, $team['category_id']);
+        // Determine judging mode - check URL parameter or session configuration
+        if (!$judgingMode) {
+            $judgingMode = $this->input('mode') ?? 'presentation'; // Default to presentation
+        }
 
-        // Get rubric for this category
-        $rubric = $this->categoryRubricService->getRubricForCategory($team['category_id'], 'final');
+        // Validate judging mode
+        $validModes = ['presentation', 'gameplay', 'hybrid'];
+        if (!in_array($judgingMode, $validModes)) {
+            $this->flash('error', 'Invalid judging mode specified');
+            return $this->redirect('/admin/scoring');
+        }
 
-        // Get all scores for this team (admin can see all judges' scores)
-        $allScores = $this->getAllScoresForTeam($teamId, $competitionId);
+        // Get or create active scoring session with judging mode
+        $scoringSession = $this->getOrCreateDualModeScoringSession($competitionId, $team['category_id'], $judgingMode);
 
-        // Generate category-specific scoring interface
-        $scoringInterface = $this->categoryRubricService->generateScoringInterface($team['category_id']);
+        // Get appropriate rubric and interface based on judging mode
+        $scoringInterface = null;
+        $rubric = null;
 
-        // Get judge comparison data (admin sees all)
-        $judgeComparison = $this->getFullJudgeScoreComparison($teamId, $competitionId);
+        switch ($judgingMode) {
+            case 'presentation':
+                $rubric = $this->categoryRubricService->getPresentationRubric($team['category_id']);
+                $scoringInterface = $this->categoryRubricService->generatePresentationInterface($team['category_id']);
+                break;
 
+            case 'gameplay':
+                $rubric = $this->categoryRubricService->getGameplayRubric($team['category_id']);
+                $scoringInterface = $this->categoryRubricService->generateGameplayInterface($team['category_id']);
+                break;
+
+            case 'hybrid':
+                // For hybrid mode, we might show both interfaces or a combined one
+                $rubric = [
+                    'presentation' => $this->categoryRubricService->getPresentationRubric($team['category_id']),
+                    'gameplay' => $this->categoryRubricService->getGameplayRubric($team['category_id'])
+                ];
+                $scoringInterface = $this->generateHybridInterface($team['category_id']);
+                break;
+        }
+
+        // Get current judge information
+        $judge = $this->getCurrentUser();
+
+        // Get existing scores for this team with current judging mode
+        $existingScores = $this->getExistingScoresForTeamAndMode($teamId, $competitionId, $judgingMode);
+
+        // Get gameplay runs if in gameplay mode
+        $gameplayRuns = [];
+        if ($judgingMode === 'gameplay' || $judgingMode === 'hybrid') {
+            $gameplayRuns = $this->getGameplayRuns($teamId, $scoringSession['id']);
+        }
+
+        // Prepare data for the view
         $data = [
             'team' => $team,
             'competition' => $competition,
+            'judge' => $judge,
             'rubric' => $rubric,
+            'judging_mode' => $judgingMode,
             'scoring_session' => $scoringSession,
             'scoring_interface' => $scoringInterface,
-            'all_scores' => $allScores,
-            'judge_comparison' => $judgeComparison,
+            'existing_scores' => $existingScores,
+            'gameplay_runs' => $gameplayRuns,
             'can_edit_all_scores' => true, // Admin privilege
-            'title' => 'Score Team: ' . $team['name'],
-            'pageTitle' => 'Team Scoring',
+            'title' => ucfirst($judgingMode) . ' Judging: ' . $team['name'],
+            'pageTitle' => ucfirst($judgingMode) . ' Judging',
             'pageSubtitle' => $team['name'] . ' - ' . $competition['name']
         ];
 
-        return $this->view('admin/scoring/show', $data);
+        // Route to appropriate view based on judging mode
+        switch ($judgingMode) {
+            case 'presentation':
+                return $this->view('admin/scoring/presentation_interface', $data);
+
+            case 'gameplay':
+                return $this->view('admin/scoring/gameplay_interface', $data);
+
+            case 'hybrid':
+                return $this->view('admin/scoring/hybrid_interface', $data);
+
+            default:
+                return $this->view('admin/scoring/show', $data);
+        }
     }
 
     public function store()
@@ -141,8 +194,6 @@ class ScoringController extends BaseController
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             return $this->json(['success' => false, 'message' => 'Invalid request method'], 405);
         }
-
-        // Admin can create scores on behalf of any judge or as system admin
 
         try {
             // Get input data
@@ -152,48 +203,53 @@ class ScoringController extends BaseController
             }
 
             // Validate required fields
-            $requiredFields = ['team_id', 'competition_id', 'category_id'];
+            $requiredFields = ['team_id', 'competition_id', 'judging_mode', 'scoring_data'];
             foreach ($requiredFields as $field) {
                 if (!isset($input[$field]) || empty($input[$field])) {
                     return $this->json(['success' => false, 'message' => "Missing required field: {$field}"], 400);
                 }
             }
 
-            // Use current admin as judge_id or specified judge
-            $judgeId = $input['judge_id'] ?? $this->getCurrentUser()['id'];
+            $judgeId = $this->getCurrentUser()['id'];
+            $teamId = $input['team_id'];
+            $competitionId = $input['competition_id'];
+            $judgingMode = $input['judging_mode'];
+            $scoringData = $input['scoring_data'];
 
-            // Create score record (matching actual scores table structure)
-            $scoreData = [
-                'judge_id' => $judgeId,
-                'team_id' => $input['team_id'],
-                'competition_id' => $input['competition_id'],
-                'rubric_template_id' => $input['rubric_template_id'] ?? 1, // Default rubric
-                'total_score' => $input['total_score'] ?? 0,
-                'game_challenge_score' => $input['game_challenge_score'] ?? 0,
-                'research_challenge_score' => $input['research_challenge_score'] ?? 0,
-                'bonus_points' => $input['bonus_points'] ?? 0,
-                'penalty_points' => $input['penalty_points'] ?? 0,
-                'judge_notes' => $input['judge_notes'] ?? '',
-                'scoring_status' => $input['scoring_status'] ?? 'draft',
-                'device_info' => json_encode(['browser' => 'admin_interface']),
-                'created_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s')
-            ];
+            // Process scores based on judging mode
+            switch ($judgingMode) {
+                case 'presentation':
+                    $result = $this->storePresentationScores($judgeId, $teamId, $competitionId, $scoringData, $input);
+                    break;
 
-            $scoreId = Score::create($scoreData);
+                case 'gameplay':
+                    $result = $this->storeGameplayResults($judgeId, $teamId, $competitionId, $scoringData, $input);
+                    break;
 
-            return $this->json([
-                'success' => true,
-                'message' => 'Score saved successfully',
-                'score_id' => $scoreId,
-                'redirect' => '/admin/scoring'
-            ]);
+                case 'hybrid':
+                    $result = $this->storeHybridScores($judgeId, $teamId, $competitionId, $scoringData, $input);
+                    break;
+
+                default:
+                    return $this->json(['success' => false, 'message' => 'Invalid judging mode'], 400);
+            }
+
+            if ($result['success']) {
+                return $this->json([
+                    'success' => true,
+                    'message' => ucfirst($judgingMode) . ' scores submitted successfully',
+                    'score_id' => $result['score_id'],
+                    'redirect_url' => '/admin/scoring'
+                ]);
+            } else {
+                return $this->json($result, 400);
+            }
 
         } catch (\Exception $e) {
-            error_log("Admin scoring error: " . $e->getMessage());
+            error_log("Admin scoring submission error: " . $e->getMessage());
             return $this->json([
                 'success' => false,
-                'message' => 'Failed to save score: ' . $e->getMessage()
+                'message' => 'Failed to submit scores: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -678,5 +734,278 @@ class ScoringController extends BaseController
             ]);
         }
         exit;
+    }
+
+    // ========================================
+    // Dual Judging System Helper Methods
+    // ========================================
+
+    /**
+     * Get or create a scoring session that supports dual judging modes
+     */
+    private function getOrCreateDualModeScoringSession($competitionId, $categoryId, $judgingMode)
+    {
+        try {
+            // Look for existing session with matching judging mode
+            $query = "SELECT * FROM live_scoring_sessions
+                      WHERE competition_id = ? AND category_id = ? AND judging_mode = ? AND status = 'active'
+                      ORDER BY created_at DESC LIMIT 1";
+
+            $existingSession = $this->db->query($query, [$competitionId, $categoryId, $judgingMode]);
+
+            if (!empty($existingSession)) {
+                return $existingSession[0];
+            }
+
+            // Create new session with judging mode
+            $sessionData = [
+                'name' => "Auto-generated {$judgingMode} session - " . date('Y-m-d H:i:s'),
+                'competition_id' => $competitionId,
+                'category_id' => $categoryId,
+                'judging_mode' => $judgingMode,
+                'status' => 'active',
+                'start_time' => date('Y-m-d H:i:s'),
+                'max_presentation_time_minutes' => $judgingMode === 'presentation' ? 10 : null,
+                'max_gameplay_runs' => $judgingMode === 'gameplay' ? 3 : null,
+                'auto_select_fastest_run' => $judgingMode === 'gameplay' ? 1 : 0,
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+
+            $sessionId = LiveScoringSession::create($sessionData);
+
+            return $this->db->query("SELECT * FROM live_scoring_sessions WHERE id = ?", [$sessionId])[0];
+
+        } catch (\Exception $e) {
+            error_log("Error creating dual mode scoring session: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
+    /**
+     * Get existing scores for a team filtered by judging mode
+     */
+    private function getExistingScoresForTeamAndMode($teamId, $competitionId, $judgingMode)
+    {
+        try {
+            $query = "SELECT s.*, u.name as judge_name
+                      FROM scores s
+                      LEFT JOIN users u ON s.judge_id = u.id
+                      WHERE s.team_id = ? AND s.competition_id = ? AND s.judging_mode = ?
+                      ORDER BY s.created_at DESC";
+
+            return $this->db->query($query, [$teamId, $competitionId, $judgingMode]);
+        } catch (\Exception $e) {
+            error_log("Error getting existing scores: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Get gameplay runs for a team and session
+     */
+    private function getGameplayRuns($teamId, $sessionId)
+    {
+        try {
+            $query = "SELECT * FROM gameplay_runs
+                      WHERE team_id = ? AND session_id = ?
+                      ORDER BY run_number ASC";
+
+            return $this->db->query($query, [$teamId, $sessionId]);
+        } catch (\Exception $e) {
+            error_log("Error getting gameplay runs: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Store presentation scores
+     */
+    private function storePresentationScores($judgeId, $teamId, $competitionId, $scoringData, $input)
+    {
+        try {
+            // Extract presentation scoring data
+            $presentationScores = $scoringData['presentation_scores'] ?? [];
+            $totalScore = $scoringData['total_score'] ?? 0;
+            $presentationDuration = $scoringData['presentation_duration_minutes'] ?? 0;
+            $sectionNotes = $scoringData['section_notes'] ?? [];
+
+            // Create main score record with dual judging extensions
+            $scoreData = [
+                'judge_id' => $judgeId,
+                'team_id' => $teamId,
+                'competition_id' => $competitionId,
+                'judging_mode' => 'presentation',
+                'total_score' => $totalScore,
+                'presentation_breakdown' => json_encode($presentationScores),
+                'presentation_duration_minutes' => $presentationDuration,
+                'problem_research_score' => $presentationScores['problem_research'] ?? 0,
+                'robot_presentation_score' => $presentationScores['robot_presentation'] ?? 0,
+                'model_presentation_score' => $presentationScores['model_presentation'] ?? 0,
+                'communication_skills_score' => $presentationScores['communication_skills'] ?? 0,
+                'teamwork_collaboration_score' => $presentationScores['teamwork_collaboration'] ?? 0,
+                'judge_notes' => json_encode($sectionNotes),
+                'scoring_status' => 'completed',
+                'device_info' => json_encode(['interface' => 'presentation', 'browser' => 'admin']),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+
+            $scoreId = Score::create($scoreData);
+
+            return ['success' => true, 'score_id' => $scoreId];
+
+        } catch (\Exception $e) {
+            error_log("Error storing presentation scores: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Failed to store presentation scores: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Store gameplay results including runs data
+     */
+    private function storeGameplayResults($judgeId, $teamId, $competitionId, $scoringData, $input)
+    {
+        try {
+            $runsData = $scoringData['runs_data'] ?? [];
+            $bestRunNumber = $scoringData['best_run_number'] ?? null;
+            $bestRunTime = $scoringData['best_run_time_seconds'] ?? null;
+            $finalScore = $scoringData['final_score'] ?? 0;
+            $technicalNotes = $input['technical_notes'] ?? '';
+
+            // Get session ID
+            $sessionId = $input['session_id'] ?? null;
+            if (!$sessionId) {
+                // Try to find or create session
+                $session = $this->getOrCreateDualModeScoringSession($competitionId, null, 'gameplay');
+                $sessionId = $session['id'];
+            }
+
+            // Store individual gameplay runs
+            $bestRunId = null;
+            foreach ($runsData as $runNumber => $runData) {
+                if ($runData['status'] === 'completed') {
+                    $runRecord = [
+                        'team_id' => $teamId,
+                        'session_id' => $sessionId,
+                        'judge_id' => $judgeId,
+                        'run_number' => $runNumber,
+                        'start_time' => date('Y-m-d H:i:s'),
+                        'end_time' => date('Y-m-d H:i:s'),
+                        'completion_time_seconds' => floor($runData['time'] / 1000),
+                        'run_status' => 'completed',
+                        'mission_completion_data' => json_encode($runData['missions']),
+                        'is_fastest_run' => ($runNumber == $bestRunNumber) ? 1 : 0,
+                        'mission_score' => $runData['score'],
+                        'total_run_score' => $runData['score'],
+                        'created_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s')
+                    ];
+
+                    $runId = $this->db->insert('gameplay_runs', $runRecord);
+
+                    if ($runNumber == $bestRunNumber) {
+                        $bestRunId = $runId;
+                    }
+                }
+            }
+
+            // Create main score record
+            $scoreData = [
+                'judge_id' => $judgeId,
+                'team_id' => $teamId,
+                'competition_id' => $competitionId,
+                'judging_mode' => 'gameplay',
+                'total_score' => $finalScore,
+                'gameplay_breakdown' => json_encode($runsData),
+                'best_gameplay_run_id' => $bestRunId,
+                'fastest_run_time_seconds' => $bestRunTime,
+                'mission_completion_percentage' => $this->calculateMissionCompletionPercentage($runsData, $bestRunNumber),
+                'judge_notes' => $technicalNotes,
+                'scoring_status' => 'completed',
+                'device_info' => json_encode(['interface' => 'gameplay', 'browser' => 'admin']),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+
+            $scoreId = Score::create($scoreData);
+
+            return ['success' => true, 'score_id' => $scoreId];
+
+        } catch (\Exception $e) {
+            error_log("Error storing gameplay results: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Failed to store gameplay results: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Store hybrid scores (both presentation and gameplay)
+     */
+    private function storeHybridScores($judgeId, $teamId, $competitionId, $scoringData, $input)
+    {
+        try {
+            // This is a placeholder for hybrid scoring
+            // Could store both presentation and gameplay data in separate score records
+            // or combine them into a single record with both breakdowns
+
+            $totalScore = $scoringData['total_score'] ?? 0;
+
+            $scoreData = [
+                'judge_id' => $judgeId,
+                'team_id' => $teamId,
+                'competition_id' => $competitionId,
+                'judging_mode' => 'hybrid',
+                'total_score' => $totalScore,
+                'presentation_breakdown' => json_encode($scoringData['presentation_data'] ?? []),
+                'gameplay_breakdown' => json_encode($scoringData['gameplay_data'] ?? []),
+                'judge_notes' => $input['notes'] ?? '',
+                'scoring_status' => 'completed',
+                'device_info' => json_encode(['interface' => 'hybrid', 'browser' => 'admin']),
+                'created_at' => date('Y-m-d H:i:s'),
+                'updated_at' => date('Y-m-d H:i:s')
+            ];
+
+            $scoreId = Score::create($scoreData);
+
+            return ['success' => true, 'score_id' => $scoreId];
+
+        } catch (\Exception $e) {
+            error_log("Error storing hybrid scores: " . $e->getMessage());
+            return ['success' => false, 'message' => 'Failed to store hybrid scores: ' . $e->getMessage()];
+        }
+    }
+
+    /**
+     * Calculate mission completion percentage for gameplay judging
+     */
+    private function calculateMissionCompletionPercentage($runsData, $bestRunNumber)
+    {
+        if (!$bestRunNumber || !isset($runsData[$bestRunNumber])) {
+            return 0;
+        }
+
+        $bestRun = $runsData[$bestRunNumber];
+        $missions = $bestRun['missions'] ?? [];
+
+        $totalMissions = count($missions);
+        $completedMissions = count(array_filter($missions, function($points) {
+            return $points > 0;
+        }));
+
+        return $totalMissions > 0 ? round(($completedMissions / $totalMissions) * 100, 2) : 0;
+    }
+
+    /**
+     * Generate hybrid interface (placeholder)
+     */
+    private function generateHybridInterface($categoryId)
+    {
+        // For now, return a simple combined interface
+        // This could be expanded to show both presentation and gameplay interfaces
+        return [
+            'html' => '<div class="hybrid-interface"><p>Hybrid judging interface coming soon...</p></div>',
+            'javascript' => '// Hybrid interface JS',
+            'css' => '// Hybrid interface CSS'
+        ];
     }
 }

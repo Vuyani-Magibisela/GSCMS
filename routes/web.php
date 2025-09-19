@@ -701,6 +701,16 @@ $router->group(['middleware' => 'auth'], function($router) {
         
         // Competition Setup Management
         $router->get('/competition-setup', 'CompetitionSetupController@index', 'admin.competition.setup');
+
+        // Test route to verify admin authentication works
+        $router->get('/test-admin', function() {
+            return "Admin authentication test successful! Current user: " . ($_SESSION['user_id'] ?? 'none');
+        }, 'admin.test');
+
+        // Test route specifically for competitions/create debugging
+        $router->get('/test-create', function() {
+            return "Test create route works! This means routing is OK.";
+        }, 'admin.test.create');
         $router->get('/competition-setup/configure-pilot', 'CompetitionSetupController@configurePilotCompetition', 'admin.competition.setup.pilot');
         $router->post('/competition-setup/configure-pilot', 'CompetitionSetupController@configurePilotCompetition', 'admin.competition.setup.pilot.save');
         $router->get('/competition-setup/configure-full', 'CompetitionSetupController@configureFullCompetition', 'admin.competition.setup.full');
@@ -883,10 +893,23 @@ $router->group(['middleware' => 'auth'], function($router) {
             $router->post('/settings/notifications', 'RegistrationAdmin\\RegistrationSettingsController@updateNotifications', 'admin.registration.settings.notifications');
         });
         
-        // Competition scoring interface for admins
+        // Competition scoring interface for admins (dual judging system)
         $router->get('/scoring', 'ScoringController@index', 'admin.scoring');
         $router->get('/scoring/{competitionId}/{teamId}', 'ScoringController@show', 'admin.scoring.show');
+        $router->get('/scoring/{competitionId}/{teamId}/presentation', function($competitionId, $teamId) use ($router) {
+            $_GET['mode'] = 'presentation';
+            return (new App\Controllers\Admin\ScoringController())->show($competitionId, $teamId, 'presentation');
+        }, 'admin.scoring.presentation');
+        $router->get('/scoring/{competitionId}/{teamId}/gameplay', function($competitionId, $teamId) use ($router) {
+            $_GET['mode'] = 'gameplay';
+            return (new App\Controllers\Admin\ScoringController())->show($competitionId, $teamId, 'gameplay');
+        }, 'admin.scoring.gameplay');
+        $router->get('/scoring/{competitionId}/{teamId}/hybrid', function($competitionId, $teamId) use ($router) {
+            $_GET['mode'] = 'hybrid';
+            return (new App\Controllers\Admin\ScoringController())->show($competitionId, $teamId, 'hybrid');
+        }, 'admin.scoring.hybrid');
         $router->post('/scoring', 'ScoringController@store', 'admin.scoring.store');
+        $router->post('/scoring/submit', 'ScoringController@store', 'admin.scoring.submit');
         $router->put('/scoring/{id}', 'ScoringController@update', 'admin.scoring.update');
 
         // Judge assignment API endpoints
@@ -911,10 +934,10 @@ $router->group(['middleware' => 'auth'], function($router) {
         $router->get('/competitions', 'CompetitionController@index', 'admin.competitions');
         $router->get('/competitions/create', 'CompetitionController@create', 'admin.competitions.create');
         $router->post('/competitions', 'CompetitionController@store', 'admin.competitions.store');
-        $router->get('/competitions/{id}', 'CompetitionController@show', 'admin.competitions.show');
         $router->get('/competitions/{id}/edit', 'CompetitionController@edit', 'admin.competitions.edit');
         $router->put('/competitions/{id}', 'CompetitionController@update', 'admin.competitions.update');
         $router->delete('/competitions/{id}', 'CompetitionController@destroy', 'admin.competitions.destroy');
+        $router->get('/competitions/{id}', 'CompetitionController@show', 'admin.competitions.show');
         
         // Judge management
         $router->get('/judges', 'JudgeController@index', 'admin.judges');

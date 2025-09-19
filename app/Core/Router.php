@@ -12,7 +12,7 @@ class Router
     private $groupStack = [];
     private $namedRoutes = [];
     private $currentRoute = null;
-    
+
     /**
      * Add GET route
      */
@@ -114,7 +114,7 @@ class Router
     public function dispatch($uri, $method)
     {
         $route = $this->findRoute($uri, $method);
-        
+
         if (!$route) {
             throw new Exception("Route not found: {$method} {$uri}", 404);
         }
@@ -224,17 +224,18 @@ class Router
     {
         foreach ($this->routes as $route) {
             if (in_array($method, $route['methods']) && $this->uriMatches($route, $uri)) {
+                // uriMatches modifies $route by reference, so return the modified route
                 return $route;
             }
         }
-        
+
         return null;
     }
     
     /**
      * Check if URI matches route pattern
      */
-    private function uriMatches($route, $uri)
+    private function uriMatches(&$route, $uri)
     {
         $pattern = preg_replace('/\{([^}?]+)\??\}/', '([^/]*)', $route['uri']);
         $pattern = '/^' . str_replace('/', '\/', $pattern) . '$/';
@@ -348,8 +349,9 @@ class Router
         $action = $route['action'];
         
         if (is_callable($action)) {
-            // Closure action
-            return call_user_func_array($action, [$request, $response]);
+            // Closure action - pass route parameters as arguments
+            $parameters = array_values($route['parameters']);
+            return call_user_func_array($action, $parameters);
         } elseif (is_string($action) && strpos($action, '@') !== false) {
             // Controller@method action
             [$controller, $method] = explode('@', $action);
@@ -364,11 +366,38 @@ class Router
                 throw new Exception("Method [{$method}] not found in controller [{$controller}]");
             }
             
-            // Pass route parameters as method arguments
-            $parameters = array_values($route['parameters']);
-            array_unshift($parameters, $request, $response);
-            
-            return call_user_func_array([$controllerInstance, $method], $parameters);
+            // Check method signature to determine parameters
+            $reflection = new \ReflectionMethod($controllerInstance, $method);
+            $methodParams = $reflection->getParameters();
+            $paramCount = count($methodParams);
+
+            $args = [];
+
+            // If method has 2 or more parameters and the first two look like Request/Response
+            if ($paramCount >= 2) {
+                $firstParam = $methodParams[0];
+                $secondParam = $methodParams[1];
+
+                // Check if first parameter name suggests Request (common patterns)
+                if ($firstParam->getName() === 'request' ||
+                    ($firstParam->getType() && strpos($firstParam->getType()->getName(), 'Request') !== false)) {
+                    // This looks like a Request/Response pattern
+                    $args[] = $request;
+                    $args[] = $response;
+
+                    // Add route parameters after Request/Response
+                    $routeParams = array_values($route['parameters']);
+                    $args = array_merge($args, $routeParams);
+                } else {
+                    // First parameter doesn't look like Request, treat as route parameters
+                    $args = array_values($route['parameters']);
+                }
+            } else {
+                // Method has 0-1 parameters, just pass route parameters
+                $args = array_values($route['parameters']);
+            }
+
+            return call_user_func_array([$controllerInstance, $method], $args);
         }
         
         throw new Exception("Invalid route action");
